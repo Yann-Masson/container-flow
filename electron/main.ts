@@ -122,8 +122,7 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('update-available', async (info) => {
-        log(`✅ Update available: ${info.version}`);
-        log(`Release notes: ${info.releaseNotes}`);
+        log(`Update available: ${info.version}`);
 
         const response = await dialog.showMessageBox(win!, {
             type: 'info',
@@ -136,26 +135,26 @@ function setupAutoUpdater() {
         });
 
         if (response.response === 0) {
-            log('✅ User accepted download');
+            log('User accepted download');
             autoUpdater.downloadUpdate().then();
         } else {
-            log('❌ User declined download');
+            log('User declined download');
         }
     });
 
     autoUpdater.on('update-not-available', (info) => {
-        log(`❌ No update available. Current version: ${info.version}`);
+        log(`No update available. Current version: ${info.version}`);
     });
 
     autoUpdater.on('error', (err) => {
-        log(`❌ ERROR during update: ${err.message}`);
+        log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
         dialog.showErrorBox('Update error',
             `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-        const logMessage = `📥 Downloading: ${Math.round(progressObj.percent)}% - ${Math.round(progressObj.bytesPerSecond / 1024)} KB/s`;
+        const logMessage = `Downloading: ${Math.round(progressObj.percent)}% - ${Math.round(progressObj.bytesPerSecond / 1024)} KB/s`;
         log(logMessage);
         if (win) {
             win.setTitle(`Container Flow - Downloading ${Math.round(progressObj.percent)}%`);
@@ -164,7 +163,7 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('update-downloaded', async (info) => {
-        log(`✅ Update downloaded: ${info.version}`);
+        log(`Update downloaded: ${info.version}`);
         if (win) {
             win.setTitle('Container Flow');
         }
@@ -188,7 +187,7 @@ function setupAutoUpdater() {
 
     log('🚀 Starting update check...');
     autoUpdater.checkForUpdatesAndNotify().catch(err => {
-        log(`❌ Error during checkForUpdatesAndNotify: ${err.message}`);
+        log(`Error during checkForUpdatesAndNotify: ${err.message}`);
         log(`Stack: ${err.stack}`);
     });
 }
