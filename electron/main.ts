@@ -1,8 +1,9 @@
-import {app, BrowserWindow, dialog, Menu, shell} from 'electron';
-import electronUpdater, {type AppUpdater} from 'electron-updater';
-import {fileURLToPath} from 'node:url';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
+import electronUpdater, { type AppUpdater } from 'electron-updater';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
+import services from './services';
 
 // import { createRequire } from 'node:module'*
 
@@ -103,7 +104,7 @@ function createWindow() {
 export function getAutoUpdater(): AppUpdater {
     // Using destructuring to access autoUpdater due to the CommonJS module of 'electron-updater'.
     // It is a workaround for ESM compatibility issues, see https://github.com/electron-userland/electron-builder/issues/7976.
-    const {autoUpdater} = electronUpdater;
+    const { autoUpdater } = electronUpdater;
     return autoUpdater;
 }
 
@@ -150,7 +151,7 @@ function setupAutoUpdater() {
         log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
         dialog.showErrorBox('Update error',
-            `An error occurred while checking for updates:\n\n${err.message}`);
+                `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
@@ -208,4 +209,99 @@ app.on('activate', () => {
     }
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+    try {
+        setupIpcHandlers();
+        log('IPC handlers initialized successfully');
+    } catch (error) {
+        log(`Error initializing IPC handlers: ${error}`);
+        console.error('Error initializing IPC handlers:', error);
+    }
+});
+
+function setupIpcHandlers() {
+    try {
+        // Docker connection handlers
+        ipcMain.handle('docker:connection:connect', async (_, config) => {
+            try {
+                return services.docker.connection.tryToConnect(config);
+            } catch (error) {
+                log(`Error in docker:connection:connect: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:connection:isConnected', async () => {
+            try {
+                return services.docker.connection.isConnected();
+            } catch (error) {
+                log(`Error in docker:connection:isConnected: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:connection:disconnect', async () => {
+            try {
+                // Vous devrez peut-être implémenter cette méthode dans vos services
+                // Pour l'instant, on peut retourner true
+                return true;
+            } catch (error) {
+                log(`Error in docker:connection:disconnect: ${error}`);
+                throw error;
+            }
+        });
+
+        // Docker containers handlers
+        ipcMain.handle('docker:containers:list', async () => {
+            try {
+                return services.docker.containers.list();
+            } catch (error) {
+                log(`Error in docker:containers:list: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:containers:get', async (_, id) => {
+            try {
+                return services.docker.containers.getById(id);
+            } catch (error) {
+                log(`Error in docker:containers:get: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:containers:create', async (_, config) => {
+            try {
+                return services.docker.containers.create(config);
+            } catch (error) {
+                log(`Error in docker:containers:create: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:containers:start', async (_, id) => {
+            try {
+                return services.docker.containers.start(id);
+            } catch (error) {
+                log(`Error in docker:containers:start: ${error}`);
+                throw error;
+            }
+        });
+
+        // Docker images handlers
+        ipcMain.handle('docker:images:pull', async (_, image) => {
+            try {
+                return services.docker.image.pull(image);
+            } catch (error) {
+                log(`Error in docker:images:pull: ${error}`);
+                throw error;
+            }
+        });
+
+        log('All IPC handlers registered successfully');
+    } catch (error) {
+        log(`Error setting up IPC handlers: ${error}`);
+        throw error;
+    }
+}
