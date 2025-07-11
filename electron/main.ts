@@ -1,7 +1,8 @@
-import {app, BrowserWindow} from 'electron';
+import {app, BrowserWindow, Menu, shell} from 'electron';
 import electronUpdater, {type AppUpdater} from 'electron-updater';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import fs from 'node:fs';
 
 // import { createRequire } from 'node:module'*
 
@@ -28,6 +29,24 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null;
 
+// Configuration des logs
+const logPath = path.join(app.getPath('userData'), 'updater.log');
+
+function log(message: string) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${message}\n`;
+
+    // Log dans la console
+    console.log(message);
+
+    // Log dans un fichier
+    try {
+        fs.appendFileSync(logPath, logMessage);
+    } catch (error) {
+        console.error('Erreur lors de l\'écriture du log:', error);
+    }
+}
+
 function createWindow() {
     win = new BrowserWindow({
         icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
@@ -35,6 +54,35 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.mjs'),
         },
     });
+
+    // Créer un menu pour accéder aux logs
+    const menu = Menu.buildFromTemplate([
+        {
+            label: 'Debug',
+            submenu: [
+                {
+                    label: 'Ouvrir le fichier de log',
+                    click: () => {
+                        shell.showItemInFolder(logPath);
+                    }
+                },
+                {
+                    label: 'Forcer la vérification des mises à jour',
+                    click: () => {
+                        log('🔄 Vérification forcée des mises à jour...');
+                        setupAutoUpdater();
+                    }
+                },
+                {
+                    label: 'Ouvrir DevTools',
+                    click: () => {
+                        win?.webContents.openDevTools();
+                    }
+                }
+            ]
+        }
+    ]);
+    Menu.setApplicationMenu(menu);
 
     // Test active push message to Renderer-process.
     win.webContents.on('did-finish-load', () => {
@@ -46,10 +94,12 @@ function createWindow() {
     } else {
         // win.loadFile('dist/index.html')
         win.loadFile(path.join(RENDERER_DIST, 'index.html'));
-    }
 
-    if (!VITE_DEV_SERVER_URL) {
-        setupAutoUpdater();
+        // Démarrer l'auto-updater avec un délai pour s'assurer que l'app est bien chargée
+        setTimeout(() => {
+            log('Démarrage de l\'auto-updater...');
+            setupAutoUpdater();
+        }, 2000);
     }
 }
 
@@ -63,40 +113,50 @@ export function getAutoUpdater(): AppUpdater {
 function setupAutoUpdater() {
     const autoUpdater = getAutoUpdater();
 
+    log('Configuration de l\'auto-updater...');
+    log(`Version actuelle: ${app.getVersion()}`);
+    log(`Fichier de log: ${logPath}`);
+
+    // Configuration
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
 
+    // Logs pour toutes les étapes
     autoUpdater.on('checking-for-update', () => {
-        console.log('Checking for updates...');
+        log('🔍 Vérification des mises à jour...');
     });
 
     autoUpdater.on('update-available', (info) => {
-        console.log('Update available:', info.version);
-        autoUpdater.downloadUpdate().then();
+        log(`✅ Mise à jour disponible: ${info.version}`);
+        log(`Release notes: ${info.releaseNotes}`);
+        autoUpdater.downloadUpdate();
     });
 
     autoUpdater.on('update-not-available', (info) => {
-        console.log('No update available:', info.version);
+        log(`❌ Aucune mise à jour disponible. Version actuelle: ${info.version}`);
     });
 
     autoUpdater.on('error', (err) => {
-        console.error('Error during update:', err);
+        log(`❌ ERREUR lors de la mise à jour: ${err.message}`);
+        log(`Stack trace: ${err.stack}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-        let log_message = "Download speed: " + progressObj.bytesPerSecond;
-        log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-        log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-        console.log(log_message);
+        const logMessage = `📥 Téléchargement: ${Math.round(progressObj.percent)}% - ${Math.round(progressObj.bytesPerSecond / 1024)} KB/s`;
+        log(logMessage);
     });
 
     autoUpdater.on('update-downloaded', (info) => {
-        console.log('Update downloaded:', info.version);
+        log(`✅ Mise à jour téléchargée: ${info.version}`);
+        log('🔄 Redémarrage pour installer...');
         autoUpdater.quitAndInstall();
     });
 
+    // Démarrer la vérification
+    log('🚀 Lancement de la vérification des mises à jour...');
     autoUpdater.checkForUpdatesAndNotify().catch(err => {
-        console.error('Error while checking for updates:', err);
+        log(`❌ Erreur lors du checkForUpdatesAndNotify: ${err.message}`);
+        log(`Stack: ${err.stack}`);
     });
 }
 
