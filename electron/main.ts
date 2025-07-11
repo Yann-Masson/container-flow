@@ -22,7 +22,7 @@ process.env.APP_ROOT = path.join(__dirname, '..');
 
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
-export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
+// export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST;
@@ -137,7 +137,7 @@ function setupAutoUpdater() {
 
         if (response.response === 0) {
             log('✅ User accepted download');
-            autoUpdater.downloadUpdate();
+            autoUpdater.downloadUpdate().then();
         } else {
             log('❌ User declined download');
         }
@@ -159,6 +159,7 @@ function setupAutoUpdater() {
         log(logMessage);
         if (win) {
             win.setTitle(`Container Flow - Downloading ${Math.round(progressObj.percent)}%`);
+            win.setProgressBar(progressObj.percent / 100);
         }
     });
 
@@ -179,7 +180,7 @@ function setupAutoUpdater() {
 
         if (response.response === 0) {
             log('🔄 Restarting to install...');
-            autoUpdater.quitAndInstall();
+            autoUpdater.quitAndInstall(true, true);
         } else {
             log('⏳ Restart postponed, installation on next launch');
         }
