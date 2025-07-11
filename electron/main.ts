@@ -1,4 +1,4 @@
-import {app, BrowserWindow, Menu, shell} from 'electron';
+import {app, BrowserWindow, dialog, Menu, shell} from 'electron';
 import electronUpdater, {type AppUpdater} from 'electron-updater';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -36,14 +36,14 @@ function log(message: string) {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] ${message}\n`;
 
-    // Log dans la console
+    // Log to console
     console.log(message);
 
-    // Log dans un fichier
+    // Log to file
     try {
         fs.appendFileSync(logPath, logMessage);
     } catch (error) {
-        console.error('Erreur lors de l\'écriture du log:', error);
+        console.error('Error writing log:', error);
     }
 }
 
@@ -55,26 +55,26 @@ function createWindow() {
         },
     });
 
-    // Créer un menu pour accéder aux logs
+    // Create a menu for accessing logs
     const menu = Menu.buildFromTemplate([
         {
             label: 'Debug',
             submenu: [
                 {
-                    label: 'Ouvrir le fichier de log',
+                    label: 'Open log file',
                     click: () => {
                         shell.showItemInFolder(logPath);
                     }
                 },
                 {
-                    label: 'Forcer la vérification des mises à jour',
+                    label: 'Force update check',
                     click: () => {
-                        log('🔄 Vérification forcée des mises à jour...');
+                        log('🔄 Forced update check...');
                         setupAutoUpdater();
                     }
                 },
                 {
-                    label: 'Ouvrir DevTools',
+                    label: 'Open DevTools',
                     click: () => {
                         win?.webContents.openDevTools();
                     }
@@ -92,12 +92,9 @@ function createWindow() {
     if (VITE_DEV_SERVER_URL) {
         win.loadURL(VITE_DEV_SERVER_URL);
     } else {
-        // win.loadFile('dist/index.html')
         win.loadFile(path.join(RENDERER_DIST, 'index.html'));
-
-        // Démarrer l'auto-updater avec un délai pour s'assurer que l'app est bien chargée
         setTimeout(() => {
-            log('Démarrage de l\'auto-updater...');
+            log('Starting auto-updater...');
             setupAutoUpdater();
         }, 2000);
     }
@@ -113,49 +110,84 @@ export function getAutoUpdater(): AppUpdater {
 function setupAutoUpdater() {
     const autoUpdater = getAutoUpdater();
 
-    log('Configuration de l\'auto-updater...');
-    log(`Version actuelle: ${app.getVersion()}`);
-    log(`Fichier de log: ${logPath}`);
+    log('Configuring auto-updater...');
+    log(`Current version: ${app.getVersion()}`);
+    log(`Log file: ${logPath}`);
 
-    // Configuration
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
 
-    // Logs pour toutes les étapes
     autoUpdater.on('checking-for-update', () => {
-        log('🔍 Vérification des mises à jour...');
+        log('🔍 Checking for updates...');
     });
 
-    autoUpdater.on('update-available', (info) => {
-        log(`✅ Mise à jour disponible: ${info.version}`);
+    autoUpdater.on('update-available', async (info) => {
+        log(`✅ Update available: ${info.version}`);
         log(`Release notes: ${info.releaseNotes}`);
-        autoUpdater.downloadUpdate();
+
+        const response = await dialog.showMessageBox(win!, {
+            type: 'info',
+            title: 'Update available',
+            message: `A new version (${info.version}) is available!`,
+            detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nDo you want to download and install the update now?`,
+            buttons: ['Download now', 'Later'],
+            defaultId: 0,
+            cancelId: 1
+        });
+
+        if (response.response === 0) {
+            log('✅ User accepted download');
+            autoUpdater.downloadUpdate();
+        } else {
+            log('❌ User declined download');
+        }
     });
 
     autoUpdater.on('update-not-available', (info) => {
-        log(`❌ Aucune mise à jour disponible. Version actuelle: ${info.version}`);
+        log(`❌ No update available. Current version: ${info.version}`);
     });
 
     autoUpdater.on('error', (err) => {
-        log(`❌ ERREUR lors de la mise à jour: ${err.message}`);
+        log(`❌ ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
+        dialog.showErrorBox('Update error',
+            `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-        const logMessage = `📥 Téléchargement: ${Math.round(progressObj.percent)}% - ${Math.round(progressObj.bytesPerSecond / 1024)} KB/s`;
+        const logMessage = `📥 Downloading: ${Math.round(progressObj.percent)}% - ${Math.round(progressObj.bytesPerSecond / 1024)} KB/s`;
         log(logMessage);
+        if (win) {
+            win.setTitle(`Container Flow - Downloading ${Math.round(progressObj.percent)}%`);
+        }
     });
 
-    autoUpdater.on('update-downloaded', (info) => {
-        log(`✅ Mise à jour téléchargée: ${info.version}`);
-        log('🔄 Redémarrage pour installer...');
-        autoUpdater.quitAndInstall();
+    autoUpdater.on('update-downloaded', async (info) => {
+        log(`✅ Update downloaded: ${info.version}`);
+        if (win) {
+            win.setTitle('Container Flow');
+        }
+        const response = await dialog.showMessageBox(win!, {
+            type: 'info',
+            title: 'Update ready',
+            message: 'The update was downloaded successfully!',
+            detail: `The new version (${info.version}) is ready to be installed.\n\nDo you want to restart the application now to apply the update?`,
+            buttons: ['Restart now', 'Restart later'],
+            defaultId: 0,
+            cancelId: 1
+        });
+
+        if (response.response === 0) {
+            log('🔄 Restarting to install...');
+            autoUpdater.quitAndInstall();
+        } else {
+            log('⏳ Restart postponed, installation on next launch');
+        }
     });
 
-    // Démarrer la vérification
-    log('🚀 Lancement de la vérification des mises à jour...');
+    log('🚀 Starting update check...');
     autoUpdater.checkForUpdatesAndNotify().catch(err => {
-        log(`❌ Erreur lors du checkForUpdatesAndNotify: ${err.message}`);
+        log(`❌ Error during checkForUpdatesAndNotify: ${err.message}`);
         log(`Stack: ${err.stack}`);
     });
 }
