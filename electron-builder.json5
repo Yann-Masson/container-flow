@@ -2,7 +2,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.container-flow.app",
-  "asar": true,
   "productName": "Container Flow",
   "directories": {
     "output": "release/${version}"
@@ -13,7 +12,8 @@
   ],
   "mac": {
     "target": [
-      "dmg"
+      "dmg",
+      "zip"
     ],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },

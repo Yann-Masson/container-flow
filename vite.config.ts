@@ -3,9 +3,17 @@ import path from 'node:path';
 import electron from 'vite-plugin-electron/simple';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from "node:url";
+
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    define: {
+        'import.meta.env.PACKAGE_VERSION': JSON.stringify(packageJson.version),
+    },
     plugins: [
         react(),
         tailwindcss(),
@@ -15,16 +23,25 @@ export default defineConfig({
                 entry: 'electron/main.ts',
                 vite: {
                     build: {
+                        lib: {
+                            entry: 'electron/main.ts',
+                            formats: ['es'],
+                            fileName: () => 'main.js'
+                        },
                         rollupOptions: {
                             external: [
-                                'ssh2',
-                                'dockerode',
+                                'electron',
                                 'cpu-features',
                                 'bcrypt',
                                 'kerberos',
                                 'libsodium-wrappers'
                             ]
-                        }
+                        },
+                        minify: false
+                    },
+                    define: {
+                        '__dirname': 'import.meta.dirname',
+                        '__filename': 'import.meta.filename'
                     }
                 }
             },
@@ -34,16 +51,21 @@ export default defineConfig({
                 input: path.join(__dirname, 'electron/preload.ts'),
                 vite: {
                     build: {
+                        lib: {
+                            entry: 'electron/preload.ts',
+                            formats: ['es'],
+                            fileName: () => 'preload.mjs'
+                        },
                         rollupOptions: {
                             external: [
-                                'ssh2',
-                                'dockerode',
+                                'electron',
                                 'cpu-features',
                                 'bcrypt',
                                 'kerberos',
                                 'libsodium-wrappers'
                             ]
-                        }
+                        },
+                        minify: false
                     }
                 }
             },
@@ -59,12 +81,12 @@ export default defineConfig({
     build: {
         rollupOptions: {
             external: [
-                'ssh2',
-                'dockerode',
                 'cpu-features',
                 'bcrypt',
                 'kerberos',
-                'libsodium-wrappers'
+                'libsodium-wrappers',
+                'ssh2',
+                'docker-modem',
             ]
         }
     }
