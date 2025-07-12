@@ -23,7 +23,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ssh2": "^1.16.0",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^4.1.11",
+    "vite-plugin-native": "^2.2.2"
   },
   "devDependencies": {
     "@types/dockerode": "^3.3.42",

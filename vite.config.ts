@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from "node:url";
+import native from 'vite-plugin-native';
 
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,11 +18,15 @@ export default defineConfig({
     plugins: [
         react(),
         tailwindcss(),
+        native({}),
         electron({
             main: {
                 // Shortcut of `build.lib.entry`.
                 entry: 'electron/main.ts',
                 vite: {
+                    plugins: [
+                        native({})
+                    ],
                     build: {
                         lib: {
                             entry: 'electron/main.ts',
@@ -50,6 +55,9 @@ export default defineConfig({
                 // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
                 input: path.join(__dirname, 'electron/preload.ts'),
                 vite: {
+                    plugins: [
+                        native({})
+                    ],
                     build: {
                         lib: {
                             entry: 'electron/preload.ts',
@@ -85,8 +93,6 @@ export default defineConfig({
                 'bcrypt',
                 'kerberos',
                 'libsodium-wrappers',
-                'ssh2',
-                'docker-modem',
             ]
         }
     }
