@@ -25,7 +25,10 @@ export default defineConfig({
                 entry: 'electron/main.ts',
                 vite: {
                     plugins: [
-                        native({})
+                        native({
+                            forceCopyIfUnbuilt: true,
+                            webpack: {}
+                        })
                     ],
                     build: {
                         lib: {
@@ -56,7 +59,10 @@ export default defineConfig({
                 input: path.join(__dirname, 'electron/preload.ts'),
                 vite: {
                     plugins: [
-                        native({})
+                        native({
+                            forceCopyIfUnbuilt: true,
+                            webpack: {}
+                        })
                     ],
                     build: {
                         lib: {
