@@ -7,9 +7,6 @@ on:
 
 jobs:
   build-macos:
-    strategy:
-      matrix:
-        arch: [ arm64, x64 ]
     runs-on: macos-latest
     env:
       NODE_ENV: production
@@ -33,10 +30,10 @@ jobs:
       - name: Build React App
         run: pnpm build
 
-      - name: Build Electron App for macOS (${{ matrix.arch }})
-        run: pnpm exec electron-builder --mac --${{ matrix.arch }} --publish always
+      - name: Build Electron App for macOS
+        run: pnpm exec electron-builder --mac --universal --publish always
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   build-windows:
     runs-on: windows-latest
