@@ -4,6 +4,7 @@ import './index.css';
 import SplitText from "./components/ui/SplitText.tsx";
 import MetaBalls from "./components/ui/MetaBalls.tsx";
 import BlurText from "./components/ui/BlurText.tsx";
+import { getAppVersion } from "./utils/version.ts";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
         <React.StrictMode>
@@ -42,6 +43,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         direction="top"
                         className="mx-16"
                 />
+
+                <p className='text-sm text-gray-400 bg-gray-800 rounded'>v{getAppVersion()}</p>
             </div>
         </React.StrictMode>,
 );

@@ -6,9 +6,7 @@ import fs from 'node:fs';
 import services from './services';
 
 // import { createRequire } from 'node:module'*
-
-// const require = createRequire(import.meta.url)
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = import.meta.dirname || path.dirname(fileURLToPath(import.meta.url));
 
 // The built directory structure
 //
