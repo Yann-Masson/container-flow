@@ -4,7 +4,7 @@ interface ElectronAPI {
     docker: {
         connection: {
             connect: (
-                config: import('../../src/docker/docker-client.ts').SSHConfig,
+                    config: import('../../src/docker/docker-client.ts').SSHConfig,
             ) => Promise<void>;
             isConnected: () => Promise<boolean>;
             disconnect: () => Promise<void>;
@@ -18,12 +18,18 @@ interface ElectronAPI {
             remove: (id: string, options?: { v?: boolean; force?: boolean }) => Promise<void>;
             update: (id: string, newConfig: ContainerCreateOptions, preserveVolumes?: boolean) => Promise<ContainerInspectInfo>;
             getLogs: (
-                id: string,
-                options?: ContainerLogsOptions
+                    id: string,
+                    options?: ContainerLogsOptions
             ) => Promise<string>;
         };
         images: {
             pull: (image: string) => Promise<void>;
+        };
+    };
+    preferences: {
+        ssh: {
+            get: () => Promise<{ host: string; port: string; username: string }>;
+            save: (sshPreferences: { host: string; port: string; username: string }) => Promise<void>;
         };
     };
 }
