@@ -51,6 +51,8 @@ function createWindow() {
         icon: path.join(process.env.APP_ROOT, 'assets/icons/container-flow-white-circle-1024.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.mjs'),
+            contextIsolation: true,
+            nodeIntegration: false,
         },
     });
 
@@ -149,7 +151,7 @@ function setupAutoUpdater() {
         log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
         dialog.showErrorBox('Update error',
-                `An error occurred while checking for updates:\n\n${err.message}`);
+            `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
