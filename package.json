@@ -6,6 +6,7 @@
   "description": "A React application with Electron and Vite",
   "author": "Yann Masson",
   "packageManager": "pnpm@10.13.1",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -43,6 +44,5 @@
     "vite": "^5.1.6",
     "vite-plugin-electron": "^0.28.6",
     "vite-plugin-electron-renderer": "^0.14.5"
-  },
-  "main": "dist-electron/main.js"
+  }
 }
