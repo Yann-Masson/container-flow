@@ -8,8 +8,8 @@ import { ContainerLogsOptions } from "dockerode";
  * @returns {Promise<string>} A promise that resolves with the logs
  */
 export const getLogs = async (
-    containerId: string,
-    options: ContainerLogsOptions = {}
+        containerId: string,
+        options: ContainerLogsOptions = {}
 ): Promise<string> => {
     try {
         const client = docker.client.getClient();
@@ -23,7 +23,7 @@ export const getLogs = async (
         const logOptions: ContainerLogsOptions & { follow?: false } = {
             stdout: options.stdout !== undefined ? options.stdout : true,
             stderr: options.stderr !== undefined ? options.stderr : true,
-            tail: options.tail !== undefined ? options.tail : 0,
+            ...(options.tail !== undefined && { tail: options.tail }),
             since: options.since,
             until: options.until,
             timestamps: options.timestamps !== undefined ? options.timestamps : false,
@@ -33,12 +33,9 @@ export const getLogs = async (
         const logStream = await container.logs(logOptions);
 
         return new Promise<string>((resolve) => {
-            // Handle stream data
             if (Buffer.isBuffer(logStream)) {
-                // If Docker returns a buffer instead of a stream (happens with small logs)
                 resolve(logStream.toString('utf8'));
             } else {
-                // Just return 'error' if logStream is not a buffer
                 resolve('error');
             }
         });
