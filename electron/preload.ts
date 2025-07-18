@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { SSHConfig } from "./services/docker/connection/try-to-connect.ts";
-import { ContainerCreateOptions } from "dockerode";
+import { ContainerCreateOptions, ContainerLogsOptions } from "dockerode";
+
 // Expose Docker API
 contextBridge.exposeInMainWorld('electronAPI', {
     docker: {
@@ -14,6 +15,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
             get: (id: string) => ipcRenderer.invoke('docker:containers:get', id),
             create: (config: ContainerCreateOptions) => ipcRenderer.invoke('docker:containers:create', config),
             start: (id: string) => ipcRenderer.invoke('docker:containers:start', id),
+            stop: (id: string, options?: { t?: number }) =>
+                ipcRenderer.invoke('docker:containers:stop', id, options),
+            remove: (id: string, options?: { v?: boolean; force?: boolean }) =>
+                ipcRenderer.invoke('docker:containers:remove', id, options),
+            update: (id: string, newConfig: ContainerCreateOptions, preserveVolumes?: boolean) =>
+                ipcRenderer.invoke('docker:containers:update', id, newConfig, preserveVolumes),
+            getLogs: (id: string, options?: ContainerLogsOptions) =>
+                ipcRenderer.invoke('docker:containers:getLogs', id, options),
         },
         images: {
             pull: (image: string) => ipcRenderer.invoke('docker:images:pull', image),

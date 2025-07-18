@@ -243,9 +243,7 @@ function setupIpcHandlers() {
 
         ipcMain.handle('docker:connection:disconnect', async () => {
             try {
-                // Vous devrez peut-être implémenter cette méthode dans vos services
-                // Pour l'instant, on peut retourner true
-                return true;
+                return services.docker.connection.disconnect();
             } catch (error) {
                 log(`Error in docker:connection:disconnect: ${error}`);
                 throw error;
@@ -285,6 +283,43 @@ function setupIpcHandlers() {
                 return services.docker.containers.start(id);
             } catch (error) {
                 log(`Error in docker:containers:start: ${error}`);
+                throw error;
+            }
+        });
+
+        // New container handlers
+        ipcMain.handle('docker:containers:stop', async (_, id, options) => {
+            try {
+                return services.docker.containers.stop(id, options);
+            } catch (error) {
+                log(`Error in docker:containers:stop: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:containers:remove', async (_, id, options) => {
+            try {
+                return services.docker.containers.remove(id, options);
+            } catch (error) {
+                log(`Error in docker:containers:remove: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:containers:update', async (_, id, newConfig, preserveVolumes) => {
+            try {
+                return services.docker.containers.update(id, newConfig, preserveVolumes);
+            } catch (error) {
+                log(`Error in docker:containers:update: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:containers:getLogs', async (_, id, options) => {
+            try {
+                return services.docker.containers.getLogs(id, options);
+            } catch (error) {
+                log(`Error in docker:containers:getLogs: ${error}`);
                 throw error;
             }
         });
