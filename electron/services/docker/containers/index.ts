@@ -3,6 +3,10 @@ import { getById } from './get-by-id';
 import { list } from './list';
 import { create } from './create';
 import { start } from './start';
+import { stop } from './stop';
+import { remove } from './remove';
+import { update } from './update';
+import { getLogs } from './get-logs';
 
 export default {
     getByName,
@@ -10,4 +14,8 @@ export default {
     list,
     create,
     start,
+    stop,
+    remove,
+    update,
+    getLogs,
 };
