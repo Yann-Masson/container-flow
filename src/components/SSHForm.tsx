@@ -1,9 +1,8 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { State } from "../types/state.ts";
 import { DockerClientService } from "../docker/docker-client.ts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SSHFormProps {
     setIsConnected: (state: State) => void;
@@ -23,6 +22,35 @@ export default function SSHForm(props: SSHFormProps) {
     const [password, setPassword] = useState('');
 
     const dockerClientService = new DockerClientService();
+
+    // Load saved SSH preferences on component mount
+    useEffect(() => {
+        const loadPreferences = async () => {
+            try {
+                const preferences = await window.electronAPI.preferences.ssh.get();
+                if (preferences.host) setHost(preferences.host);
+                if (preferences.port) setPort(preferences.port);
+                if (preferences.username) setUsername(preferences.username);
+            } catch (error) {
+                console.error('Failed to load SSH preferences:', error);
+            }
+        };
+
+        loadPreferences();
+    }, []);
+
+    // Save SSH preferences (excluding password)
+    const savePreferences = async () => {
+        try {
+            await window.electronAPI.preferences.ssh.save({
+                host,
+                port,
+                username
+            });
+        } catch (error) {
+            console.error('Failed to save SSH preferences:', error);
+        }
+    };
 
     // Connect to Docker via SSH
     const handleConnect = async (e: FormEvent) => {
@@ -45,6 +73,9 @@ export default function SSHForm(props: SSHFormProps) {
                 setIsConnected(State.SUCCESS);
                 setConnectionState(State.SUCCESS);
                 setMessage('Successfully connected to Docker via SSH!');
+
+                // Save preferences after successful connection
+                await savePreferences();
             } else {
                 setError('Connection error');
                 setConnectionState(State.ERROR);
@@ -58,82 +89,77 @@ export default function SSHForm(props: SSHFormProps) {
     };
 
     return (
-        <Card className="w-full max-w-md shadow-lg">
-            <CardHeader className="pb-4">
-                <CardTitle className="text-xl">Connexion SSH</CardTitle>
-                <CardDescription>Connectez-vous à votre serveur Docker distant</CardDescription>
-            </CardHeader>
+            <div className="flex w-full justify-center">
+                <form onSubmit={handleConnect} className='space-y-4 px-6 pb-6 w-2/3'>
+                    <div>
+                        <label className='block mb-1 text-sm font-medium'>Host</label>
+                        <Input
+                                type='text'
+                                value={host}
+                                onChange={(e) => setHost(e.target.value)}
+                                required
+                                placeholder='example.com or IP address'
+                                disabled={connectionState === State.LOADING}
+                                className="w-full"
+                        />
+                    </div>
 
-            <form onSubmit={handleConnect} className='space-y-4 px-6 pb-6'>
-                <div>
-                    <label className='block mb-1 text-sm font-medium'>Host</label>
-                    <Input
-                        type='text'
-                        value={host}
-                        onChange={(e) => setHost(e.target.value)}
-                        required
-                        placeholder='example.com or IP address'
-                        disabled={connectionState === State.LOADING}
-                        className="w-full"
-                    />
-                </div>
+                    <div>
+                        <label className='block mb-1 text-sm font-medium'>Port</label>
+                        <Input
+                                type='number'
+                                value={port}
+                                onChange={(e) => setPort(e.target.value)}
+                                required
+                                disabled={connectionState === State.LOADING}
+                                className="w-full"
+                        />
+                    </div>
 
-                <div>
-                    <label className='block mb-1 text-sm font-medium'>Port</label>
-                    <Input
-                        type='number'
-                        value={port}
-                        onChange={(e) => setPort(e.target.value)}
-                        required
-                        disabled={connectionState === State.LOADING}
-                        className="w-full"
-                    />
-                </div>
+                    <div>
+                        <label className='block mb-1 text-sm font-medium'>Username</label>
+                        <Input
+                                type='text'
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                                disabled={connectionState === State.LOADING}
+                                className="w-full"
+                        />
+                    </div>
 
-                <div>
-                    <label className='block mb-1 text-sm font-medium'>Username</label>
-                    <Input
-                        type='text'
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        disabled={connectionState === State.LOADING}
-                        className="w-full"
-                    />
-                </div>
+                    <div>
+                        <label className='block mb-1 text-sm font-medium'>Password</label>
+                        <Input
+                                type='password'
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                placeholder='SSH password'
+                                disabled={connectionState === State.LOADING}
+                                className="w-full"
+                        />
+                    </div>
 
-                <div>
-                    <label className='block mb-1 text-sm font-medium'>Password</label>
-                    <Input
-                        type='password'
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        placeholder='SSH password'
-                        disabled={connectionState === State.LOADING}
-                        className="w-full"
-                    />
-                </div>
+                    <Button
+                            type='submit'
+                            disabled={connectionState === State.LOADING}
+                            className="w-full mt-2"
+                    >
+                        {connectionState === State.LOADING
+                                ? 'Connecting...'
+                                : 'Connect'}
+                    </Button>
 
-                <Button
-                    type='submit'
-                    disabled={connectionState === State.LOADING}
-                    className="w-full mt-2"
-                >
-                    {connectionState === State.LOADING
-                        ? 'Connecting...'
-                        : 'Connect'}
-                </Button>
+                    { /* Connection status message */}
+                    {connectionState === State.SUCCESS && (
+                            <div className='text-green-600 text-sm mt-2'>{message}</div>
+                    )}
 
-                { /* Connection status message */}
-                {connectionState === State.SUCCESS && (
-                    <div className='text-green-600 text-sm mt-2'>{message}</div>
-                )}
-
-                {connectionState === State.ERROR && (
-                    <div className='text-red-600 text-sm mt-2'>{error}</div>
-                )}
-            </form>
-        </Card>
+                    {connectionState === State.ERROR && (
+                            <div className='text-red-600 text-sm mt-2'>{error}</div>
+                    )}
+                </form>
+            </div>
     );
 }
