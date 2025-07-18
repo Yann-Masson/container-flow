@@ -1,6 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { State } from "../types/state.ts";
 import { DockerClientService } from "../docker/docker-client.ts";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface SSHFormProps {
     setIsConnected: (state: State) => void;
@@ -55,75 +57,70 @@ export default function SSHForm(props: SSHFormProps) {
     };
 
     return (
-            <form onSubmit={handleConnect} className='mb-6 space-y-4 max-w-md'>
-                <div>
-                    <label className='block mb-1'>Host</label>
-                    <input
-                            type='text'
-                            value={host}
-                            onChange={(e) => setHost(e.target.value)}
-                            required
-                            className='w-full p-2 border rounded'
-                            placeholder='example.com or IP address'
-                            disabled={connectionState === State.LOADING}
-                    />
-                </div>
+        <form onSubmit={handleConnect} className='mb-6 space-y-4 max-w-md'>
+            <div>
+                <label className='block mb-1'>Host</label>
+                <Input
+                    type='text'
+                    value={host}
+                    onChange={(e) => setHost(e.target.value)}
+                    required
+                    placeholder='example.com or IP address'
+                    disabled={connectionState === State.LOADING}
+                />
+            </div>
 
-                <div>
-                    <label className='block mb-1'>Port</label>
-                    <input
-                            type='number'
-                            value={port}
-                            onChange={(e) => setPort(e.target.value)}
-                            required
-                            className='w-full p-2 border rounded'
-                            disabled={connectionState === State.LOADING}
-                    />
-                </div>
+            <div>
+                <label className='block mb-1'>Port</label>
+                <Input
+                    type='number'
+                    value={port}
+                    onChange={(e) => setPort(e.target.value)}
+                    required
+                    disabled={connectionState === State.LOADING}
+                />
+            </div>
 
-                <div>
-                    <label className='block mb-1'>Username</label>
-                    <input
-                            type='text'
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                            className='w-full p-2 border rounded'
-                            disabled={connectionState === State.LOADING}
-                    />
-                </div>
+            <div>
+                <label className='block mb-1'>Username</label>
+                <Input
+                    type='text'
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    disabled={connectionState === State.LOADING}
+                />
+            </div>
 
-                <div>
-                    <label className='block mb-1'>Password</label>
-                    <input
-                            type='password'
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className='w-full p-2 border rounded'
-                            placeholder='SSH password'
-                            disabled={connectionState === State.LOADING}
-                    />
-                </div>
+            <div>
+                <label className='block mb-1'>Password</label>
+                <Input
+                    type='password'
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder='SSH password'
+                    disabled={connectionState === State.LOADING}
+                />
+            </div>
 
-                <button
-                        type='submit'
-                        disabled={connectionState === State.LOADING}
-                        className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50'
-                >
-                    {connectionState === State.LOADING
-                            ? 'Connecting...'
-                            : 'Connect'}
-                </button>
+            <Button
+                type='submit'
+                disabled={connectionState === State.LOADING}
+            >
+                {connectionState === State.LOADING
+                    ? 'Connecting...'
+                    : 'Connect'}
+            </Button>
 
-                { /* Connection status message */}
-                {connectionState === State.SUCCESS && (
-                        <div className='text-green-600'>{message}</div>
-                )}
+            { /* Connection status message */}
+            {connectionState === State.SUCCESS && (
+                <div className='text-green-600'>{message}</div>
+            )}
 
-                {connectionState === State.ERROR && (
-                        <div className='text-red-600'>{error}</div>
-                )}
-            </form>
+            {connectionState === State.ERROR && (
+                <div className='text-red-600'>{error}</div>
+            )}
+        </form>
     );
 }
