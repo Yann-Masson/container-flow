@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { DockerClientService } from './docker/docker-client.ts';
-import ListContainers from './components/ListContainers';
-import CreateContainer from './components/CreateContainer';
-import traefik from './docker/containers/traefik';
-import mysql from './docker/containers/mysql';
+import ListContainers from './components/ListContainers.tsx';
+import CreateContainer from './components/CreateContainer.tsx';
+import traefik from './docker/containers/traefik.ts';
+import mysql from './docker/containers/mysql.ts';
 import SSHForm from "./components/SSHForm.tsx";
 import { State } from "./types/state.ts";
 
@@ -36,36 +36,37 @@ export default function App() {
     }, []);
 
     return (
-            <div className='grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]'>
-                <main className='flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-4xl'>
-                    <h1 className='text-3xl font-bold'>Container Flow</h1>
+        <div
+            className='grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]'>
+            <main className='flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-4xl'>
+                <h1 className='text-3xl font-bold'>Container Flow</h1>
 
-                    {isConnected === State.LOADING && (
-                            <div className='text-blue-600'>Connecting...</div>
-                    )}
+                {isConnected === State.LOADING && (
+                    <div className='text-blue-600'>Connecting...</div>
+                )}
 
-                    {isConnected === State.SUCCESS && (
-                            <div className='text-green-600'>Connected to Docker</div>
-                    )}
+                {isConnected === State.SUCCESS && (
+                    <div className='text-green-600'>Connected to Docker</div>
+                )}
 
-                    {isConnected === State.ERROR && (
-                            <div className='text-red-600'>
-                                Error connecting to Docker
-                            </div>
-                    )}
+                {isConnected === State.ERROR && (
+                    <div className='text-red-600'>
+                        Error connecting to Docker
+                    </div>
+                )}
 
-                    {isConnected === State.IDLE && (
-                            <SSHForm setIsConnected={setIsConnected}/>
-                    )}
+                {isConnected === State.IDLE && (
+                    <SSHForm setIsConnected={setIsConnected}/>
+                )}
 
-                    {isConnected === State.SUCCESS && (
-                            <div>
-                                <ListContainers/>
-                                <CreateContainer containerOptions={traefik}/>
-                                <CreateContainer containerOptions={mysql}/>
-                            </div>
-                    )}
-                </main>
-            </div>
+                {isConnected === State.SUCCESS && (
+                    <div>
+                        <ListContainers/>
+                        <CreateContainer containerOptions={traefik}/>
+                        <CreateContainer containerOptions={mysql}/>
+                    </div>
+                )}
+            </main>
+        </div>
     );
 }

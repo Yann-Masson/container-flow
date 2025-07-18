@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import path from 'node:path';
+import path from 'path';
 import electron from 'vite-plugin-electron/simple';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -87,5 +87,10 @@ export default defineConfig({
                 'libsodium-wrappers',
             ]
         }
+    },
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "./src"),
+        },
     }
 });
