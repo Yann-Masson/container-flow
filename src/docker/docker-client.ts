@@ -61,6 +61,22 @@ export class DockerClientService {
             await this.waitForElectronAPI();
             return this.electronAPI.docker.containers.start(id);
         },
+        stop: async (id: string, options?: { t?: number }) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.containers.stop(id, options);
+        },
+        remove: async (id: string, options?: { v?: boolean; force?: boolean }) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.containers.remove(id, options);
+        },
+        update: async (id: string, newConfig: ContainerCreateOptions, preserveVolumes?: boolean) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.containers.update(id, newConfig, preserveVolumes);
+        },
+        getLogs: async (id: string, options?: { follow?: boolean; stdout?: boolean; stderr?: boolean }) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.containers.getLogs(id, options);
+        },
     };
 
     images = {
