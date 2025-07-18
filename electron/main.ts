@@ -151,7 +151,7 @@ function setupAutoUpdater() {
         log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
         dialog.showErrorBox('Update error',
-            `An error occurred while checking for updates:\n\n${err.message}`);
+                `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
@@ -330,6 +330,25 @@ function setupIpcHandlers() {
                 return services.docker.image.pull(image);
             } catch (error) {
                 log(`Error in docker:images:pull: ${error}`);
+                throw error;
+            }
+        });
+
+        // Preferences handlers
+        ipcMain.handle('preferences:ssh:get', async () => {
+            try {
+                return services.preferences.getSSHPreferences();
+            } catch (error) {
+                log(`Error in preferences:ssh:get: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('preferences:ssh:save', async (_, sshPreferences) => {
+            try {
+                return services.preferences.saveSSHPreferences(sshPreferences);
+            } catch (error) {
+                log(`Error in preferences:ssh:save: ${error}`);
                 throw error;
             }
         });
