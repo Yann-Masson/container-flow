@@ -37,36 +37,37 @@ export default function App() {
 
     return (
         <div
-            className='grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]'>
-            <main className='flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-4xl'>
-                <h1 className='text-3xl font-bold'>Container Flow</h1>
-
-                {isConnected === State.LOADING && (
-                    <div className='text-blue-600'>Connecting...</div>
-                )}
-
-                {isConnected === State.SUCCESS && (
-                    <div className='text-green-600'>Connected to Docker</div>
-                )}
-
-                {isConnected === State.ERROR && (
-                    <div className='text-red-600'>
-                        Error connecting to Docker
+            className='flex flex-col items-center justify-center min-h-screen bg-background p-4 font-[family-name:var(--font-geist-sans)]'>
+            {isConnected === State.IDLE ? (
+                <div className='flex flex-col items-center justify-center gap-8 w-full max-w-xl'>
+                    <div className='text-center mb-4'>
+                        <h1 className='text-5xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent'>
+                            Container Flow
+                        </h1>
+                        <p className='text-muted-foreground mt-3'>
+                            Gérez vos conteneurs Docker facilement et efficacement
+                        </p>
                     </div>
-                )}
 
-                {isConnected === State.IDLE && (
                     <SSHForm setIsConnected={setIsConnected}/>
-                )}
+                </div>
+            ) : isConnected === State.SUCCESS ? (
+                <main className='flex flex-col gap-[32px] w-full max-w-4xl'>
+                    <h1 className='text-3xl font-bold'>Container Flow</h1>
 
-                {isConnected === State.SUCCESS && (
                     <div>
                         <ListContainers/>
                         <CreateContainer containerOptions={traefik}/>
                         <CreateContainer containerOptions={mysql}/>
                     </div>
-                )}
-            </main>
+                </main>
+            ) : (
+                <div className='flex flex-col items-center justify-center'>
+                    <h1 className='text-4xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent'>Container
+                        Flow</h1>
+                    <div className='text-xl animate-pulse'>Vérification de la connexion...</div>
+                </div>
+            )}
         </div>
     );
 }
