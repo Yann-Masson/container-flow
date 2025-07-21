@@ -5,7 +5,6 @@ import { create } from './create';
 import { start } from './start';
 import { stop } from './stop';
 import { remove } from './remove';
-import { update } from './update';
 import { getLogs } from './get-logs';
 
 export default {
@@ -16,6 +15,5 @@ export default {
     start,
     stop,
     remove,
-    update,
     getLogs,
 };

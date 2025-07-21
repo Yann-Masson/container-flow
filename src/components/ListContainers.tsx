@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ContainerInfo } from 'dockerode';
+import { ContainerCreateOptions, ContainerInfo } from 'dockerode';
 import { DockerClientService } from "../docker/docker-client.ts";
 import { State } from "../types/state.ts";
 import { Card } from "./ui/card";
@@ -86,6 +86,35 @@ export default function ListContainers() {
         }
     };
 
+    // Update container (recreate by deleting and creating new one)
+    const handleDuplicateContainer = async (containerId: string, containerConfig: ContainerCreateOptions, removeCurrentContainer: boolean) => {
+        setActionLoading(prev => ({ ...prev, [containerId]: true }));
+        try {
+            // Get current container configuration to preserve settings
+            const containerInfo = await dockerClientService.containers.get(containerId);
+
+            // Delete the existing container
+            if (removeCurrentContainer) {
+                await dockerClientService.containers.remove(containerId, { force: true });
+            }
+
+            // Create new container with the same configuration and name
+            const newContainer = await dockerClientService.containers.create(containerConfig);
+
+            // Start the new container if the old one was running
+            if (containerInfo.State.Running) {
+                await dockerClientService.containers.start(newContainer.Id);
+            }
+
+            toast.success(`Container "${containerInfo.Name}" duplicated successfully`);
+            await handleListContainers(); // Refresh the list
+        } catch (error) {
+            toast.error(`Failed to update container "${containerConfig.Image}": ${error}`);
+        } finally {
+            setActionLoading(prev => ({ ...prev, [containerId]: false }));
+        }
+    };
+
     // Get container logs
     const handleGetLogs = async (containerId: string, containerName: string) => {
         setLogsLoading(true);
@@ -143,48 +172,49 @@ export default function ListContainers() {
     };
 
     return (
-            <div className='p-4 w-full'>
-                <ContainerHeader state={state} message={message} error={error}/>
+        <div className='p-4 w-full'>
+            <ContainerHeader state={state} message={message} error={error}/>
 
-                {/* Container list */}
-                {state === State.LOADING ? (
-                        <LoadingSkeleton/>
-                ) : state === State.SUCCESS && containers.length > 0 ? (
-                        <div className="space-y-4">
-                            <h2 className='text-xl font-bold mb-3'>Container List</h2>
-                            <div className="grid grid-cols-1 gap-4">
-                                {containers.map((container) => {
-                                    const containerName = formatContainerName(container.Names[0]);
-                                    const isRunning = container.Status.includes('Up');
-                                    const isLoading = actionLoading[container.Id];
+            {/* Container list */}
+            {state === State.LOADING ? (
+                <LoadingSkeleton/>
+            ) : state === State.SUCCESS && containers.length > 0 ? (
+                <div className="space-y-4">
+                    <h2 className='text-xl font-bold mb-3'>Container List</h2>
+                    <div className="grid grid-cols-1 gap-4">
+                        {containers.map((container) => {
+                            const containerName = formatContainerName(container.Names[0]);
+                            const isRunning = container.Status.includes('Up');
+                            const isLoading = actionLoading[container.Id];
 
-                                    return (
-                                            <ContainerCard
-                                                    key={container.Id}
-                                                    container={container}
-                                                    containerName={containerName}
-                                                    isRunning={isRunning}
-                                                    isLoading={isLoading}
-                                                    logs={selectedContainerLogs}
-                                                    logsLoading={logsLoading}
-                                                    getStatusColor={getStatusColor}
-                                                    getStatusText={getStatusText}
-                                                    getImageBadgeStyle={getImageBadgeStyle}
-                                                    onStart={handleStartContainer}
-                                                    onStop={handleStopContainer}
-                                                    onGetLogs={handleGetLogs}
-                                                    onDelete={handleDeleteContainer}
-                                            />
-                                    );
-                                })}
-                            </div>
-                        </div>
-                ) : state === State.SUCCESS && containers.length === 0 ? (
-                        <Card className="w-full p-6 text-center bg-gray-50 dark:bg-gray-800">
-                            <p className="text-lg text-gray-600 dark:text-gray-400">No containers found</p>
-                            <p className="text-sm text-gray-500 mt-2">Create a new container to get started</p>
-                        </Card>
-                ) : null}
-            </div>
+                            return (
+                                <ContainerCard
+                                    key={container.Id}
+                                    container={container}
+                                    containerName={containerName}
+                                    isRunning={isRunning}
+                                    isLoading={isLoading}
+                                    logs={selectedContainerLogs}
+                                    logsLoading={logsLoading}
+                                    getStatusColor={getStatusColor}
+                                    getStatusText={getStatusText}
+                                    getImageBadgeStyle={getImageBadgeStyle}
+                                    onStart={handleStartContainer}
+                                    onStop={handleStopContainer}
+                                    onGetLogs={handleGetLogs}
+                                    onDelete={handleDeleteContainer}
+                                    onDuplicate={handleDuplicateContainer}
+                                />
+                            );
+                        })}
+                    </div>
+                </div>
+            ) : state === State.SUCCESS && containers.length === 0 ? (
+                <Card className="w-full p-6 text-center bg-gray-50 dark:bg-gray-800">
+                    <p className="text-lg text-gray-600 dark:text-gray-400">No containers found</p>
+                    <p className="text-sm text-gray-500 mt-2">Create a new container to get started</p>
+                </Card>
+            ) : null}
+        </div>
     );
 }
