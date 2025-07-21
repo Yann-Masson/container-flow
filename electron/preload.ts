@@ -16,13 +16,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
             create: (config: ContainerCreateOptions) => ipcRenderer.invoke('docker:containers:create', config),
             start: (id: string) => ipcRenderer.invoke('docker:containers:start', id),
             stop: (id: string, options?: { t?: number }) =>
-                    ipcRenderer.invoke('docker:containers:stop', id, options),
+                ipcRenderer.invoke('docker:containers:stop', id, options),
             remove: (id: string, options?: { v?: boolean; force?: boolean }) =>
-                    ipcRenderer.invoke('docker:containers:remove', id, options),
-            update: (id: string, newConfig: ContainerCreateOptions, preserveVolumes?: boolean) =>
-                    ipcRenderer.invoke('docker:containers:update', id, newConfig, preserveVolumes),
+                ipcRenderer.invoke('docker:containers:remove', id, options),
             getLogs: (id: string, options?: ContainerLogsOptions) =>
-                    ipcRenderer.invoke('docker:containers:getLogs', id, options),
+                ipcRenderer.invoke('docker:containers:getLogs', id, options),
         },
         images: {
             pull: (image: string) => ipcRenderer.invoke('docker:images:pull', image),
@@ -32,7 +30,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ssh: {
             get: () => ipcRenderer.invoke('preferences:ssh:get'),
             save: (sshPreferences: { host: string; port: string; username: string }) =>
-                    ipcRenderer.invoke('preferences:ssh:save', sshPreferences),
+                ipcRenderer.invoke('preferences:ssh:save', sshPreferences),
         },
     },
 });

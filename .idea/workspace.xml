@@ -5,17 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/container/ContainerActions.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/container/ContainerCard.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/container/ContainerDeleteDialog.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/container/ContainerDetailsDialog.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/container/ContainerHeader.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/container/ContainerLogsDialog.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/container/LoadingSkeleton.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/get-logs.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/containers/get-logs.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/containers/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/update.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/types/electron.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/types/electron.d.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/ListContainers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ListContainers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/container/ContainerCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/container/ContainerCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/docker/docker-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/docker/docker-client.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,28 +41,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "code.cleanup.on.save": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/Yann/Documents/Lumia/container-flow/src",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.standard": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.standard": "",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "pnpm",
-    "nx.console.mcp.server.install.notification.hide": "true",
-    "settings.editor.selected.configurable": "settings.javascript.prettier",
-    "ts.external.directory.path": "C:\\Users\\Yann\\Documents\\Lumia\\container-flow\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;code.cleanup.on.save&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Yann/Documents/Lumia/container-flow/src&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.standard&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.standard&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
+    &quot;nx.console.mcp.server.install.notification.hide&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.javascript.prettier&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Yann\\Documents\\Lumia\\container-flow\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\src" />
@@ -93,6 +89,7 @@
       <updated>1752238478793</updated>
       <workItem from="1752238482248" duration="730000" />
       <workItem from="1752252014705" duration="13456000" />
+      <workItem from="1752909978898" duration="2674000" />
     </task>
     <servers />
   </component>

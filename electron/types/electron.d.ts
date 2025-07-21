@@ -1,4 +1,4 @@
-import { ContainerCreateOptions, ContainerInfo, ContainerLogsOptions } from 'dockerode';
+import { ContainerCreateOptions, ContainerInfo, ContainerInspectInfo, ContainerLogsOptions } from 'dockerode';
 
 interface ElectronAPI {
     docker: {
@@ -11,12 +11,11 @@ interface ElectronAPI {
         };
         containers: {
             list: () => Promise<ContainerInfo[]>;
-            get: (id: string) => Promise<ContainerInfo>;
+            get: (id: string) => Promise<ContainerInspectInfo>;
             create: (config: ContainerCreateOptions) => Promise<ContainerInfo>;
             start: (id: string) => Promise<void>;
             stop: (id: string, options?: { t?: number }) => Promise<void>;
             remove: (id: string, options?: { v?: boolean; force?: boolean }) => Promise<void>;
-            update: (id: string, newConfig: ContainerCreateOptions, preserveVolumes?: boolean) => Promise<ContainerInspectInfo>;
             getLogs: (
                     id: string,
                     options?: ContainerLogsOptions

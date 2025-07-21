@@ -151,7 +151,7 @@ function setupAutoUpdater() {
         log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
         dialog.showErrorBox('Update error',
-                `An error occurred while checking for updates:\n\n${err.message}`);
+            `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
@@ -302,15 +302,6 @@ function setupIpcHandlers() {
                 return services.docker.containers.remove(id, options);
             } catch (error) {
                 log(`Error in docker:containers:remove: ${error}`);
-                throw error;
-            }
-        });
-
-        ipcMain.handle('docker:containers:update', async (_, id, newConfig, preserveVolumes) => {
-            try {
-                return services.docker.containers.update(id, newConfig, preserveVolumes);
-            } catch (error) {
-                log(`Error in docker:containers:update: ${error}`);
                 throw error;
             }
         });

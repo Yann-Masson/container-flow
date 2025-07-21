@@ -69,10 +69,6 @@ export class DockerClientService {
             await this.waitForElectronAPI();
             return this.electronAPI.docker.containers.remove(id, options);
         },
-        update: async (id: string, newConfig: ContainerCreateOptions, preserveVolumes?: boolean) => {
-            await this.waitForElectronAPI();
-            return this.electronAPI.docker.containers.update(id, newConfig, preserveVolumes);
-        },
         getLogs: async (id: string, options?: { follow?: boolean; stdout?: boolean; stderr?: boolean }) => {
             await this.waitForElectronAPI();
             return this.electronAPI.docker.containers.getLogs(id, options);
