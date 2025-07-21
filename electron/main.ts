@@ -225,7 +225,7 @@ function setupIpcHandlers() {
         // Docker connection handlers
         ipcMain.handle('docker:connection:connect', async (_, config) => {
             try {
-                return services.docker.connection.tryToConnect(config);
+                return await services.docker.connection.tryToConnect(config);
             } catch (error) {
                 log(`Error in docker:connection:connect: ${error}`);
                 throw error;
@@ -243,7 +243,7 @@ function setupIpcHandlers() {
 
         ipcMain.handle('docker:connection:disconnect', async () => {
             try {
-                return services.docker.connection.disconnect();
+                return await services.docker.connection.disconnect();
             } catch (error) {
                 log(`Error in docker:connection:disconnect: ${error}`);
                 throw error;
@@ -253,7 +253,7 @@ function setupIpcHandlers() {
         // Docker containers handlers
         ipcMain.handle('docker:containers:list', async () => {
             try {
-                return services.docker.containers.list();
+                return await services.docker.containers.list();
             } catch (error) {
                 log(`Error in docker:containers:list: ${error}`);
                 throw error;
@@ -262,7 +262,7 @@ function setupIpcHandlers() {
 
         ipcMain.handle('docker:containers:get', async (_, id) => {
             try {
-                return services.docker.containers.getById(id);
+                return await services.docker.containers.getById(id);
             } catch (error) {
                 log(`Error in docker:containers:get: ${error}`);
                 throw error;
@@ -271,7 +271,8 @@ function setupIpcHandlers() {
 
         ipcMain.handle('docker:containers:create', async (_, config) => {
             try {
-                return services.docker.containers.create(config);
+                const res = await services.docker.containers.create(config);
+                return JSON.parse(JSON.stringify(res));
             } catch (error) {
                 log(`Error in docker:containers:create: ${error}`);
                 throw error;
@@ -280,7 +281,7 @@ function setupIpcHandlers() {
 
         ipcMain.handle('docker:containers:start', async (_, id) => {
             try {
-                return services.docker.containers.start(id);
+                return await services.docker.containers.start(id);
             } catch (error) {
                 log(`Error in docker:containers:start: ${error}`);
                 throw error;
@@ -290,7 +291,7 @@ function setupIpcHandlers() {
         // New container handlers
         ipcMain.handle('docker:containers:stop', async (_, id, options) => {
             try {
-                return services.docker.containers.stop(id, options);
+                return await services.docker.containers.stop(id, options);
             } catch (error) {
                 log(`Error in docker:containers:stop: ${error}`);
                 throw error;
@@ -299,7 +300,7 @@ function setupIpcHandlers() {
 
         ipcMain.handle('docker:containers:remove', async (_, id, options) => {
             try {
-                return services.docker.containers.remove(id, options);
+                return await services.docker.containers.remove(id, options);
             } catch (error) {
                 log(`Error in docker:containers:remove: ${error}`);
                 throw error;
@@ -308,7 +309,7 @@ function setupIpcHandlers() {
 
         ipcMain.handle('docker:containers:getLogs', async (_, id, options) => {
             try {
-                return services.docker.containers.getLogs(id, options);
+                return await services.docker.containers.getLogs(id, options);
             } catch (error) {
                 log(`Error in docker:containers:getLogs: ${error}`);
                 throw error;
@@ -318,7 +319,7 @@ function setupIpcHandlers() {
         // Docker images handlers
         ipcMain.handle('docker:images:pull', async (_, image) => {
             try {
-                return services.docker.image.pull(image);
+                return await services.docker.image.pull(image);
             } catch (error) {
                 log(`Error in docker:images:pull: ${error}`);
                 throw error;

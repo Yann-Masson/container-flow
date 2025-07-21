@@ -26,7 +26,7 @@ export default function CreateContainer(props: Props) {
 
         try {
             const response =
-                    await dockerClientService.containers.create(containerOptions);
+                await dockerClientService.containers.create(containerOptions);
 
             if (response) {
                 setMessage(`Container created successfully: ${response.Id}`);
@@ -35,32 +35,32 @@ export default function CreateContainer(props: Props) {
                 setState(State.ERROR);
             }
         } catch (error) {
-            setError(`Error: ${error}`);
+            setError(error as string);
             setState(State.ERROR);
         }
     };
 
     return (
-            <div className='p-4'>
-                <h1 className='text-2xl font-bold mb-4'>
-                    Create {containerOptions.Image} Container
-                </h1>
-                <button
-                        onClick={onSubmit}
-                        className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'
-                >
-                    Create {containerOptions.Image} Container
-                </button>
+        <div className='p-4'>
+            <h1 className='text-2xl font-bold mb-4'>
+                Create {containerOptions.Image} Container
+            </h1>
+            <button
+                onClick={onSubmit}
+                className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'
+            >
+                Create {containerOptions.Image} Container
+            </button>
 
-                {state === State.LOADING && (
-                        <div className='text-blue-600'>Creating container...</div>
-                )}
-                {state === State.SUCCESS && (
-                        <div className='text-green-600'>{message}</div>
-                )}
-                {state === State.ERROR && (
-                        <div className='text-red-600'>{error}</div>
-                )}
-            </div>
+            {state === State.LOADING && (
+                <div className='text-blue-600'>Creating container...</div>
+            )}
+            {state === State.SUCCESS && (
+                <div className='text-green-600'>{message}</div>
+            )}
+            {state === State.ERROR && (
+                <div className='text-red-600'>{error}</div>
+            )}
+        </div>
     );
 }

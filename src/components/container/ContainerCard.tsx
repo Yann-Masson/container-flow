@@ -13,14 +13,12 @@ interface ContainerCardProps {
     containerName: string;
     isRunning: boolean;
     isLoading: boolean;
-    logs: string;
-    logsLoading: boolean;
     getStatusColor: (status: string) => string;
     getStatusText: (status: string) => string;
     getImageBadgeStyle: (image: string) => string;
     onStart: (containerId: string, containerName: string) => void;
     onStop: (containerId: string, containerName: string) => void;
-    onGetLogs: (containerId: string, containerName: string) => void;
+    onGetLogs: (containerId: string, containerName: string) => Promise<string>;
     onDelete: (containerId: string, containerName: string) => void;
     onDuplicate: (containerId: string, containerConfig: ContainerCreateOptions, removeCurrentContainer: boolean) => void;
 }
@@ -30,8 +28,6 @@ export function ContainerCard({
                                   containerName,
                                   isRunning,
                                   isLoading,
-                                  logs,
-                                  logsLoading,
                                   getStatusColor,
                                   getStatusText,
                                   getImageBadgeStyle,
@@ -100,29 +96,25 @@ export function ContainerCard({
                                     </Button>
                                 )}
 
-                                {/* Logs Dialog - wrap in div to stop propagation */}
                                 <div onClick={(e) => e.stopPropagation()}>
                                     <ContainerLogsDialog
                                         containerName={containerName}
-                                        logs={logs}
-                                        isLoading={logsLoading}
                                         onGetLogs={() => onGetLogs(container.Id, containerName)}
                                     />
                                 </div>
 
-                                {/* Delete Dialog - wrap in div to stop propagation */}
                                 <div onClick={(e) => e.stopPropagation()}>
                                     <ContainerDeleteDialog
                                         containerName={containerName}
                                         onDelete={() => onDelete(container.Id, containerName)}
                                     />
                                 </div>
-                                
 
-                                {/* Duplicate Dialog - wrap in div to stop propagation */}
+
                                 <div onClick={(e) => e.stopPropagation()}>
                                     <ContainerDuplicateDialog
                                         containerId={container.Id}
+                                        containerName={containerName}
                                         onDuplicate={onDuplicate}
                                     />
                                 </div>
