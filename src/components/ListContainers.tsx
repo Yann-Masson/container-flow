@@ -14,32 +14,28 @@ export default function ListContainers() {
     const [state, setState] = useState(State.LOADING);
     const [containers, setContainers] = useState<ContainerInfo[]>([]);
     const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({});
-    const [selectedContainerLogs, setSelectedContainerLogs] = useState<string>('');
-    const [logsLoading, setLogsLoading] = useState(false);
 
     const dockerClientService = new DockerClientService();
 
     // List containers
     const handleListContainers = async () => {
         setState(State.LOADING);
-        setError('');
-        setMessage('');
+        setMessage('loading containers...');
 
         try {
             const containers = await dockerClientService.containers.list();
 
-            if (containers) {
+            if (containers !== null) {
                 setContainers(containers);
-                setMessage(`${containers.length} container(s) found`);
+                setMessage(`${containers.length} container${containers.length > 0 ? 's' : ''} found`);
                 setState(State.SUCCESS);
             } else {
-                setError('Error retrieving containers');
                 setState(State.ERROR);
+                setMessage('No containers found');
             }
         } catch (error) {
-            setError(`Error: ${error}`);
+            console.error('Failed to list containers:', error);
             setState(State.ERROR);
         }
     };
@@ -50,7 +46,7 @@ export default function ListContainers() {
         try {
             await dockerClientService.containers.start(containerId);
             toast.success(`Container "${containerName}" started successfully`);
-            await handleListContainers(); // Refresh the list
+            await handleListContainers();
         } catch (error) {
             toast.error(`Failed to start container "${containerName}": ${error}`);
         } finally {
@@ -64,9 +60,12 @@ export default function ListContainers() {
         try {
             await dockerClientService.containers.stop(containerId, { t: 10 });
             toast.success(`Container "${containerName}" stopped successfully`);
-            await handleListContainers(); // Refresh the list
+            setContainers(prev => prev.map(container =>
+                container.Id === containerId ? { ...container, State: 'stopped' } : container
+            ));
         } catch (error) {
             toast.error(`Failed to stop container "${containerName}": ${error}`);
+            console.error(error);
         } finally {
             setActionLoading(prev => ({ ...prev, [containerId]: false }));
         }
@@ -78,7 +77,6 @@ export default function ListContainers() {
         try {
             await dockerClientService.containers.remove(containerId, { force: true });
             toast.success(`Container "${containerName}" deleted successfully`);
-            await handleListContainers(); // Refresh the list
         } catch (error) {
             toast.error(`Failed to delete container "${containerName}": ${error}`);
         } finally {
@@ -90,18 +88,14 @@ export default function ListContainers() {
     const handleDuplicateContainer = async (containerId: string, containerConfig: ContainerCreateOptions, removeCurrentContainer: boolean) => {
         setActionLoading(prev => ({ ...prev, [containerId]: true }));
         try {
-            // Get current container configuration to preserve settings
             const containerInfo = await dockerClientService.containers.get(containerId);
 
-            // Delete the existing container
             if (removeCurrentContainer) {
                 await dockerClientService.containers.remove(containerId, { force: true });
             }
 
-            // Create new container with the same configuration and name
             const newContainer = await dockerClientService.containers.create(containerConfig);
 
-            // Start the new container if the old one was running
             if (containerInfo.State.Running) {
                 await dockerClientService.containers.start(newContainer.Id);
             }
@@ -117,18 +111,14 @@ export default function ListContainers() {
 
     // Get container logs
     const handleGetLogs = async (containerId: string, containerName: string) => {
-        setLogsLoading(true);
         try {
-            const logs = await dockerClientService.containers.getLogs(containerId, {
+            return await dockerClientService.containers.getLogs(containerId, {
                 stdout: true,
                 stderr: true
             });
-            setSelectedContainerLogs(logs || 'No logs available');
         } catch (error) {
             toast.error(`Failed to get logs for container "${containerName}": ${error}`);
-            setSelectedContainerLogs('Failed to retrieve logs');
-        } finally {
-            setLogsLoading(false);
+            return 'Failed to retrieve logs';
         }
     };
 
@@ -173,7 +163,7 @@ export default function ListContainers() {
 
     return (
         <div className='p-4 w-full'>
-            <ContainerHeader state={state} message={message} error={error}/>
+            <ContainerHeader state={state} message={message} refreshFunction={handleListContainers}/>
 
             {/* Container list */}
             {state === State.LOADING ? (
@@ -194,8 +184,6 @@ export default function ListContainers() {
                                     containerName={containerName}
                                     isRunning={isRunning}
                                     isLoading={isLoading}
-                                    logs={selectedContainerLogs}
-                                    logsLoading={logsLoading}
                                     getStatusColor={getStatusColor}
                                     getStatusText={getStatusText}
                                     getImageBadgeStyle={getImageBadgeStyle}
