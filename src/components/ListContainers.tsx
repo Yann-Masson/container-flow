@@ -16,6 +16,8 @@ import { ContainerCreateDialog } from "@/components/container/create/ContainerCr
 export default function ListContainers() {
     const [state, setState] = useState(State.LOADING);
     const [containers, setContainers] = useState<ContainerInfo[]>([]);
+    const [traefikContainer, setTraefikContainer] = useState<ContainerInfo | null>(null);
+    const [mySQLContainer, setMySQLContainer] = useState<ContainerInfo | null>(null);
     const [message, setMessage] = useState('');
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({});
 
@@ -30,7 +32,21 @@ export default function ListContainers() {
             const containers = await dockerClientService.containers.list();
 
             if (containers !== null) {
-                setContainers(containers);
+
+                const traefikContainer = containers.find(container =>
+                    container.Image.includes('traefik')
+                ) || null;
+                setTraefikContainer(traefikContainer);
+                const mySQLContainer = containers.find(container =>
+                    container.Image.includes('mysql')
+                ) || null;
+                setMySQLContainer(mySQLContainer);
+
+                const filteredContainers = containers.filter(container =>
+                    container.Id !== traefikContainer?.Id &&
+                    container.Id !== mySQLContainer?.Id
+                );
+                setContainers(filteredContainers);
                 setMessage(`${containers.length} container${containers.length > 0 ? 's' : ''} found`);
                 setState(State.SUCCESS);
             } else {
@@ -49,7 +65,9 @@ export default function ListContainers() {
         try {
             await dockerClientService.containers.start(containerId);
             toast.success(`Container "${containerName}" started successfully`);
-            await handleListContainers();
+            setContainers(prev => prev.map(container =>
+                container.Id === containerId ? { ...container, State: 'running' } : container
+            ));
         } catch (error) {
             toast.error(`Failed to start container "${containerName}": ${error}`);
         } finally {
@@ -80,6 +98,7 @@ export default function ListContainers() {
         try {
             await dockerClientService.containers.remove(containerId, { force: true });
             toast.success(`Container "${containerName}" deleted successfully`);
+            setContainers(prev => prev.filter(container => container.Id !== containerId));
         } catch (error) {
             toast.error(`Failed to delete container "${containerName}": ${error}`);
         } finally {
@@ -91,9 +110,10 @@ export default function ListContainers() {
     const handleCreateContainer = async (containerConfig: ContainerCreateOptions, previousContainerId: string | null, removePreviousContainer: boolean) => {
         try {
             if (!previousContainerId) {
-                const newContainer = await dockerClientService.containers.create(containerConfig);
+                await dockerClientService.containers.create(containerConfig);
 
-                toast.success(`Container "${newContainer.name}" created successfully`);
+                toast.success(`Container "${containerConfig.name}" created successfully`);
+                await handleListContainers();
                 return;
             }
 
@@ -112,7 +132,9 @@ export default function ListContainers() {
             }
 
             toast.success(`Container "${containerInfo.Name}" duplicated successfully`);
-            await handleListContainers();
+            setContainers(prev => prev.map(container =>
+                container.Id === previousContainerId ? newContainer : container
+            ));
         } catch (error) {
             toast.error(`Failed to update container "${containerConfig.Image}": ${error}`);
         } finally {
@@ -179,6 +201,60 @@ export default function ListContainers() {
 
             <section className='p-4 w-full'>
                 <ContainerHeader state={state} message={message} refreshFunction={handleListContainers}/>
+
+                <Separator className="my-4"/>
+
+                <div className="flex items-center justify-between mb-4 gap-4">
+                    {traefikContainer ? (
+                        <ContainerCard
+                            key={traefikContainer.Id}
+                            container={traefikContainer}
+                            containerName={"Traefik"}
+                            isRunning={traefikContainer.Status.includes('Up')}
+                            isLoading={actionLoading[traefikContainer.Id]}
+                            getStatusColor={getStatusColor}
+                            getStatusText={getStatusText}
+                            getImageBadgeStyle={getImageBadgeStyle}
+                            onStart={handleStartContainer}
+                            onStop={handleStopContainer}
+                            onGetLogs={handleGetLogs}
+                            onDelete={handleDeleteContainer}
+                            onCreate={handleCreateContainer}
+                        />
+                    ) : (
+                        <Card className="bg-red-50 dark:bg-red-900/20 p-4 w-full">
+                            <h3 className="text-lg font-semibold">Traefik Container Not Found</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Please create a Traefik container to manage your services.
+                            </p>
+                        </Card>
+                    )}
+
+                    {mySQLContainer ? (
+                        <ContainerCard
+                            key={mySQLContainer.Id}
+                            container={mySQLContainer}
+                            containerName={"MySQL"}
+                            isRunning={mySQLContainer.Status.includes('Up')}
+                            isLoading={actionLoading[mySQLContainer.Id]}
+                            getStatusColor={getStatusColor}
+                            getStatusText={getStatusText}
+                            getImageBadgeStyle={getImageBadgeStyle}
+                            onStart={handleStartContainer}
+                            onStop={handleStopContainer}
+                            onGetLogs={handleGetLogs}
+                            onDelete={handleDeleteContainer}
+                            onCreate={handleCreateContainer}
+                        />
+                    ) : (
+                        <Card className="bg-red-50 dark:bg-red-900/20 p-4 w-full">
+                            <h3 className="text-lg font-semibold">MySQL Container Not Found</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Please create a MySQL container to manage your databases.
+                            </p>
+                        </Card>
+                    )}
+                </div>
 
                 {/* Container list */}
                 {state === State.LOADING ? (
