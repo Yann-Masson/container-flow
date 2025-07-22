@@ -8,26 +8,27 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger
-} from "../ui/dialog";
-import { Button } from "../ui/button";
+} from "../../ui/dialog.tsx";
+import { Button } from "../../ui/button.tsx";
 import { Copy, Plus, Trash2 } from "lucide-react";
-import { DockerClientService } from "../../docker/docker-client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { ScrollArea } from "../ui/scroll-area";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs.tsx";
+import { ScrollArea } from "../../ui/scroll-area.tsx";
+import { Input } from "../../ui/input.tsx";
+import { Label } from "../../ui/label.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import { Switch } from "@/components/ui/switch.tsx";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
+import { DockerClientService } from "@/docker/docker-client.ts";
 
-interface ContainerDuplicateDialogProps {
-    containerName: string;
-    containerId: string;
-    onDuplicate: (containerId: string, containerConfig: ContainerCreateOptions, removeCurrentContainer: boolean) => void;
+interface ContainerCreateDialogProps {
+    previousContainerName?: string;
+    previousContainerId?: string;
+    onCreate: (containerConfig: ContainerCreateOptions, previousContainerId: string | null, removePreviousContainer: boolean) => void;
+    defaultConfig?: ContainerCreateOptions;
 }
 
 interface KeyValuePair {
@@ -47,14 +48,15 @@ interface VolumeMapping {
     readOnly: boolean;
 }
 
-export function ContainerDuplicateDialog({
-                                             containerName,
-                                             containerId,
-                                             onDuplicate
-                                         }: ContainerDuplicateDialogProps) {
+export function ContainerCreateDialog({
+                                          previousContainerName,
+                                          previousContainerId,
+                                          onCreate,
+                                          defaultConfig
+                                      }: ContainerCreateDialogProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [removeCurrentContainer, setRemoveCurrentContainer] = useState(false);
+    const [removePreviousContainer, setRemovePreviousContainer] = useState(false);
 
     const [envVars, setEnvVars] = useState<KeyValuePair[]>([]);
     const [ports, setPorts] = useState<PortMapping[]>([]);
@@ -80,14 +82,17 @@ export function ContainerDuplicateDialog({
         },
     });
 
-    const fetchContainerDetails = useCallback(async () => {
+    const fetchPreviousContainerDetails = useCallback(async () => {
+        if (!previousContainerId) {
+            toast.error("No previous container ID provided");
+            return;
+        }
         const dockerClientService = new DockerClientService();
         setLoading(true);
         try {
-            const details = await dockerClientService.containers.get(containerId);
+            const details = await dockerClientService.containers.get(previousContainerId);
 
             if (details) {
-                // Extraire les informations utiles et les transformer en ContainerCreateOptions
                 const containerConfig: ContainerCreateOptions = {
                     name: `${details.Name.replace(/^\//, '')}_copy`,
                     Image: details.Config.Image,
@@ -115,7 +120,7 @@ export function ContainerDuplicateDialog({
                 const envVarsArray: KeyValuePair[] = [];
                 containerConfig.Env?.forEach(env => {
                     const [key, ...valueParts] = env.split('=');
-                    const value = valueParts.join('='); // Gérer les valeurs qui contiennent des =
+                    const value = valueParts.join('=');
                     envVarsArray.push({ key, value });
                 });
                 setEnvVars(envVarsArray);
@@ -143,7 +148,6 @@ export function ContainerDuplicateDialog({
                 }
                 setPorts(portsArray);
 
-                // Convertir les volumes en format plus manipulable
                 const volumesArray: VolumeMapping[] = [];
                 containerConfig.HostConfig?.Binds?.forEach(bind => {
                     const parts = bind.split(':');
@@ -154,7 +158,6 @@ export function ContainerDuplicateDialog({
                 });
                 setVolumes(volumesArray);
 
-                // Convertir les labels en format plus manipulable
                 const labelsArray: KeyValuePair[] = [];
                 if (containerConfig.Labels) {
                     Object.entries(containerConfig.Labels).forEach(([key, value]) => {
@@ -168,13 +171,42 @@ export function ContainerDuplicateDialog({
         } finally {
             setLoading(false);
         }
-    }, [containerId, form]);
+    }, [previousContainerId, form]);
+
+    const updateFormFromDefaultConfig = useCallback(() => {
+        if (defaultConfig) {
+            form.reset(defaultConfig);
+            setEnvVars((defaultConfig.Env || []).map(env => {
+                const [key, ...valueParts] = env.split('=');
+                return { key, value: valueParts.join('=') };
+            }));
+            setPorts(Object.entries(defaultConfig.ExposedPorts || {}).map(([portWithProto]) => {
+                const [containerPort, protocol = 'tcp'] = portWithProto.split('/');
+                return { containerPort, hostPort: '', protocol: protocol as 'tcp' | 'udp' };
+            }));
+            setVolumes((defaultConfig.HostConfig?.Binds || []).map(bind => {
+                const parts = bind.split(':');
+                const hostPath = parts[0];
+                const containerPath = parts[1];
+                const readOnly = parts.length > 2 && parts[2] === 'ro';
+                return { hostPath, containerPath, readOnly };
+            }));
+            setLabels(Object.entries(defaultConfig.Labels || {}).map(([key, value]) => ({
+                key,
+                value: value || ''
+            })));
+        }
+    }, [defaultConfig, form]);
 
     useEffect(() => {
-        if (open && containerId) {
-            fetchContainerDetails();
+        if (open) {
+            if (previousContainerId) {
+                fetchPreviousContainerDetails().then();
+            } else if (defaultConfig) {
+                updateFormFromDefaultConfig();
+            }
         }
-    }, [open, containerId, fetchContainerDetails]);
+    }, [open, previousContainerId, fetchPreviousContainerDetails, updateFormFromDefaultConfig, defaultConfig]);
 
     const handleSubmit = () => {
         const values = form.getValues();
@@ -216,29 +248,49 @@ export function ContainerDuplicateDialog({
             }
         });
 
-        onDuplicate(containerId, values, removeCurrentContainer);
+        onCreate(values, previousContainerId || null, removePreviousContainer);
         setOpen(false);
     };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button
-                    variant="outline"
-                    className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:border-orange-300"
-                    title="Duplicate container"
-                >
-                    <Copy className="h-4 w-4"/>
-                </Button>
+                {previousContainerId ? (
+                    <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:border-orange-300"
+                        title="Duplicate container"
+                    >
+                        <Copy className="h-4 w-4"/>
+                    </Button>
+                ) : (
+                    <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:border-green-300"
+                        title="Duplicate container"
+                    >
+                        <Plus className="h-4 w-4"/>
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[800px] h-[85vh] p-0 flex flex-col">
                 <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
                     <DialogTitle className="flex items-center gap-2">
-                        <Copy className="h-5 w-5 text-orange-600"/>
-                        Duplicate Container: {containerName}
+                        {previousContainerId ? (
+                            <>
+                                <Copy className="h-5 w-5 text-orange-600"/>
+                                Duplicate Container: {previousContainerName}
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="h-5 w-5 text-green-600"/>
+                                Create New Container
+                            </>
+                        )}
                     </DialogTitle>
                     <DialogDescription>
-                        Modify container configuration. The container will be recreated with the new settings.
+                        {previousContainerId ? "Modify container configuration. The container will be recreated with the new settings." :
+                            "Configure the new container settings below. All fields are optional except for the container name and image."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -722,18 +774,21 @@ export function ContainerDuplicateDialog({
                                                         />
                                                     </div>
 
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="space-y-0.5">
-                                                            <Label>Remove Current Container</Label>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Remove the original container after duplication
-                                                            </p>
+                                                    {previousContainerId && (
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="space-y-0.5">
+                                                                <Label>Remove Current Container</Label>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    Remove the original container after duplication
+                                                                </p>
+                                                            </div>
+                                                            <Switch
+                                                                checked={removePreviousContainer}
+                                                                onCheckedChange={setRemovePreviousContainer}
+                                                            />
                                                         </div>
-                                                        <Switch
-                                                            checked={removeCurrentContainer}
-                                                            onCheckedChange={setRemoveCurrentContainer}
-                                                        />
-                                                    </div>
+
+                                                    )}
                                                 </div>
 
                                                 <Separator/>
@@ -798,13 +853,23 @@ export function ContainerDuplicateDialog({
                     <Button variant="outline" onClick={() => setOpen(false)}>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleSubmit}
-                        className="bg-orange-600 hover:bg-orange-700 text-white"
-                        disabled={loading || !form.getValues().Image || !form.getValues().name}
-                    >
-                        Duplicate Container
-                    </Button>
+                    {previousContainerId ? (
+                        <Button
+                            onClick={handleSubmit}
+                            className="bg-orange-600 hover:bg-orange-700 text-white"
+                            disabled={loading || !form.getValues().Image || !form.getValues().name}
+                        >
+                            Duplicate Container
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={handleSubmit}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            disabled={loading || !form.getValues().Image || !form.getValues().name}
+                        >
+                            Create Container
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
