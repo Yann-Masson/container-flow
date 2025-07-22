@@ -231,8 +231,8 @@ export default function ListContainers() {
                             Select a container template to deploy
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <ContainerCreateDialog onCreate={handleCreateContainer} defaultConfig={traefik}/>
+                    <CardContent className="">
+                        Traefik: <ContainerCreateDialog onCreate={handleCreateContainer} defaultConfig={traefik}/>
                     </CardContent>
                 </Card>
             </section>

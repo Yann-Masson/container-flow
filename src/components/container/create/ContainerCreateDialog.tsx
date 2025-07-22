@@ -57,6 +57,7 @@ export function ContainerCreateDialog({
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [removePreviousContainer, setRemovePreviousContainer] = useState(false);
+    const [advancedConfiguration, setAdvancedConfiguration] = useState(false);
 
     const [envVars, setEnvVars] = useState<KeyValuePair[]>([]);
     const [ports, setPorts] = useState<PortMapping[]>([]);
@@ -301,7 +302,7 @@ export function ContainerCreateDialog({
                             <TabsTrigger value="env">Environment</TabsTrigger>
                             <TabsTrigger value="ports">Ports</TabsTrigger>
                             <TabsTrigger value="volumes">Volumes</TabsTrigger>
-                            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                            <TabsTrigger value="other">Other</TabsTrigger>
                         </TabsList>
 
                         <div className="flex-1 min-h-0">
@@ -316,7 +317,7 @@ export function ContainerCreateDialog({
                                             <CardContent className="space-y-4">
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="name">Container Name *</Label>
+                                                        <Label htmlFor="name">Container Name*</Label>
                                                         <Input
                                                             id="name"
                                                             value={form.watch("name") || ""}
@@ -325,7 +326,7 @@ export function ContainerCreateDialog({
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="image">Image *</Label>
+                                                        <Label htmlFor="image">Image*</Label>
                                                         <Input
                                                             id="image"
                                                             value={form.watch("Image") || ""}
@@ -335,68 +336,73 @@ export function ContainerCreateDialog({
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="hostname">Hostname</Label>
-                                                        <Input
-                                                            id="hostname"
-                                                            value={form.watch("Hostname") || ""}
-                                                            onChange={(e) => form.setValue("Hostname", e.target.value)}
-                                                            placeholder="my-hostname"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="domainname">Domain Name</Label>
-                                                        <Input
-                                                            id="domainname"
-                                                            value={form.watch("Domainname") || ""}
-                                                            onChange={(e) => form.setValue("Domainname", e.target.value)}
-                                                            placeholder="example.com"
-                                                        />
-                                                    </div>
-                                                </div>
+                                                {advancedConfiguration && (
+                                                    <>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label htmlFor="hostname">Hostname</Label>
+                                                                <Input
+                                                                    id="hostname"
+                                                                    value={form.watch("Hostname") || ""}
+                                                                    onChange={(e) => form.setValue("Hostname", e.target.value)}
+                                                                    placeholder="my-hostname"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label htmlFor="domainname">Domain Name</Label>
+                                                                <Input
+                                                                    id="domainname"
+                                                                    value={form.watch("Domainname") || ""}
+                                                                    onChange={(e) => form.setValue("Domainname", e.target.value)}
+                                                                    placeholder="example.com"
+                                                                />
+                                                            </div>
+                                                        </div>
 
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="user">User</Label>
-                                                    <Input
-                                                        id="user"
-                                                        value={form.watch("User") || ""}
-                                                        onChange={(e) => form.setValue("User", e.target.value)}
-                                                        placeholder="1000:1000 or username"
-                                                    />
-                                                </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="user">User</Label>
+                                                            <Input
+                                                                id="user"
+                                                                value={form.watch("User") || ""}
+                                                                onChange={(e) => form.setValue("User", e.target.value)}
+                                                                placeholder="1000:1000 or username"
+                                                            />
+                                                        </div>
 
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="workingdir">Working Directory</Label>
-                                                    <Input
-                                                        id="workingdir"
-                                                        value={form.watch("WorkingDir") || ""}
-                                                        onChange={(e) => form.setValue("WorkingDir", e.target.value)}
-                                                        placeholder="/app"
-                                                    />
-                                                </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="workingdir">Working Directory</Label>
+                                                            <Input
+                                                                id="workingdir"
+                                                                value={form.watch("WorkingDir") || ""}
+                                                                onChange={(e) => form.setValue("WorkingDir", e.target.value)}
+                                                                placeholder="/app"
+                                                            />
+                                                        </div>
 
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="cmd">Command (one per line)</Label>
-                                                    <textarea
-                                                        id="cmd"
-                                                        className="w-full min-h-[80px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                                        value={(form.watch("Cmd") || []).join('\n')}
-                                                        onChange={(e) => form.setValue("Cmd", e.target.value.split('\n').filter(line => line.trim()))}
-                                                        placeholder="npm\nstart"
-                                                    />
-                                                </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="cmd">Command (one per line)</Label>
+                                                            <textarea
+                                                                id="cmd"
+                                                                className="w-full min-h-[80px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                                value={(form.watch("Cmd") || []).join('\n')}
+                                                                onChange={(e) => form.setValue("Cmd", e.target.value.split('\n').filter(line => line.trim()))}
+                                                                placeholder="npm\nstart"
+                                                            />
+                                                        </div>
 
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="entrypoint">Entrypoint (one per line)</Label>
-                                                    <textarea
-                                                        id="entrypoint"
-                                                        className="w-full min-h-[60px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                                        value={Array.isArray(form.watch("Entrypoint")) ? ((form.watch("Entrypoint") as string[] || []).join('\n')) : (form.watch("Entrypoint") || "")}
-                                                        onChange={(e) => form.setValue("Entrypoint", e.target.value.split('\n').filter(line => line.trim()))}
-                                                        placeholder="/docker-entrypoint.sh"
-                                                    />
-                                                </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="entrypoint">Entrypoint (one per
+                                                                line)</Label>
+                                                            <textarea
+                                                                id="entrypoint"
+                                                                className="w-full min-h-[60px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                                value={Array.isArray(form.watch("Entrypoint")) ? ((form.watch("Entrypoint") as string[] || []).join('\n')) : (form.watch("Entrypoint") || "")}
+                                                                onChange={(e) => form.setValue("Entrypoint", e.target.value.split('\n').filter(line => line.trim()))}
+                                                                placeholder="/docker-entrypoint.sh"
+                                                            />
+                                                        </div>
+                                                    </>
+                                                )}
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
@@ -677,8 +683,8 @@ export function ContainerCreateDialog({
                                         </Card>
                                     </TabsContent>
 
-                                    {/* Advanced Tab */}
-                                    <TabsContent value="advanced" className="mt-4 space-y-4">
+                                    {/* Other Tab */}
+                                    <TabsContent value="other" className="mt-4 space-y-4">
                                         <Card>
                                             <CardHeader>
                                                 <CardTitle>Network & Security</CardTitle>
@@ -723,43 +729,47 @@ export function ContainerCreateDialog({
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="max-retry">Max Retry Count</Label>
-                                                        <Input
-                                                            id="max-retry"
-                                                            type="number"
-                                                            value={form.watch("HostConfig.RestartPolicy.MaximumRetryCount") || ""}
-                                                            onChange={(e) => form.setValue("HostConfig.RestartPolicy.MaximumRetryCount", parseInt(e.target.value) || 0)}
-                                                            placeholder="0"
-                                                        />
+                                                {advancedConfiguration && (
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="max-retry">Max Retry Count</Label>
+                                                            <Input
+                                                                id="max-retry"
+                                                                type="number"
+                                                                value={form.watch("HostConfig.RestartPolicy.MaximumRetryCount") || ""}
+                                                                onChange={(e) => form.setValue("HostConfig.RestartPolicy.MaximumRetryCount", parseInt(e.target.value) || 0)}
+                                                                placeholder="0"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="pid-mode">PID Mode</Label>
+                                                            <Input
+                                                                id="pid-mode"
+                                                                value={form.watch("HostConfig.PidMode") || ""}
+                                                                onChange={(e) => form.setValue("HostConfig.PidMode", e.target.value)}
+                                                                placeholder="host"
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="pid-mode">PID Mode</Label>
-                                                        <Input
-                                                            id="pid-mode"
-                                                            value={form.watch("HostConfig.PidMode") || ""}
-                                                            onChange={(e) => form.setValue("HostConfig.PidMode", e.target.value)}
-                                                            placeholder="host"
-                                                        />
-                                                    </div>
-                                                </div>
+                                                )}
 
                                                 <Separator/>
 
                                                 <div className="space-y-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="space-y-0.5">
-                                                            <Label>Privileged Mode</Label>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Give extended privileges to this container
-                                                            </p>
+                                                    {advancedConfiguration && (
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="space-y-0.5">
+                                                                <Label>Privileged Mode</Label>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    Give extended privileges to this container
+                                                                </p>
+                                                            </div>
+                                                            <Switch
+                                                                checked={form.watch("HostConfig.Privileged") || false}
+                                                                onCheckedChange={(checked) => form.setValue("HostConfig.Privileged", checked)}
+                                                            />
                                                         </div>
-                                                        <Switch
-                                                            checked={form.watch("HostConfig.Privileged") || false}
-                                                            onCheckedChange={(checked) => form.setValue("HostConfig.Privileged", checked)}
-                                                        />
-                                                    </div>
+                                                    )}
 
                                                     <div className="flex items-center justify-between">
                                                         <div className="space-y-0.5">
@@ -791,53 +801,60 @@ export function ContainerCreateDialog({
                                                     )}
                                                 </div>
 
-                                                <Separator/>
+                                                {advancedConfiguration && (
+                                                    <>
 
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="memory">Memory Limit (MB)</Label>
-                                                        <Input
-                                                            id="memory"
-                                                            type="number"
-                                                            value={form.watch("HostConfig.Memory") ? (form.watch("HostConfig.Memory") || 0) / 1024 / 1024 : ""}
-                                                            onChange={(e) => form.setValue("HostConfig.Memory", parseInt(e.target.value) * 1024 * 1024 || 0)}
-                                                            placeholder="512"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="cpu-shares">CPU Shares</Label>
-                                                        <Input
-                                                            id="cpu-shares"
-                                                            type="number"
-                                                            value={form.watch("HostConfig.CpuShares") || ""}
-                                                            onChange={(e) => form.setValue("HostConfig.CpuShares", parseInt(e.target.value) || 0)}
-                                                            placeholder="1024"
-                                                        />
-                                                    </div>
-                                                </div>
+                                                        <Separator/>
 
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="dns">DNS Servers (one per line)</Label>
-                                                    <textarea
-                                                        id="dns"
-                                                        className="w-full min-h-[60px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                                        value={(form.watch("HostConfig.Dns") || []).join('\n')}
-                                                        onChange={(e) => form.setValue("HostConfig.Dns", e.target.value.split('\n').filter(line => line.trim()))}
-                                                        placeholder="8.8.8.8&#10;1.1.1.1"
-                                                    />
-                                                </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label htmlFor="memory">Memory Limit (MB)</Label>
+                                                                <Input
+                                                                    id="memory"
+                                                                    type="number"
+                                                                    value={form.watch("HostConfig.Memory") ? (form.watch("HostConfig.Memory") || 0) / 1024 / 1024 : ""}
+                                                                    onChange={(e) => form.setValue("HostConfig.Memory", parseInt(e.target.value) * 1024 * 1024 || 0)}
+                                                                    placeholder="512"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label htmlFor="cpu-shares">CPU Shares</Label>
+                                                                <Input
+                                                                    id="cpu-shares"
+                                                                    type="number"
+                                                                    value={form.watch("HostConfig.CpuShares") || ""}
+                                                                    onChange={(e) => form.setValue("HostConfig.CpuShares", parseInt(e.target.value) || 0)}
+                                                                    placeholder="1024"
+                                                                />
+                                                            </div>
+                                                        </div>
 
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="extra-hosts">Extra Hosts (one per line, format:
-                                                        hostname:ip)</Label>
-                                                    <textarea
-                                                        id="extra-hosts"
-                                                        className="w-full min-h-[60px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                                        value={(form.watch("HostConfig.ExtraHosts") || []).join('\n')}
-                                                        onChange={(e) => form.setValue("HostConfig.ExtraHosts", e.target.value.split('\n').filter(line => line.trim()))}
-                                                        placeholder="somehost:162.242.195.82&#10;otherhost:50.31.209.229"
-                                                    />
-                                                </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="dns">DNS Servers (one per line)</Label>
+                                                            <textarea
+                                                                id="dns"
+                                                                className="w-full min-h-[60px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                                value={(form.watch("HostConfig.Dns") || []).join('\n')}
+                                                                onChange={(e) => form.setValue("HostConfig.Dns", e.target.value.split('\n').filter(line => line.trim()))}
+                                                                placeholder="8.8.8.8&#10;1.1.1.1"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="extra-hosts">Extra Hosts (one per line,
+                                                                format:
+                                                                hostname:ip)</Label>
+                                                            <textarea
+                                                                id="extra-hosts"
+                                                                className="w-full min-h-[60px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                                value={(form.watch("HostConfig.ExtraHosts") || []).join('\n')}
+                                                                onChange={(e) => form.setValue("HostConfig.ExtraHosts", e.target.value.split('\n').filter(line => line.trim()))}
+                                                                placeholder="somehost:162.242.195.82&#10;otherhost:50.31.209.229"
+                                                            />
+                                                        </div>
+                                                    </>
+                                                )}
+
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
@@ -849,27 +866,33 @@ export function ContainerCreateDialog({
                     </Tabs>
                 </div>
 
-                <DialogFooter className="px-6 py-4 flex-shrink-0 border-t bg-background">
-                    <Button variant="outline" onClick={() => setOpen(false)}>
-                        Cancel
-                    </Button>
-                    {previousContainerId ? (
-                        <Button
-                            onClick={handleSubmit}
-                            className="bg-orange-600 hover:bg-orange-700 text-white"
-                            disabled={loading || !form.getValues().Image || !form.getValues().name}
-                        >
-                            Duplicate Container
+                <DialogFooter className="px-6 py-4 border-t bg-background flex justify-between items-center w-full">
+                    <div className="flex items-center space-x-2 w-full">
+                        <Switch checked={advancedConfiguration} onCheckedChange={setAdvancedConfiguration}/>
+                        <Label>Advanced Configuration</Label>
+                    </div>
+                    <div className="flex-shrink-0 space-x-2">
+                        <Button variant="outline" onClick={() => setOpen(false)}>
+                            Cancel
                         </Button>
-                    ) : (
-                        <Button
-                            onClick={handleSubmit}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                            disabled={loading || !form.getValues().Image || !form.getValues().name}
-                        >
-                            Create Container
-                        </Button>
-                    )}
+                        {previousContainerId ? (
+                            <Button
+                                onClick={handleSubmit}
+                                className="bg-orange-600 hover:bg-orange-700 text-white"
+                                disabled={loading || !form.getValues().Image || !form.getValues().name}
+                            >
+                                Duplicate Container
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleSubmit}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                disabled={loading || !form.getValues().Image || !form.getValues().name}
+                            >
+                                Create Container
+                            </Button>
+                        )}
+                    </div>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
