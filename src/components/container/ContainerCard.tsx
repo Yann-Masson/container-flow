@@ -4,7 +4,7 @@ import { Badge } from "../ui/badge";
 import { ContainerDetailsDialog } from "./ContainerDetailsDialog";
 import { ContainerDeleteDialog } from "./ContainerDeleteDialog";
 import { ContainerLogsDialog } from "./ContainerLogsDialog";
-import { ContainerDuplicateDialog } from "./ContainerDuplicateDialog.tsx";
+import { ContainerCreateDialog } from "./create/ContainerCreateDialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { PlayIcon, SquareIcon } from "lucide-react";
 
@@ -20,7 +20,7 @@ interface ContainerCardProps {
     onStop: (containerId: string, containerName: string) => void;
     onGetLogs: (containerId: string, containerName: string) => Promise<string>;
     onDelete: (containerId: string, containerName: string) => void;
-    onDuplicate: (containerId: string, containerConfig: ContainerCreateOptions, removeCurrentContainer: boolean) => void;
+    onCreate: (containerConfig: ContainerCreateOptions, previousContainerId: string | null, removePreviousContainer: boolean) => void;
 }
 
 export function ContainerCard({
@@ -35,7 +35,7 @@ export function ContainerCard({
                                   onStop,
                                   onGetLogs,
                                   onDelete,
-                                  onDuplicate
+                                  onCreate
                               }: ContainerCardProps) {
     return (
         <ContainerDetailsDialog
@@ -112,10 +112,10 @@ export function ContainerCard({
 
 
                                 <div onClick={(e) => e.stopPropagation()}>
-                                    <ContainerDuplicateDialog
-                                        containerId={container.Id}
-                                        containerName={containerName}
-                                        onDuplicate={onDuplicate}
+                                    <ContainerCreateDialog
+                                        previousContainerId={container.Id}
+                                        previousContainerName={containerName}
+                                        onCreate={onCreate}
                                     />
                                 </div>
                             </div>

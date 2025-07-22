@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react';
 import { ContainerCreateOptions, ContainerInfo } from 'dockerode';
 import { DockerClientService } from "../docker/docker-client.ts";
 import { State } from "../types/state.ts";
-import { Card } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { toast } from "sonner";
 import { ContainerHeader } from "./container/ContainerHeader";
 import { ContainerCard } from "./container/ContainerCard";
 import { LoadingSkeleton } from "./container/LoadingSkeleton";
+import { Separator } from "@/components/ui/separator.tsx";
+import traefik from "@/docker/configs/traefik.ts";
+import { ContainerCreateDialog } from "@/components/container/create/ContainerCreateDialog.tsx";
 
 export default function ListContainers() {
     const [state, setState] = useState(State.LOADING);
@@ -84,14 +87,22 @@ export default function ListContainers() {
         }
     };
 
-    // Update container (recreate by deleting and creating new one)
-    const handleDuplicateContainer = async (containerId: string, containerConfig: ContainerCreateOptions, removeCurrentContainer: boolean) => {
-        setActionLoading(prev => ({ ...prev, [containerId]: true }));
+    // Create / Duplicate container
+    const handleCreateContainer = async (containerConfig: ContainerCreateOptions, previousContainerId: string | null, removePreviousContainer: boolean) => {
         try {
-            const containerInfo = await dockerClientService.containers.get(containerId);
+            if (!previousContainerId) {
+                const newContainer = await dockerClientService.containers.create(containerConfig);
 
-            if (removeCurrentContainer) {
-                await dockerClientService.containers.remove(containerId, { force: true });
+                toast.success(`Container "${newContainer.name}" created successfully`);
+                return;
+            }
+
+            setActionLoading(prev => ({ ...prev, [previousContainerId]: true }));
+
+            const containerInfo = await dockerClientService.containers.get(previousContainerId);
+
+            if (removePreviousContainer) {
+                await dockerClientService.containers.remove(previousContainerId, { force: true });
             }
 
             const newContainer = await dockerClientService.containers.create(containerConfig);
@@ -101,11 +112,13 @@ export default function ListContainers() {
             }
 
             toast.success(`Container "${containerInfo.Name}" duplicated successfully`);
-            await handleListContainers(); // Refresh the list
+            await handleListContainers();
         } catch (error) {
             toast.error(`Failed to update container "${containerConfig.Image}": ${error}`);
         } finally {
-            setActionLoading(prev => ({ ...prev, [containerId]: false }));
+            if (previousContainerId) {
+                setActionLoading(prev => ({ ...prev, [previousContainerId]: false }));
+            }
         }
     };
 
@@ -162,47 +175,67 @@ export default function ListContainers() {
     };
 
     return (
-        <div className='p-4 w-full'>
-            <ContainerHeader state={state} message={message} refreshFunction={handleListContainers}/>
+        <main className="grid grid-cols-1 gap-8">
 
-            {/* Container list */}
-            {state === State.LOADING ? (
-                <LoadingSkeleton/>
-            ) : state === State.SUCCESS && containers.length > 0 ? (
-                <div className="space-y-4">
-                    <h2 className='text-xl font-bold mb-3'>Container List</h2>
-                    <div className="grid grid-cols-1 gap-4">
-                        {containers.map((container) => {
-                            const containerName = formatContainerName(container.Names[0]);
-                            const isRunning = container.Status.includes('Up');
-                            const isLoading = actionLoading[container.Id];
+            <section className='p-4 w-full'>
+                <ContainerHeader state={state} message={message} refreshFunction={handleListContainers}/>
 
-                            return (
-                                <ContainerCard
-                                    key={container.Id}
-                                    container={container}
-                                    containerName={containerName}
-                                    isRunning={isRunning}
-                                    isLoading={isLoading}
-                                    getStatusColor={getStatusColor}
-                                    getStatusText={getStatusText}
-                                    getImageBadgeStyle={getImageBadgeStyle}
-                                    onStart={handleStartContainer}
-                                    onStop={handleStopContainer}
-                                    onGetLogs={handleGetLogs}
-                                    onDelete={handleDeleteContainer}
-                                    onDuplicate={handleDuplicateContainer}
-                                />
-                            );
-                        })}
+                {/* Container list */}
+                {state === State.LOADING ? (
+                    <LoadingSkeleton/>
+                ) : state === State.SUCCESS && containers.length > 0 ? (
+                    <div className="space-y-4">
+                        <h2 className='text-xl font-bold mb-3'>Container List</h2>
+                        <div className="grid grid-cols-1 gap-4">
+                            {containers.map((container) => {
+                                const containerName = formatContainerName(container.Names[0]);
+                                const isRunning = container.Status.includes('Up');
+                                const isLoading = actionLoading[container.Id];
+
+                                return (
+                                    <ContainerCard
+                                        key={container.Id}
+                                        container={container}
+                                        containerName={containerName}
+                                        isRunning={isRunning}
+                                        isLoading={isLoading}
+                                        getStatusColor={getStatusColor}
+                                        getStatusText={getStatusText}
+                                        getImageBadgeStyle={getImageBadgeStyle}
+                                        onStart={handleStartContainer}
+                                        onStop={handleStopContainer}
+                                        onGetLogs={handleGetLogs}
+                                        onDelete={handleDeleteContainer}
+                                        onCreate={handleCreateContainer}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            ) : state === State.SUCCESS && containers.length === 0 ? (
-                <Card className="w-full p-6 text-center bg-gray-50 dark:bg-gray-800">
-                    <p className="text-lg text-gray-600 dark:text-gray-400">No containers found</p>
-                    <p className="text-sm text-gray-500 mt-2">Create a new container to get started</p>
+                ) : state === State.SUCCESS && containers.length === 0 ? (
+                    <Card className="w-full p-6 text-center bg-gray-50 dark:bg-gray-800">
+                        <p className="text-lg text-gray-600 dark:text-gray-400">No containers found</p>
+                        <p className="text-sm text-gray-500 mt-2">Create a new container to get started</p>
+                    </Card>
+                ) : null}
+            </section>
+
+            <Separator className="my-2"/>
+
+            <section>
+                <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md">
+                    <CardHeader>
+                        <CardTitle className="text-xl font-bold">Create a new
+                            container</CardTitle>
+                        <CardDescription>
+                            Select a container template to deploy
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <ContainerCreateDialog onCreate={handleCreateContainer} defaultConfig={traefik}/>
+                    </CardContent>
                 </Card>
-            ) : null}
-        </div>
+            </section>
+        </main>
     );
 }

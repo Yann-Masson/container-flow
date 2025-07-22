@@ -6,12 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/containers/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/update.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/types/electron.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/types/electron.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/CreateContainer.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/ListContainers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ListContainers.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/container/ContainerCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/container/ContainerCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/docker/docker-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/docker/docker-client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/container/ContainerDuplicateDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/container/create/ContainerCreateDialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/docker/containers/mysql.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/docker/configs/mysql.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/docker/containers/traefik.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/docker/configs/traefik.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/docker/containers/wordpress.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/docker/configs/wordpress.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,7 +61,7 @@
     &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
     &quot;nx.console.mcp.server.install.notification.hide&quot;: &quot;true&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;settings.javascript.prettier&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Yann\\Documents\\Lumia\\container-flow\\node_modules\\typescript\\lib&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\yann.masson\\WebstormProjects\\container-flow\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -69,6 +71,7 @@
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\electron" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\yann.masson\WebstormProjects\container-flow\src\components\container\create" />
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\src\docker" />
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\src\types" />
     </key>
@@ -90,6 +93,8 @@
       <workItem from="1752238482248" duration="730000" />
       <workItem from="1752252014705" duration="13456000" />
       <workItem from="1752909978898" duration="2674000" />
+      <workItem from="1753098843511" duration="13137000" />
+      <workItem from="1753174141187" duration="3700000" />
     </task>
     <servers />
   </component>
