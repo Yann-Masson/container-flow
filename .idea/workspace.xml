@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/create.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/containers/create.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ListContainers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ListContainers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/docker/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,7 +88,9 @@
       <workItem from="1752909978898" duration="2674000" />
       <workItem from="1753098843511" duration="13137000" />
       <workItem from="1753174141187" duration="7937000" />
-      <workItem from="1753196063642" duration="1105000" />
+      <workItem from="1753196063642" duration="1275000" />
+      <workItem from="1753367850698" duration="396000" />
+      <workItem from="1753368292298" duration="1132000" />
     </task>
     <servers />
   </component>
