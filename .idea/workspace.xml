@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/preload.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/preload.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/docker/network/remove.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/network/remove.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/types/electron.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/types/electron.d.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +92,7 @@
       <workItem from="1753174141187" duration="7937000" />
       <workItem from="1753196063642" duration="1275000" />
       <workItem from="1753367850698" duration="396000" />
-      <workItem from="1753368292298" duration="1132000" />
+      <workItem from="1753368292298" duration="1910000" />
     </task>
     <servers />
   </component>
