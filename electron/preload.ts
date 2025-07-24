@@ -1,6 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { SSHConfig } from "./services/docker/connection/try-to-connect.ts";
-import { ContainerCreateOptions, ContainerLogsOptions } from "dockerode";
+import {
+    ContainerCreateOptions,
+    ContainerLogsOptions,
+    NetworkConnectOptions,
+    NetworkCreateOptions,
+    NetworkListOptions
+} from "dockerode";
 
 // Expose Docker API
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -24,6 +30,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
         },
         images: {
             pull: (image: string) => ipcRenderer.invoke('docker:images:pull', image),
+        },
+        network: {
+            create: (options: NetworkCreateOptions) =>
+                ipcRenderer.invoke('docker:network:create', options),
+            remove: (networkId: string, force?: boolean) =>
+                ipcRenderer.invoke('docker:network:remove', networkId, force),
+            list: (options?: NetworkListOptions) =>
+                ipcRenderer.invoke('docker:network:list', options),
+            inspect: (networkId: string) =>
+                ipcRenderer.invoke('docker:network:inspect', networkId),
+            connect: (networkId: string, options: NetworkConnectOptions) =>
+                ipcRenderer.invoke('docker:network:connect', networkId, options),
+            disconnect: (networkId: string) =>
+                ipcRenderer.invoke('docker:network:disconnect', networkId),
+            prune: () =>
+                ipcRenderer.invoke('docker:network:prune'),
+            utils: {
+                findByName: (namePattern: string, exactMatch?: boolean) =>
+                    ipcRenderer.invoke('docker:network:utils:findByName', namePattern, exactMatch),
+                getContainerNetworks: (containerId: string) =>
+                    ipcRenderer.invoke('docker:network:utils:getContainerNetworks', containerId),
+                getNetworkContainers: (networkId: string) =>
+                    ipcRenderer.invoke('docker:network:utils:getNetworkContainers', networkId),
+            },
         },
     },
     preferences: {
