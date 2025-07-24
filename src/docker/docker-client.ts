@@ -1,4 +1,4 @@
-import { ContainerCreateOptions } from 'dockerode';
+import { ContainerCreateOptions, NetworkConnectOptions, NetworkCreateOptions, NetworkListOptions } from 'dockerode';
 
 export interface SSHConfig {
     host: string;
@@ -79,6 +79,51 @@ export class DockerClientService {
         pull: async (image: string) => {
             await this.waitForElectronAPI();
             return this.electronAPI.docker.images.pull(image);
+        },
+    };
+
+    network = {
+        create: async (options: NetworkCreateOptions) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.network.create(options);
+        },
+        remove: async (networkId: string, force?: boolean) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.network.remove(networkId, force);
+        },
+        list: async (options?: NetworkListOptions) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.network.list(options);
+        },
+        inspect: async (networkId: string) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.network.inspect(networkId);
+        },
+        connect: async (networkId: string, options: NetworkConnectOptions) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.network.connect(networkId, options);
+        },
+        disconnect: async (networkId: string) => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.network.disconnect(networkId);
+        },
+        prune: async () => {
+            await this.waitForElectronAPI();
+            return this.electronAPI.docker.network.prune();
+        },
+        utils: {
+            findByName: async (namePattern: string, exactMatch?: boolean) => {
+                await this.waitForElectronAPI();
+                return this.electronAPI.docker.network.utils.findByName(namePattern, exactMatch);
+            },
+            getContainerNetworks: async (containerId: string) => {
+                await this.waitForElectronAPI();
+                return this.electronAPI.docker.network.utils.getContainerNetworks(containerId);
+            },
+            getNetworkContainers: async (networkId: string) => {
+                await this.waitForElectronAPI();
+                return this.electronAPI.docker.network.utils.getNetworkContainers(networkId);
+            },
         },
     };
 }

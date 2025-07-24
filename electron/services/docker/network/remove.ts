@@ -30,7 +30,7 @@ export default async function remove(networkId: string, force: boolean = false):
         }
 
         await network.remove();
-    } catch (error: any) {
-        throw new Error(`Failed to remove network: ${error.message}`);
+    } catch (error) {
+        throw new Error(`Failed to remove network: ${error}`);
     }
 }

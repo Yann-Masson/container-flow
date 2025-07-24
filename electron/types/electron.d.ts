@@ -1,4 +1,15 @@
-import { ContainerCreateOptions, ContainerInfo, ContainerInspectInfo, ContainerLogsOptions } from 'dockerode';
+import {
+    ContainerCreateOptions,
+    ContainerInfo,
+    ContainerInspectInfo,
+    ContainerLogsOptions,
+    Network,
+    NetworkConnectOptions,
+    NetworkCreateOptions,
+    NetworkInspectInfo,
+    NetworkListOptions,
+    PruneNetworksInfo,
+} from 'dockerode';
 
 interface ElectronAPI {
     docker: {
@@ -23,6 +34,20 @@ interface ElectronAPI {
         };
         images: {
             pull: (image: string) => Promise<void>;
+        };
+        network: {
+            create: (options: NetworkCreateOptions) => Promise<Network>;
+            remove: (networkId: string, force?: boolean) => Promise<void>;
+            list: (options?: NetworkListOptions) => Promise<NetworkInspectInfo[]>;
+            inspect: (networkId: string) => Promise<NetworkInspectInfo>;
+            connect: (networkId: string, options: NetworkConnectOptions) => Promise<void>;
+            disconnect: (networkId: string) => Promise<void>;
+            prune: () => Promise<PruneNetworksInfo>;
+            utils: {
+                findByName: (namePattern: string, exactMatch?: boolean) => Promise<NetworkInspectInfo[]>;
+                getContainerNetworks: (containerId: string) => Promise<ContainerInspectInfo['NetworkSettings']['Networks']>;
+                getNetworkContainers: (networkId: string) => Promise<NetworkInspectInfo['Containers']>;
+            };
         };
     };
     preferences: {
