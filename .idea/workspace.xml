@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/connection/try-to-connect.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/connection/try-to-connect.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/create.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/containers/create.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/docker/configs/traefik.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/configs/traefik.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/electron/services/docker/wordpress/setup.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/wordpress/setup.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -148,13 +148,13 @@ export const createWordPress = async (options: WordPressSetupOptions): Promise<{
             Labels: {
                 'traefik.enable': 'true',
                 [`traefik.http.routers.${name}.rule`]: `Host("${domain || name + '.agence-lumia.com'}")`,
-                [`traefik.http.routers.${name}.entrypoints`]: 'web',
+                [`traefik.http.routers.${name}.entrypoints`]: 'websecure',
+                [`traefik.http.routers.${name}.tls.certresolver`]: 'letsencrypt',
                 [`traefik.http.services.${name}.loadbalancer.server.port`]: '80',
             },
             HostConfig: {
                 ...wordpress.HostConfig,
                 Binds: [`wordpress-${name}-data:/var/www/html`],
-                // Remove port bindings since Traefik will handle routing
                 PortBindings: {},
             },
         };
