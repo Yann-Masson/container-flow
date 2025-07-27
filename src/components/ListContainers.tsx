@@ -10,7 +10,7 @@ import { ContainerHeader } from "./container/ContainerHeader";
 import { ContainerCard } from "./container/ContainerCard";
 import { LoadingSkeleton } from "./container/LoadingSkeleton";
 import { Separator } from "@/components/ui/separator.tsx";
-import traefik from "@/docker/configs/traefik.ts";
+import traefik from "../../electron/services/docker/configs/traefik.ts";
 import { ContainerCreateDialog } from "@/components/container/create/ContainerCreateDialog.tsx";
 
 export default function ListContainers() {
@@ -34,17 +34,17 @@ export default function ListContainers() {
             if (containers !== null) {
 
                 const traefikContainer = containers.find(container =>
-                    container.Image.includes('traefik')
+                        container.Image.includes('traefik')
                 ) || null;
                 setTraefikContainer(traefikContainer);
                 const mySQLContainer = containers.find(container =>
-                    container.Image.includes('mysql')
+                        container.Image.includes('mysql')
                 ) || null;
                 setMySQLContainer(mySQLContainer);
 
                 const filteredContainers = containers.filter(container =>
-                    container.Id !== traefikContainer?.Id &&
-                    container.Id !== mySQLContainer?.Id
+                        container.Id !== traefikContainer?.Id &&
+                        container.Id !== mySQLContainer?.Id
                 );
                 setContainers(filteredContainers);
                 setMessage(`${containers.length} container${containers.length > 0 ? 's' : ''} found`);
@@ -66,7 +66,7 @@ export default function ListContainers() {
             await dockerClientService.containers.start(containerId);
             toast.success(`Container "${containerName}" started successfully`);
             setContainers(prev => prev.map(container =>
-                container.Id === containerId ? { ...container, State: 'running' } : container
+                    container.Id === containerId ? { ...container, State: 'running' } : container
             ));
         } catch (error) {
             toast.error(`Failed to start container "${containerName}": ${error}`);
@@ -82,7 +82,7 @@ export default function ListContainers() {
             await dockerClientService.containers.stop(containerId, { t: 10 });
             toast.success(`Container "${containerName}" stopped successfully`);
             setContainers(prev => prev.map(container =>
-                container.Id === containerId ? { ...container, State: 'stopped' } : container
+                    container.Id === containerId ? { ...container, State: 'stopped' } : container
             ));
         } catch (error) {
             toast.error(`Failed to stop container "${containerName}": ${error}`);
@@ -133,7 +133,7 @@ export default function ListContainers() {
 
             toast.success(`Container "${containerInfo.Name}" duplicated successfully`);
             setContainers(prev => prev.map(container =>
-                container.Id === previousContainerId ? newContainer : container
+                    container.Id === previousContainerId ? newContainer : container
             ));
         } catch (error) {
             toast.error(`Failed to update container "${containerConfig.Image}": ${error}`);
@@ -197,84 +197,21 @@ export default function ListContainers() {
     };
 
     return (
-        <main className="grid grid-cols-1 gap-8">
+            <main className="grid grid-cols-1 gap-8">
 
-            <section className='p-4 w-full'>
-                <ContainerHeader state={state} message={message} refreshFunction={handleListContainers}/>
+                <section className='p-4 w-full'>
+                    <ContainerHeader state={state} message={message} refreshFunction={handleListContainers}/>
 
-                <Separator className="my-4"/>
+                    <Separator className="my-4"/>
 
-                <div className="flex items-center justify-between mb-4 gap-4">
-                    {traefikContainer ? (
-                        <ContainerCard
-                            key={traefikContainer.Id}
-                            container={traefikContainer}
-                            containerName={"Traefik"}
-                            isRunning={traefikContainer.Status.includes('Up')}
-                            isLoading={actionLoading[traefikContainer.Id]}
-                            getStatusColor={getStatusColor}
-                            getStatusText={getStatusText}
-                            getImageBadgeStyle={getImageBadgeStyle}
-                            onStart={handleStartContainer}
-                            onStop={handleStopContainer}
-                            onGetLogs={handleGetLogs}
-                            onDelete={handleDeleteContainer}
-                            onCreate={handleCreateContainer}
-                        />
-                    ) : (
-                        <Card className="bg-red-50 dark:bg-red-900/20 p-4 w-full">
-                            <h3 className="text-lg font-semibold">Traefik Container Not Found</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Please create a Traefik container to manage your services.
-                            </p>
-                        </Card>
-                    )}
-
-                    {mySQLContainer ? (
-                        <ContainerCard
-                            key={mySQLContainer.Id}
-                            container={mySQLContainer}
-                            containerName={"MySQL"}
-                            isRunning={mySQLContainer.Status.includes('Up')}
-                            isLoading={actionLoading[mySQLContainer.Id]}
-                            getStatusColor={getStatusColor}
-                            getStatusText={getStatusText}
-                            getImageBadgeStyle={getImageBadgeStyle}
-                            onStart={handleStartContainer}
-                            onStop={handleStopContainer}
-                            onGetLogs={handleGetLogs}
-                            onDelete={handleDeleteContainer}
-                            onCreate={handleCreateContainer}
-                        />
-                    ) : (
-                        <Card className="bg-red-50 dark:bg-red-900/20 p-4 w-full">
-                            <h3 className="text-lg font-semibold">MySQL Container Not Found</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Please create a MySQL container to manage your databases.
-                            </p>
-                        </Card>
-                    )}
-                </div>
-
-                {/* Container list */}
-                {state === State.LOADING ? (
-                    <LoadingSkeleton/>
-                ) : state === State.SUCCESS && containers.length > 0 ? (
-                    <div className="space-y-4">
-                        <h2 className='text-xl font-bold mb-3'>Container List</h2>
-                        <div className="grid grid-cols-1 gap-4">
-                            {containers.map((container) => {
-                                const containerName = formatContainerName(container.Names[0]);
-                                const isRunning = container.Status.includes('Up');
-                                const isLoading = actionLoading[container.Id];
-
-                                return (
-                                    <ContainerCard
-                                        key={container.Id}
-                                        container={container}
-                                        containerName={containerName}
-                                        isRunning={isRunning}
-                                        isLoading={isLoading}
+                    <div className="flex items-center justify-between mb-4 gap-4">
+                        {traefikContainer ? (
+                                <ContainerCard
+                                        key={traefikContainer.Id}
+                                        container={traefikContainer}
+                                        containerName={"Traefik"}
+                                        isRunning={traefikContainer.Status.includes('Up')}
+                                        isLoading={actionLoading[traefikContainer.Id]}
                                         getStatusColor={getStatusColor}
                                         getStatusText={getStatusText}
                                         getImageBadgeStyle={getImageBadgeStyle}
@@ -283,35 +220,98 @@ export default function ListContainers() {
                                         onGetLogs={handleGetLogs}
                                         onDelete={handleDeleteContainer}
                                         onCreate={handleCreateContainer}
-                                    />
-                                );
-                            })}
-                        </div>
+                                />
+                        ) : (
+                                <Card className="bg-red-50 dark:bg-red-900/20 p-4 w-full">
+                                    <h3 className="text-lg font-semibold">Traefik Container Not Found</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        Please create a Traefik container to manage your services.
+                                    </p>
+                                </Card>
+                        )}
+
+                        {mySQLContainer ? (
+                                <ContainerCard
+                                        key={mySQLContainer.Id}
+                                        container={mySQLContainer}
+                                        containerName={"MySQL"}
+                                        isRunning={mySQLContainer.Status.includes('Up')}
+                                        isLoading={actionLoading[mySQLContainer.Id]}
+                                        getStatusColor={getStatusColor}
+                                        getStatusText={getStatusText}
+                                        getImageBadgeStyle={getImageBadgeStyle}
+                                        onStart={handleStartContainer}
+                                        onStop={handleStopContainer}
+                                        onGetLogs={handleGetLogs}
+                                        onDelete={handleDeleteContainer}
+                                        onCreate={handleCreateContainer}
+                                />
+                        ) : (
+                                <Card className="bg-red-50 dark:bg-red-900/20 p-4 w-full">
+                                    <h3 className="text-lg font-semibold">MySQL Container Not Found</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        Please create a MySQL container to manage your databases.
+                                    </p>
+                                </Card>
+                        )}
                     </div>
-                ) : state === State.SUCCESS && containers.length === 0 ? (
-                    <Card className="w-full p-6 text-center bg-gray-50 dark:bg-gray-800">
-                        <p className="text-lg text-gray-600 dark:text-gray-400">No containers found</p>
-                        <p className="text-sm text-gray-500 mt-2">Create a new container to get started</p>
+
+                    {/* Container list */}
+                    {state === State.LOADING ? (
+                            <LoadingSkeleton/>
+                    ) : state === State.SUCCESS && containers.length > 0 ? (
+                            <div className="space-y-4">
+                                <h2 className='text-xl font-bold mb-3'>Container List</h2>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {containers.map((container) => {
+                                        const containerName = formatContainerName(container.Names[0]);
+                                        const isRunning = container.Status.includes('Up');
+                                        const isLoading = actionLoading[container.Id];
+
+                                        return (
+                                                <ContainerCard
+                                                        key={container.Id}
+                                                        container={container}
+                                                        containerName={containerName}
+                                                        isRunning={isRunning}
+                                                        isLoading={isLoading}
+                                                        getStatusColor={getStatusColor}
+                                                        getStatusText={getStatusText}
+                                                        getImageBadgeStyle={getImageBadgeStyle}
+                                                        onStart={handleStartContainer}
+                                                        onStop={handleStopContainer}
+                                                        onGetLogs={handleGetLogs}
+                                                        onDelete={handleDeleteContainer}
+                                                        onCreate={handleCreateContainer}
+                                                />
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                    ) : state === State.SUCCESS && containers.length === 0 ? (
+                            <Card className="w-full p-6 text-center bg-gray-50 dark:bg-gray-800">
+                                <p className="text-lg text-gray-600 dark:text-gray-400">No containers found</p>
+                                <p className="text-sm text-gray-500 mt-2">Create a new container to get started</p>
+                            </Card>
+                    ) : null}
+                </section>
+
+                <Separator className="my-2"/>
+
+                <section>
+                    <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md">
+                        <CardHeader>
+                            <CardTitle className="text-xl font-bold">Create a new
+                                container</CardTitle>
+                            <CardDescription>
+                                Select a container template to deploy
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="">
+                            Traefik: <ContainerCreateDialog onCreate={handleCreateContainer} defaultConfig={traefik}/>
+                        </CardContent>
                     </Card>
-                ) : null}
-            </section>
-
-            <Separator className="my-2"/>
-
-            <section>
-                <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md">
-                    <CardHeader>
-                        <CardTitle className="text-xl font-bold">Create a new
-                            container</CardTitle>
-                        <CardDescription>
-                            Select a container template to deploy
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="">
-                        Traefik: <ContainerCreateDialog onCreate={handleCreateContainer} defaultConfig={traefik}/>
-                    </CardContent>
-                </Card>
-            </section>
-        </main>
+                </section>
+            </main>
     );
 }
