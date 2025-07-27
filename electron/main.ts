@@ -151,7 +151,7 @@ function setupAutoUpdater() {
         log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
         dialog.showErrorBox('Update error',
-            `An error occurred while checking for updates:\n\n${err.message}`);
+                `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
@@ -413,6 +413,28 @@ function setupIpcHandlers() {
                 return await services.docker.network.utils.getNetworkContainers(networkId);
             } catch (error) {
                 log(`Error in docker:network:utils:getNetworkContainers: ${error}`);
+                throw error;
+            }
+        });
+
+        // WordPress handlers
+        ipcMain.handle('docker:wordpress:setup', async () => {
+            try {
+                return await services.docker.wordpress.setup((step, status, message) => {
+                    // Send progress updates to the renderer process
+                    win?.webContents.send('wordpress:setup:progress', { step, status, message });
+                });
+            } catch (error) {
+                log(`Error in docker:wordpress:setup: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:wordpress:createWordPress', async (_, options) => {
+            try {
+                return await services.docker.wordpress.createWordPress(options);
+            } catch (error) {
+                log(`Error in docker:wordpress:createWordPress: ${error}`);
                 throw error;
             }
         });

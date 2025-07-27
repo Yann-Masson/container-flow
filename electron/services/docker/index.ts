@@ -3,6 +3,7 @@ import connection from './connection';
 import containers from './containers';
 import image from './image';
 import network from './network';
+import wordpress from './wordpress';
 
 export default {
     client,
@@ -10,4 +11,5 @@ export default {
     containers,
     image,
     network,
+    wordpress,
 };
