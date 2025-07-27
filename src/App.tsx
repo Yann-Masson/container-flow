@@ -8,6 +8,7 @@ import { Badge } from "./components/ui/badge";
 import { Skeleton } from "./components/ui/skeleton";
 import { Toaster } from "./components/ui/sonner";
 import WordPressSetup from "@/components/wordpress/WordPressSetup.tsx";
+import WordPressCreator from "@/components/wordpress/WordPressCreator.tsx";
 
 export default function App() {
     const [isConnected, setIsConnected] = useState(State.LOADING);
@@ -103,6 +104,7 @@ export default function App() {
                                 <Separator className="my-4"/>
 
                                 <WordPressSetup/>
+                                <WordPressCreator/>
 
                                 {/*<ListContainers/>*/}
 
