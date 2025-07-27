@@ -1,6 +1,6 @@
 import Docker from 'dockerode';
 import net from 'net';
-import { LOCAL_PORT, REMOTE_SOCKET, state } from '../client';
+import { createMySQLTunnel, LOCAL_PORT, REMOTE_SOCKET, state } from '../client';
 import { Client } from 'ssh2';
 
 export interface SSHConfig {
@@ -23,18 +23,18 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
 
             state.server = net.createServer((localSocket) => {
                 state.sshClient!.exec(
-                    `socat - UNIX-CONNECT:${REMOTE_SOCKET}`,
-                    (err, stream) => {
-                        if (err) {
-                            console.error('Error creating socat stream:', err);
-                            localSocket.destroy();
-                            return;
-                        }
+                        `socat - UNIX-CONNECT:${REMOTE_SOCKET}`,
+                        (err, stream) => {
+                            if (err) {
+                                console.error('Error creating socat stream:', err);
+                                localSocket.destroy();
+                                return;
+                            }
 
-                        console.log('🔗 Tunnel créé pour Docker socket');
+                            console.log('🔗 Tunnel créé pour Docker socket');
 
-                        localSocket.pipe(stream).pipe(localSocket);
-                    },
+                            localSocket.pipe(stream).pipe(localSocket);
+                        },
                 );
             });
 
@@ -46,7 +46,16 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
                     port: LOCAL_PORT,
                 });
 
-                resolve();
+                // Create MySQL tunnel as well
+                createMySQLTunnel()
+                        .then(() => {
+                            console.log('✅ MySQL tunnel established');
+                            resolve();
+                        })
+                        .catch((err) => {
+                            console.error('❌ Failed to create MySQL tunnel:', err);
+                            resolve(); // Don't fail the whole connection for MySQL tunnel
+                        });
             });
 
             state.server!.on('error', (err) => {

@@ -3,34 +3,33 @@ import { state } from "../client";
 import services from "../../index.ts";
 
 export const create = async (
-    options: ContainerCreateOptions,
+        options: ContainerCreateOptions,
 ): Promise<Container> => {
     if (!state.dockerClient) {
         return Promise.reject(
-            new Error('Docker client not connected'),
+                new Error('Docker client not connected'),
         );
     }
 
     try {
         // Try to create the container
         const container = await new Promise<Container>(
-            (resolveCreate, rejectCreate) => {
-                state.dockerClient!.createContainer(
-                    options,
-                    (err, container) => {
-                        if (err) {
-                            console.error('Error creating container:', err);
-                            rejectCreate(err);
-                        } else if (!container) {
-                            rejectCreate(
-                                new Error('Failed to create container'),
-                            );
-                        } else {
-                            resolveCreate(container);
-                        }
-                    },
-                );
-            },
+                (resolveCreate, rejectCreate) => {
+                    state.dockerClient!.createContainer(
+                            options,
+                            (err, container) => {
+                                if (err) {
+                                    rejectCreate(err);
+                                } else if (!container) {
+                                    rejectCreate(
+                                            new Error('Failed to create container'),
+                                    );
+                                } else {
+                                    resolveCreate(container);
+                                }
+                            },
+                    );
+                },
         );
 
         console.log('Container created:', container.id);
@@ -46,22 +45,22 @@ export const create = async (
 
         // Check if the error is related to missing image
         if (
-            error.statusCode === 404 &&
-            (error.reason === 'no such image' ||
-                error.message?.includes('No such image') ||
-                (error.json &&
-                    error.json.message?.includes('No such image')))
+                error.statusCode === 404 &&
+                (error.reason === 'no such image' ||
+                        error.message?.includes('No such image') ||
+                        (error.json &&
+                                error.json.message?.includes('No such image')))
         ) {
             // Extract image name from options
             const imageName = options.Image;
             if (!imageName) {
                 return Promise.reject(
-                    new Error('Image name not specified in options'),
+                        new Error('Image name not specified in options'),
                 );
             }
 
             console.log(
-                `Image ${imageName} not found locally, attempting to pull...`,
+                    `Image ${imageName} not found locally, attempting to pull...`,
             );
 
             try {
@@ -70,33 +69,33 @@ export const create = async (
 
                 // Retry container creation after pulling the image
                 const container = await new Promise<Container>(
-                    (resolveRetry, rejectRetry) => {
-                        state.dockerClient!.createContainer(
-                            options,
-                            (err, container) => {
-                                if (err) {
-                                    console.error(
-                                        'Error creating container after pulling image:',
-                                        err,
-                                    );
-                                    rejectRetry(err);
-                                } else if (!container) {
-                                    rejectRetry(
-                                        new Error(
-                                            'Failed to create container after pulling image',
-                                        ),
-                                    );
-                                } else {
-                                    resolveRetry(container);
-                                }
-                            },
-                        );
-                    },
+                        (resolveRetry, rejectRetry) => {
+                            state.dockerClient!.createContainer(
+                                    options,
+                                    (err, container) => {
+                                        if (err) {
+                                            console.error(
+                                                    'Error creating container after pulling image:',
+                                                    err,
+                                            );
+                                            rejectRetry(err);
+                                        } else if (!container) {
+                                            rejectRetry(
+                                                    new Error(
+                                                            'Failed to create container after pulling image',
+                                                    ),
+                                            );
+                                        } else {
+                                            resolveRetry(container);
+                                        }
+                                    },
+                            );
+                        },
                 );
 
                 console.log(
-                    'Container created after pulling image:',
-                    container.id,
+                        'Container created after pulling image:',
+                        container.id,
                 );
 
                 return container;
