@@ -1,6 +1,6 @@
 import { ContainerCreateOptions } from 'dockerode';
 import mysql from 'mysql2/promise';
-import { getClient } from '../client';
+import { createMySQLTunnel, getClient, getMySQLConnectionOptions } from '../client';
 import { create as createContainer } from '../containers/create';
 import { start as startContainer } from '../containers/start';
 import createNetwork from '../network/create';
@@ -114,18 +114,22 @@ export const createWordPress = async (options: WordPressSetupOptions): Promise<{
     console.log(`Creating WordPress container: ${name}...`);
 
     try {
+        // Ensure MySQL tunnel is available
+        try {
+            await createMySQLTunnel();
+        } catch (error) {
+            console.error('Failed to create MySQL tunnel:', error);
+            throw new Error('MySQL tunnel is required but could not be established');
+        }
+
         // Generate database credentials
         const dbName = `wp_${name.replace(/[^a-zA-Z0-9]/g, '_')}`;
         const dbUser = `wp_${name.replace(/[^a-zA-Z0-9]/g, '_')}`;
         const dbPassword = generateRandomPassword();
 
-        // 1. Create database and user in MySQL
-        await createDatabaseAndUser({
-            host: 'localhost',
-            port: 3306,
-            user: 'root',
-            password: 'rootpassword',
-        }, {
+        // 1. Create database and user in MySQL using the tunnel
+        const mysqlConnectionOptions = getMySQLConnectionOptions();
+        await createDatabaseAndUser(mysqlConnectionOptions, {
             dbName,
             dbUser,
             dbPassword,
@@ -134,7 +138,7 @@ export const createWordPress = async (options: WordPressSetupOptions): Promise<{
         // 2. Prepare WordPress container configuration
         const wordpressConfig: ContainerCreateOptions = {
             ...wordpress,
-            name: `wordpress-${domain || name}`,
+            name: `wordpress-${name}`,
             Env: [
                 'WORDPRESS_DB_HOST=mysql:3306',
                 `WORDPRESS_DB_USER=${dbUser}`,
@@ -143,13 +147,13 @@ export const createWordPress = async (options: WordPressSetupOptions): Promise<{
             ],
             Labels: {
                 'traefik.enable': 'true',
-                [`traefik.http.routers.${domain || name}.rule`]: `Host("${domain || name + '.agence-lumia.com'}")`,
-                [`traefik.http.routers.${domain || name}.entrypoints`]: 'web',
-                [`traefik.http.services.${domain || name}.loadbalancer.server.port`]: '80',
+                [`traefik.http.routers.${name}.rule`]: `Host("${domain || name + '.agence-lumia.com'}")`,
+                [`traefik.http.routers.${name}.entrypoints`]: 'web',
+                [`traefik.http.services.${name}.loadbalancer.server.port`]: '80',
             },
             HostConfig: {
                 ...wordpress.HostConfig,
-                Binds: [`wordpress-${domain || name}-data:/var/www/html`],
+                Binds: [`wordpress-${name}-data:/var/www/html`],
                 // Remove port bindings since Traefik will handle routing
                 PortBindings: {},
             },
