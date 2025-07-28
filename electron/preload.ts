@@ -22,43 +22,43 @@ contextBridge.exposeInMainWorld('electronAPI', {
             create: (config: ContainerCreateOptions) => ipcRenderer.invoke('docker:containers:create', config),
             start: (id: string) => ipcRenderer.invoke('docker:containers:start', id),
             stop: (id: string, options?: { t?: number }) =>
-                    ipcRenderer.invoke('docker:containers:stop', id, options),
+                ipcRenderer.invoke('docker:containers:stop', id, options),
             remove: (id: string, options?: { v?: boolean; force?: boolean }) =>
-                    ipcRenderer.invoke('docker:containers:remove', id, options),
+                ipcRenderer.invoke('docker:containers:remove', id, options),
             getLogs: (id: string, options?: ContainerLogsOptions) =>
-                    ipcRenderer.invoke('docker:containers:getLogs', id, options),
+                ipcRenderer.invoke('docker:containers:getLogs', id, options),
         },
         images: {
             pull: (image: string) => ipcRenderer.invoke('docker:images:pull', image),
         },
         network: {
             create: (options: NetworkCreateOptions) =>
-                    ipcRenderer.invoke('docker:network:create', options),
+                ipcRenderer.invoke('docker:network:create', options),
             remove: (networkId: string, force?: boolean) =>
-                    ipcRenderer.invoke('docker:network:remove', networkId, force),
+                ipcRenderer.invoke('docker:network:remove', networkId, force),
             list: (options?: NetworkListOptions) =>
-                    ipcRenderer.invoke('docker:network:list', options),
+                ipcRenderer.invoke('docker:network:list', options),
             inspect: (networkId: string) =>
-                    ipcRenderer.invoke('docker:network:inspect', networkId),
+                ipcRenderer.invoke('docker:network:inspect', networkId),
             connect: (networkId: string, options: NetworkConnectOptions) =>
-                    ipcRenderer.invoke('docker:network:connect', networkId, options),
+                ipcRenderer.invoke('docker:network:connect', networkId, options),
             disconnect: (networkId: string) =>
-                    ipcRenderer.invoke('docker:network:disconnect', networkId),
+                ipcRenderer.invoke('docker:network:disconnect', networkId),
             prune: () =>
-                    ipcRenderer.invoke('docker:network:prune'),
+                ipcRenderer.invoke('docker:network:prune'),
             utils: {
                 findByName: (namePattern: string, exactMatch?: boolean) =>
-                        ipcRenderer.invoke('docker:network:utils:findByName', namePattern, exactMatch),
+                    ipcRenderer.invoke('docker:network:utils:findByName', namePattern, exactMatch),
                 getContainerNetworks: (containerId: string) =>
-                        ipcRenderer.invoke('docker:network:utils:getContainerNetworks', containerId),
+                    ipcRenderer.invoke('docker:network:utils:getContainerNetworks', containerId),
                 getNetworkContainers: (networkId: string) =>
-                        ipcRenderer.invoke('docker:network:utils:getNetworkContainers', networkId),
+                    ipcRenderer.invoke('docker:network:utils:getNetworkContainers', networkId),
             },
         },
         wordpress: {
-            setup: () => ipcRenderer.invoke('docker:wordpress:setup'),
+            setup: (options?: { force?: boolean }) => ipcRenderer.invoke('docker:wordpress:setup', options),
             createWordPress: (options: { name: string; domain?: string }) =>
-                    ipcRenderer.invoke('docker:wordpress:createWordPress', options),
+                ipcRenderer.invoke('docker:wordpress:createWordPress', options),
             onSetupProgress: (callback: (event: { step: string; status: string; message?: string }) => void) => {
                 const handleProgress = (_: any, event: { step: string; status: string; message?: string }) => {
                     callback(event);
@@ -72,7 +72,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ssh: {
             get: () => ipcRenderer.invoke('preferences:ssh:get'),
             save: (sshPreferences: { host: string; port: string; username: string }) =>
-                    ipcRenderer.invoke('preferences:ssh:save', sshPreferences),
+                ipcRenderer.invoke('preferences:ssh:save', sshPreferences),
         },
     },
 });

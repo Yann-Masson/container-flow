@@ -151,7 +151,7 @@ function setupAutoUpdater() {
         log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
         dialog.showErrorBox('Update error',
-                `An error occurred while checking for updates:\n\n${err.message}`);
+            `An error occurred while checking for updates:\n\n${err.message}`);
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
@@ -418,12 +418,15 @@ function setupIpcHandlers() {
         });
 
         // WordPress handlers
-        ipcMain.handle('docker:wordpress:setup', async () => {
+        ipcMain.handle('docker:wordpress:setup', async (_, options) => {
             try {
-                return await services.docker.wordpress.setup((step, status, message) => {
-                    // Send progress updates to the renderer process
-                    win?.webContents.send('wordpress:setup:progress', { step, status, message });
-                });
+                return await services.docker.wordpress.setup(
+                    options,
+                    (step, status, message) => {
+                        // Send progress updates to the renderer process
+                        win?.webContents.send('wordpress:setup:progress', { step, status, message });
+                    }
+                );
             } catch (error) {
                 log(`Error in docker:wordpress:setup: ${error}`);
                 throw error;
