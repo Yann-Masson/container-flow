@@ -5,12 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/wordpress/setup.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/wordpress/setup.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/docker/docker-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/docker/docker-client.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript File" />
+      </list>
+    </option>
   </component>
   <component name="FormatOnSaveOptions">
     <option name="myRunOnSave" value="true" />
@@ -43,7 +51,7 @@
     "code.cleanup.on.save": "true",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/Yann/Documents/Lumia/container-flow/src",
+    "last_opened_file_path": "C:/Users/yann.masson/WebstormProjects/container-flow/electron/services/storage/app",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.standard": "true",
     "node.js.detected.package.tslint": "true",
@@ -59,6 +67,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\yann.masson\WebstormProjects\container-flow\electron\services\storage\app" />
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\src" />
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\electron" />
     </key>

@@ -1,7 +1,7 @@
 import docker from './docker';
-import preferences from './preferences';
+import storage from './storage';
 
 export default {
     docker,
-    preferences,
+    storage,
 };

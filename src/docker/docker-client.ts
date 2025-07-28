@@ -1,13 +1,7 @@
 import { ContainerCreateOptions, NetworkConnectOptions, NetworkCreateOptions, NetworkListOptions } from 'dockerode';
+import { SSHConfig } from "../../electron/services/docker/connection/try-to-connect.ts";
 
-export interface SSHConfig {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-}
-
-export class DockerClientService {
+class DockerClientService {
     private get electronAPI() {
         if (typeof window === 'undefined') {
             throw new Error('Electron API not available: window is undefined');

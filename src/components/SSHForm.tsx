@@ -25,7 +25,7 @@ export default function SSHForm(props: SSHFormProps) {
     useEffect(() => {
         const loadPreferences = async () => {
             try {
-                const preferences = await window.electronAPI.preferences.ssh.get();
+                const preferences = await window.electronAPI.storage.ssh.get();
                 if (preferences.host) setHost(preferences.host);
                 if (preferences.port) setPort(preferences.port);
                 if (preferences.username) setUsername(preferences.username);
@@ -40,7 +40,7 @@ export default function SSHForm(props: SSHFormProps) {
     // Save SSH preferences (excluding password)
     const savePreferences = async () => {
         try {
-            await window.electronAPI.preferences.ssh.save({
+            await window.electronAPI.storage.ssh.save({
                 host,
                 port,
                 username

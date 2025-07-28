@@ -15,7 +15,7 @@ interface ElectronAPI {
     docker: {
         connection: {
             connect: (
-                config: import('../../src/docker/docker-client.ts').SSHConfig,
+                config: import('../services/docker/connection/try-to-connect.ts').SSHConfig
             ) => Promise<void>;
             isConnected: () => Promise<boolean>;
             disconnect: () => Promise<void>;
@@ -63,10 +63,14 @@ interface ElectronAPI {
             }) => void) => () => void;
         };
     };
-    preferences: {
+    storage: {
+        app: {
+            get: () => Promise<import('../services/storage/app/app.type.ts').AppSavedConfig>;
+            save: (appConfig: import('../services/storage/app/app.type.ts').AppSavedConfig) => Promise<void>;
+        };
         ssh: {
-            get: () => Promise<{ host: string; port: string; username: string }>;
-            save: (sshPreferences: { host: string; port: string; username: string }) => Promise<void>;
+            get: () => Promise<import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig>;
+            save: (sshConfig: import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig) => Promise<void>;
         };
     };
 }
