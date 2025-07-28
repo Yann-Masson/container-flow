@@ -15,7 +15,7 @@ interface ElectronAPI {
     docker: {
         connection: {
             connect: (
-                    config: import('../../src/docker/docker-client.ts').SSHConfig,
+                config: import('../../src/docker/docker-client.ts').SSHConfig,
             ) => Promise<void>;
             isConnected: () => Promise<boolean>;
             disconnect: () => Promise<void>;
@@ -28,8 +28,8 @@ interface ElectronAPI {
             stop: (id: string, options?: { t?: number }) => Promise<void>;
             remove: (id: string, options?: { v?: boolean; force?: boolean }) => Promise<void>;
             getLogs: (
-                    id: string,
-                    options?: ContainerLogsOptions
+                id: string,
+                options?: ContainerLogsOptions
             ) => Promise<string>;
         };
         images: {
@@ -50,7 +50,7 @@ interface ElectronAPI {
             };
         };
         wordpress: {
-            setup: () => Promise<{
+            setup: (options?: { force?: boolean }) => Promise<{
                 network: { id: string; name: string };
                 traefik: { id: string; name: string };
                 mysql: { id: string; name: string };
