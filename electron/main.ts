@@ -442,21 +442,39 @@ function setupIpcHandlers() {
             }
         });
 
-        // Preferences handlers
-        ipcMain.handle('preferences:ssh:get', async () => {
+        // Storage handlers
+        ipcMain.handle('storage:app:get', async () => {
             try {
-                return services.preferences.getSSHPreferences();
+                return services.storage.app.get();
             } catch (error) {
-                log(`Error in preferences:ssh:get: ${error}`);
+                log(`Error in storage:app:get: ${error}`);
                 throw error;
             }
         });
 
-        ipcMain.handle('preferences:ssh:save', async (_, sshPreferences) => {
+        ipcMain.handle('storage:app:save', async (_, appConfig) => {
             try {
-                return services.preferences.saveSSHPreferences(sshPreferences);
+                return services.storage.app.save(appConfig);
             } catch (error) {
-                log(`Error in preferences:ssh:save: ${error}`);
+                log(`Error in storage:app:save: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('storage:ssh:get', async () => {
+            try {
+                return services.storage.ssh.get();
+            } catch (error) {
+                log(`Error in storage:ssh:get: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('storage:ssh:save', async (_, sshConfig) => {
+            try {
+                return services.storage.ssh.save(sshConfig);
+            } catch (error) {
+                log(`Error in storage:ssh:save: ${error}`);
                 throw error;
             }
         });

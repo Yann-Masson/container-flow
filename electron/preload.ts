@@ -7,6 +7,8 @@ import {
     NetworkCreateOptions,
     NetworkListOptions
 } from "dockerode";
+import { AppSavedConfig } from "./services/storage/app/app.type.ts";
+import { SSHSavedConfig } from "./services/storage/ssh/ssh.type.ts";
 
 // Expose Docker API
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -68,11 +70,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
             },
         },
     },
-    preferences: {
+    storage: {
+        app: {
+            get: () => ipcRenderer.invoke('storage:app:get'),
+            save: (appConfig: AppSavedConfig) =>
+                ipcRenderer.invoke('storage:app:save', appConfig),
+        },
         ssh: {
-            get: () => ipcRenderer.invoke('preferences:ssh:get'),
-            save: (sshPreferences: { host: string; port: string; username: string }) =>
-                ipcRenderer.invoke('preferences:ssh:save', sshPreferences),
+            get: () => ipcRenderer.invoke('storage:ssh:get'),
+            save: (sshConfig: SSHSavedConfig) =>
+                ipcRenderer.invoke('storage:ssh:save', sshConfig),
         },
     },
 });
