@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Database, Globe, Loader2, Play, Server, XCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { CheckCircle, ChevronDown, ChevronUp, Database, Globe, Loader2, Play, Server, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Progress } from "@/components/ui/progress.tsx";
 
 interface SetupStep {
     id: string;
@@ -19,36 +21,36 @@ interface ProgressEvent {
     message?: string;
 }
 
-export default function WordPressSetup() {
+interface WordPressSetupProps {
+    children: React.ReactNode;
+}
+
+export default function WordPressSetup({ children }: WordPressSetupProps) {
     const [isSetupRunning, setIsSetupRunning] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
     const [steps, setSteps] = useState<SetupStep[]>([
         {
-            id: 'setup',
-            label: 'Initialisation du setup',
-            icon: <Play className="h-4 w-4"/>,
-            status: 'pending',
-        },
-        {
             id: 'network',
-            label: 'Création du réseau CF-WP',
+            label: 'Creating CF-WP network',
             icon: <Globe className="h-4 w-4"/>,
             status: 'pending',
         },
         {
             id: 'traefik',
-            label: 'Déploiement de Traefik',
+            label: 'Deploying Traefik',
             icon: <Server className="h-4 w-4"/>,
             status: 'pending',
         },
         {
             id: 'mysql',
-            label: 'Déploiement de MySQL',
+            label: 'Deploying MySQL',
             icon: <Database className="h-4 w-4"/>,
             status: 'pending',
         },
         {
             id: 'mysql-ready',
-            label: 'Attente de MySQL',
+            label: 'Waiting for MySQL',
             icon: <Database className="h-4 w-4"/>,
             status: 'pending',
         },
@@ -105,15 +107,15 @@ export default function WordPressSetup() {
 
             const result = await window.electronAPI.docker.wordpress.setup();
 
-            toast.success('🎉 Infrastructure WordPress configurée avec succès !', {
-                description: 'Traefik et MySQL sont maintenant disponibles.',
+            toast.success('🎉 WordPress infrastructure configured successfully!', {
+                description: 'Traefik and MySQL are now available.',
             });
 
             console.log('Setup completed:', result);
         } catch (error) {
             console.error('Setup failed:', error);
-            toast.error('❌ Erreur lors du setup', {
-                description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue',
+            toast.error('❌ Setup error', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
         } finally {
             setIsSetupRunning(false);
@@ -149,13 +151,13 @@ export default function WordPressSetup() {
     const getStepBadgeText = (status: SetupStep['status']) => {
         switch (status) {
             case 'running':
-                return 'En cours...';
+                return 'Running...';
             case 'completed':
-                return 'Terminé';
+                return 'Completed';
             case 'error':
-                return 'Erreur';
+                return 'Error';
             default:
-                return 'En attente';
+                return 'Pending';
         }
     };
 
@@ -164,108 +166,137 @@ export default function WordPressSetup() {
     const progress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
     return (
-            <div className="space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    {children}
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
                             <Server className="h-5 w-5"/>
-                            Configuration WordPress Infrastructure
-                        </CardTitle>
-                        <CardDescription>
-                            Configurez l'infrastructure complète pour héberger vos sites WordPress avec Traefik et
-                            MySQL.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        {/* Bouton de lancement */}
-                        <div className="flex flex-col gap-4">
+                            WordPress Infrastructure Setup
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <ScrollArea className="max-h-[calc(90vh-120px)] p-4">
+                        <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                                Configure the complete infrastructure to host your WordPress sites with Traefik and
+                                MySQL.
+                            </p>
+
+                            {/* Launch button */}
+                            <div className="flex flex-col gap-3">
+                                <Button
+                                        onClick={handleSetup}
+                                        disabled={isSetupRunning}
+                                        size="lg"
+                                        className="w-full"
+                                >
+                                    {isSetupRunning ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                                Setup in progress...
+                                            </>
+                                    ) : (
+                                            <>
+                                                <Play className="mr-2 h-4 w-4"/>
+                                                Launch WordPress Setup
+                                            </>
+                                    )}
+                                </Button>
+                            </div>
+
+                            {/* Progress bar is always visible when setup is running */}
+                            {(isSetupRunning || progress === 100) && (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span>Progress</span>
+                                            <span>{completedSteps}/{totalSteps}</span>
+                                        </div>
+                                        <Progress value={progress}/>
+                                    </div>
+                            )}
+
+                            {/* Toggle button for details */}
                             <Button
-                                    onClick={handleSetup}
-                                    disabled={isSetupRunning}
-                                    size="lg"
+                                    variant="outline"
+                                    onClick={() => setShowDetails(!showDetails)}
                                     className="w-full"
                             >
-                                {isSetupRunning ? (
+                                {showDetails ? (
                                         <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                            Configuration en cours...
+                                            <ChevronUp className="mr-2 h-4 w-4"/>
+                                            Hide Details
                                         </>
                                 ) : (
                                         <>
-                                            <Play className="mr-2 h-4 w-4"/>
-                                            Lancer le setup WordPress
+                                            <ChevronDown className="mr-2 h-4 w-4"/>
+                                            Show Details
                                         </>
                                 )}
                             </Button>
 
-                            {isSetupRunning && (
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span>Progression</span>
-                                            <span>{completedSteps}/{totalSteps}</span>
+                            {/* Collapsible details section */}
+                            {showDetails && (
+                                    <div className="space-y-3">
+                                        <h3 className="text-lg font-semibold">Setup Steps</h3>
+                                        <div className="space-y-2">
+                                            {steps.map((step, index) => (
+                                                    <div
+                                                            key={step.id}
+                                                            className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+                                                                    step.status === 'running'
+                                                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
+                                                                            : step.status === 'completed'
+                                                                                    ? 'border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-400'
+                                                                                    : step.status === 'error'
+                                                                                            ? 'border-red-500 bg-red-50 dark:bg-red-950 dark:border-red-400'
+                                                                                            : 'border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex-shrink-0">
+                                                                {getStepIcon(step)}
+                                                            </div>
+                                                            <div className="flex-grow">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-medium text-gray-900 dark:text-gray-100">{step.label}</span>
+                                                                    <Badge variant={getStepBadgeVariant(step.status)}
+                                                                           className="text-xs">
+                                                                        {getStepBadgeText(step.status)}
+                                                                    </Badge>
+                                                                </div>
+                                                                {step.message && (
+                                                                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{step.message}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                            {index + 1}
+                                                        </div>
+                                                    </div>
+                                            ))}
                                         </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                    className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                                                    style={{ width: `${progress}%` }}
-                                            />
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                            <h4 className="font-medium text-blue-900 mb-2">ℹ️ Information</h4>
+                                            <ul className="text-sm text-blue-800 space-y-1">
+                                                <li>• The <code>CF-WP</code> network will enable communication between
+                                                    containers
+                                                </li>
+                                                <li>• Traefik will serve as a reverse proxy to route traffic</li>
+                                                <li>• MySQL will store data for your WordPress sites</li>
+                                                <li>• Once configured, you can create as many WordPress sites as you
+                                                    want
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
                             )}
-                        </div>
 
-                        <div className="space-y-3">
-                            <h3 className="text-lg font-semibold">Étapes du setup</h3>
-                            <div className="space-y-2">
-                                {steps.map((step, index) => (
-                                        <div
-                                                key={step.id}
-                                                className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
-                                                        step.status === 'running'
-                                                                ? 'border-blue-200 bg-blue-50'
-                                                                : step.status === 'completed'
-                                                                        ? 'border-green-200 bg-green-50'
-                                                                        : step.status === 'error'
-                                                                                ? 'border-red-200 bg-red-50'
-                                                                                : 'border-gray-200'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex-shrink-0">
-                                                    {getStepIcon(step)}
-                                                </div>
-                                                <div className="flex-grow">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium">{step.label}</span>
-                                                        <Badge variant={getStepBadgeVariant(step.status)}
-                                                               className="text-xs">
-                                                            {getStepBadgeText(step.status)}
-                                                        </Badge>
-                                                    </div>
-                                                    {step.message && (
-                                                            <p className="text-sm text-gray-600 mt-1">{step.message}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="text-sm text-gray-400">
-                                                {index + 1}
-                                            </div>
-                                        </div>
-                                ))}
-                            </div>
                         </div>
-
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 className="font-medium text-blue-900 mb-2">ℹ️ Informations</h4>
-                            <ul className="text-sm text-blue-800 space-y-1">
-                                <li>• Le réseau <code>CF-WP</code> permettra la communication entre containers</li>
-                                <li>• Traefik servira de reverse proxy pour router le trafic</li>
-                                <li>• MySQL stockera les données de vos sites WordPress</li>
-                                <li>• Une fois configuré, vous pourrez créer autant de sites WordPress que souhaité</li>
-                            </ul>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
     );
 }
