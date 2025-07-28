@@ -1,7 +1,10 @@
 import { Badge } from "@/components/ui/badge.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 import WordPressSetup from "@/components/wordpress/WordPressSetup.tsx";
 import WordPressCreator from "@/components/wordpress/WordPressCreator.tsx";
+import { Server, Settings } from "lucide-react";
 
 export default function HomePage() {
     return (
@@ -30,8 +33,29 @@ export default function HomePage() {
 
                 <Separator className="my-4"/>
 
-                <WordPressSetup/>
-                <WordPressCreator/>
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Server className="h-5 w-5"/>
+                                WordPress Infrastructure
+                            </CardTitle>
+                            <CardDescription>
+                                Manage your WordPress infrastructure and create new sites
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <WordPressSetup>
+                                <Button variant="outline" className="w-full">
+                                    <Settings className="mr-2 h-4 w-4"/>
+                                    Configure WordPress Infrastructure
+                                </Button>
+                            </WordPressSetup>
+
+                            <WordPressCreator/>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/*<ListContainers/>*/}
 
