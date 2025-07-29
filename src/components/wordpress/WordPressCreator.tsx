@@ -119,6 +119,8 @@ export default function WordPressCreator() {
             for (const container of wpContainers) {
                 const inspectInfo = await window.electronAPI.docker.containers.get(container.Id);
 
+                // Remove the leading slash from the name
+                inspectInfo.Name = inspectInfo.Name.replace(/^\/+/, '');
                 tempWpContainers.push(inspectInfo);
             }
 
@@ -236,51 +238,56 @@ export default function WordPressCreator() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
-                            {containers.map((container) => (
-                                <div
-                                    key={container.Id}
-                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:text-black transition-colors cursor-pointer"
-                                    onClick={() => handleContainerClick(container)}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex-shrink-0">
-                                            <CheckCircle className="h-5 w-5 text-green-500"/>
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className="font-medium">{container.Name.replace("/wordpress-", "")}</span>
-                                                <Badge variant="secondary" className="text-xs">
-                                                    Active
-                                                </Badge>
+                            {containers.map((container) => {
+                                const match = container.Name.replace("wordpress-", "").match(/^(.*?)-(\d+)$/);
+                                const baseName = match ? match[1] : container.Name;
+
+                                return (
+                                    <div
+                                        key={container.Id}
+                                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:text-black transition-colors cursor-pointer"
+                                        onClick={() => handleContainerClick(container)}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex-shrink-0">
+                                                <CheckCircle className="h-5 w-5 text-green-500"/>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                <span
+                                                    className="font-medium">{baseName}</span>
+                                                    <Badge variant="secondary" className="text-xs">
+                                                        Active
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-sm text-gray-600">
                                                 <span className="flex items-center gap-1">
                                                     <Globe className="h-3 w-3"/>
-                                                    {container.Config.Labels?.['traefik.http.routers.' + container.Name.replace("/wordpress-", "") + '.rule']?.replace('Host("', '').replace('")', '') || 'N/A'}
+                                                    {container.Config.Labels?.['traefik.http.routers.' + baseName + '.rule']?.replace('Host("', '').replace('")', '') || 'N/A'}
                                                 </span>
-                                                <span className="flex items-center gap-1">
+                                                    <span className="flex items-center gap-1">
                                                     <Database className="h-3 w-3"/>
-                                                    {container.Config.Env?.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.replace('WORDPRESS_DB_NAME=', '') || 'N/A'}
+                                                        {container.Config.Env?.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.replace('WORDPRESS_DB_NAME=', '') || 'N/A'}
                                                 </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-right text-sm text-gray-500">
-                                            Created on {
-                                            new Date(container.Created).toLocaleDateString('en-US')
-                                        } {
-                                            new Date(container.Created).toLocaleTimeString('en-US', {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })
-                                        }
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right text-sm text-gray-500">
+                                                Created on {
+                                                new Date(container.Created).toLocaleDateString('en-US')
+                                            } {
+                                                new Date(container.Created).toLocaleTimeString('en-US', {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })
+                                            }
+                                            </div>
+                                            <Info className="h-4 w-4 text-gray-400"/>
                                         </div>
-                                        <Info className="h-4 w-4 text-gray-400"/>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </CardContent>
                 </Card>
@@ -306,6 +313,7 @@ export default function WordPressCreator() {
                 container={selectedContainer}
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
+                onContainerUpdate={retrieveContainers}
             />
         </div>
     );

@@ -2,7 +2,7 @@ import { state } from '../client';
 import { ContainerInspectInfo } from 'dockerode';
 
 export const getById = async (
-        containerId: string,
+    containerId: string,
 ): Promise<ContainerInspectInfo> => {
     return new Promise((_resolve, reject) => {
         if (!state.dockerClient) {
@@ -15,7 +15,6 @@ export const getById = async (
                 return reject(err);
             }
 
-            console.log('Container data retrieved:', data);
             _resolve(data);
         });
     });

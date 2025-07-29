@@ -59,6 +59,7 @@ interface ElectronAPI {
                 mysql: { id: string; name: string };
             }>;
             createWordPress: (options: { name: string; domain?: string }) => Promise<{ id: string; name: string }>;
+            cloneWordPress: (sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo) => Promise<ContainerInspectInfo>;
             onSetupProgress: (callback: (event: {
                 step: string;
                 status: 'starting' | 'completed' | 'error';

@@ -5,14 +5,8 @@ const wordpress: ContainerCreateOptions = {
     ExposedPorts: {
         '80/tcp': {},
     },
-    Volumes: {
-        '/var/www/html': {
-            Host: {},
-            Type: 'volume',
-        },
-    },
     HostConfig: {
-        Binds: ['/var/www/html:/var/www/html'],
+        Binds: ['wordpress-data:/var/www/html'],
         PortBindings: {
             '80/tcp': [{ HostPort: '80' }],
         },
