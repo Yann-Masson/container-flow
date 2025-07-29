@@ -12,7 +12,7 @@ export default function save(sshConfig: SSHSavedConfig): void {
         }
 
         const userDataPath = app.getPath('userData');
-        const preferencesPath = path.join(userDataPath, 'preferences.encrypted');
+        const preferencesPath = path.join(userDataPath, 'ssh.encrypted');
 
         const preferences: { ssh?: SSHSavedConfig } = {};
 

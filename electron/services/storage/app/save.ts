@@ -12,7 +12,7 @@ export default function save(appConfig: AppSavedConfig): void {
         }
 
         const userDataPath = app.getPath('userData');
-        const preferencesPath = path.join(userDataPath, 'preferences.encrypted');
+        const preferencesPath = path.join(userDataPath, 'app.encrypted');
 
         const preferences: { app?: AppSavedConfig } = {};
 

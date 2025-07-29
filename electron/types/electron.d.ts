@@ -12,6 +12,9 @@ import {
 } from 'dockerode';
 
 interface ElectronAPI {
+    system: {
+        openExternal: (url: string) => Promise<boolean>;
+    };
     docker: {
         connection: {
             connect: (

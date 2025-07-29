@@ -4,13 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Database, Globe, Loader2, Plus } from 'lucide-react';
+import { CheckCircle, Database, Globe, Info, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { ContainerInfo } from "dockerode";
+import { ContainerInspectInfo } from "dockerode";
+import WordPressInfoDialog from './WordPressInfoDialog';
 
 export default function WordPressCreator() {
     const [isCreating, setIsCreating] = useState(false);
-    const [containers, setContainers] = useState<ContainerInfo[]>([]);
+    const [containers, setContainers] = useState<ContainerInspectInfo[]>([]);
+    const [selectedContainer, setSelectedContainer] = useState<ContainerInspectInfo | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         domain: '',
@@ -36,27 +39,27 @@ export default function WordPressCreator() {
         const errors: string[] = [];
 
         if (!formData.name.trim()) {
-            errors.push('Le nom est requis');
+            errors.push('Name is required');
         } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.name)) {
-            errors.push('Le nom ne peut contenir que des lettres, chiffres, tirets et underscores');
+            errors.push('Name can only contain letters, numbers, dashes and underscores');
         }
 
         if (!formData.domain.trim()) {
-            errors.push('Le domaine est requis');
+            errors.push('Domain is required');
         } else if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.domain)) {
-            errors.push('Le domaine doit être valide (ex: mon-site.agence-lumia.com)');
+            errors.push('Domain must be valid (e.g. my-site.agence-lumia.com)');
         }
 
-        // Vérifier si le nom ou domaine existe déjà
-        const nameExists = containers.some(c => c.Names[0] === `wordpress-${formData.name}`);
-        const domainExists = containers.some(c => c.Labels?.[`traefik.http.routers.${c.Names[0]}.rule`] === `Host("${formData.domain}")`);
+        // Check if name or domain already exists
+        const nameExists = containers.some(c => c.Name === `wordpress-${formData.name}`);
+        const domainExists = containers.some(c => c.Config?.Labels?.[`traefik.http.routers.${c.Name}.rule`] === `Host("${formData.domain}")`);
 
         if (nameExists) {
-            errors.push('Un container avec ce nom existe déjà');
+            errors.push('A container with this name already exists');
         }
 
         if (domainExists) {
-            errors.push('Un container avec ce domaine existe déjà');
+            errors.push('A container with this domain already exists');
         }
 
         return errors;
@@ -67,7 +70,7 @@ export default function WordPressCreator() {
 
         const errors = validateForm();
         if (errors.length > 0) {
-            toast.error('Erreurs de validation', {
+            toast.error('Validation errors', {
                 description: errors.join(', '),
             });
             return;
@@ -76,8 +79,8 @@ export default function WordPressCreator() {
         try {
             setIsCreating(true);
 
-            toast.info('🚀 Création du container WordPress...', {
-                description: `Nom: ${formData.name}, Domaine: ${formData.domain}`,
+            toast.info('🚀 Creating WordPress container...', {
+                description: `Name: ${formData.name}, Domain: ${formData.domain}`,
             });
 
             await window.electronAPI.docker.wordpress.createWordPress({
@@ -85,8 +88,8 @@ export default function WordPressCreator() {
                 domain: formData.domain,
             });
 
-            toast.success('✅ Container WordPress créé !', {
-                description: `Accessible sur https://${formData.domain}`,
+            toast.success('✅ WordPress container created!', {
+                description: `Accessible at https://${formData.domain}`,
                 duration: 5000,
             });
 
@@ -96,8 +99,8 @@ export default function WordPressCreator() {
 
         } catch (error) {
             console.error('Failed to create WordPress container:', error);
-            toast.error('❌ Erreur lors de la création', {
-                description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue',
+            toast.error('❌ Error during creation', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
         } finally {
             setIsCreating(false);
@@ -111,14 +114,28 @@ export default function WordPressCreator() {
             const allContainers = await window.electronAPI.docker.containers.list();
             console.log(allContainers);
             const wpContainers = allContainers.filter(c => c.Names[0].startsWith('/wordpress-'));
-            console.log(wpContainers);
-            setContainers(wpContainers);
+
+            const tempWpContainers: ContainerInspectInfo[] = [];
+            for (const container of wpContainers) {
+                const inspectInfo = await window.electronAPI.docker.containers.get(container.Id);
+
+                tempWpContainers.push(inspectInfo);
+            }
+
+            console.log(tempWpContainers);
+
+            setContainers(tempWpContainers);
         } catch (error) {
             console.error('Failed to retrieve containers:', error);
-            toast.error('❌ Erreur lors de la récupération des containers', {
-                description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue',
+            toast.error('❌ Error retrieving containers', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
         }
+    };
+
+    const handleContainerClick = (container: ContainerInspectInfo) => {
+        setSelectedContainer(container);
+        setIsDialogOpen(true);
     };
 
     useEffect(() => {
@@ -126,158 +143,170 @@ export default function WordPressCreator() {
     }, []);
 
     return (
-            <div className="space-y-6">
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Plus className="h-5 w-5"/>
+                        Create a new WordPress site
+                    </CardTitle>
+                    <CardDescription>
+                        Create a new WordPress container with its own database and Traefik configuration.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {/* Form */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Site name</Label>
+                            <Input
+                                id="name"
+                                placeholder="my-site"
+                                value={formData.name}
+                                onChange={(e) => handleNameChange(e.target.value)}
+                                disabled={isCreating}
+                            />
+                            <p className="text-xs text-gray-500">
+                                Only letters, numbers, dashes and underscores
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="domain">Domain</Label>
+                            <Input
+                                id="domain"
+                                placeholder="my-site.agence-lumia.com"
+                                value={formData.domain}
+                                onChange={(e) => handleInputChange('domain', e.target.value)}
+                                disabled={isCreating}
+                            />
+                            <p className="text-xs text-gray-500">
+                                Full domain (e.g. my-site.agence-lumia.com)
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Preview */}
+                    {formData.name && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 className="font-medium text-blue-900 mb-2">📋 Configuration preview</h4>
+                            <div className="text-sm text-blue-800 space-y-1">
+                                <div><strong>Container name:</strong> wordpress-{formData.name}</div>
+                                <div><strong>Database name:</strong> wp_{formData.name.replace(/[^a-zA-Z0-9]/g, '_')}
+                                </div>
+                                <div><strong>Access URL:</strong> http://{formData.domain}</div>
+                                <div><strong>Traefik routing:</strong> Host("{formData.domain}")</div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Create button */}
+                    <Button
+                        onClick={handleCreate}
+                        disabled={!isFormValid || isCreating}
+                        size="lg"
+                        className="w-full"
+                    >
+                        {isCreating ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                Creating...
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="mr-2 h-4 w-4"/>
+                                Create WordPress site
+                            </>
+                        )}
+                    </Button>
+                </CardContent>
+            </Card>
+
+            {/* List of created containers */}
+            {containers.length > 0 && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Plus className="h-5 w-5"/>
-                            Créer un nouveau site WordPress
+                            <Globe className="h-5 w-5"/>
+                            Created WordPress sites ({containers.length})
                         </CardTitle>
                         <CardDescription>
-                            Créez un nouveau container WordPress avec sa propre base de données et configuration
-                            Traefik.
+                            List of WordPress containers you have created
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        {/* Formulaire */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Nom du site</Label>
-                                <Input
-                                        id="name"
-                                        placeholder="mon-site"
-                                        value={formData.name}
-                                        onChange={(e) => handleNameChange(e.target.value)}
-                                        disabled={isCreating}
-                                />
-                                <p className="text-xs text-gray-500">
-                                    Uniquement lettres, chiffres, tirets et underscores
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="domain">Domaine</Label>
-                                <Input
-                                        id="domain"
-                                        placeholder="mon-site.agence-lumia.com"
-                                        value={formData.domain}
-                                        onChange={(e) => handleInputChange('domain', e.target.value)}
-                                        disabled={isCreating}
-                                />
-                                <p className="text-xs text-gray-500">
-                                    Domaine complet (ex: mon-site.agence-lumia.com)
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Aperçu */}
-                        {formData.name && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h4 className="font-medium text-blue-900 mb-2">📋 Aperçu de la configuration</h4>
-                                    <div className="text-sm text-blue-800 space-y-1">
-                                        <div><strong>Container name:</strong> wordpress-{formData.name}</div>
-                                        <div><strong>Database
-                                            name:</strong> wp_{formData.name.replace(/[^a-zA-Z0-9]/g, '_')}</div>
-                                        <div><strong>URL d'accès:</strong> http://{formData.domain}</div>
-                                        <div><strong>Traefik routing:</strong> Host("{formData.domain}")</div>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {containers.map((container) => (
+                                <div
+                                    key={container.Id}
+                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:text-black transition-colors cursor-pointer"
+                                    onClick={() => handleContainerClick(container)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-shrink-0">
+                                            <CheckCircle className="h-5 w-5 text-green-500"/>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span
+                                                    className="font-medium">{container.Name.replace("/wordpress-", "")}</span>
+                                                <Badge variant="secondary" className="text-xs">
+                                                    Active
+                                                </Badge>
+                                            </div>
+                                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                                                <span className="flex items-center gap-1">
+                                                    <Globe className="h-3 w-3"/>
+                                                    {container.Config.Labels?.['traefik.http.routers.' + container.Name.replace("/wordpress-", "") + '.rule']?.replace('Host("', '').replace('")', '') || 'N/A'}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Database className="h-3 w-3"/>
+                                                    {container.Config.Env?.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.replace('WORDPRESS_DB_NAME=', '') || 'N/A'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-right text-sm text-gray-500">
+                                            Created on {
+                                            new Date(container.Created).toLocaleDateString('en-US')
+                                        } {
+                                            new Date(container.Created).toLocaleTimeString('en-US', {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })
+                                        }
+                                        </div>
+                                        <Info className="h-4 w-4 text-gray-400"/>
                                     </div>
                                 </div>
-                        )}
-
-                        {/* Bouton de création */}
-                        <Button
-                                onClick={handleCreate}
-                                disabled={!isFormValid || isCreating}
-                                size="lg"
-                                className="w-full"
-                        >
-                            {isCreating ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                        Création en cours...
-                                    </>
-                            ) : (
-                                    <>
-                                        <Plus className="mr-2 h-4 w-4"/>
-                                        Créer le site WordPress
-                                    </>
-                            )}
-                        </Button>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
+            )}
 
-                {/* Liste des containers créés */}
-                {containers.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Globe className="h-5 w-5"/>
-                                    Sites WordPress créés ({containers.length})
-                                </CardTitle>
-                                <CardDescription>
-                                    Liste des containers WordPress que vous avez créés
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {containers.map((container) => (
-                                            <div
-                                                    key={container.Id}
-                                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:text-black transition-colors"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex-shrink-0">
-                                                        <CheckCircle className="h-5 w-5 text-green-500"/>
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-medium">{container.Names[0]}</span>
-                                                            <Badge variant="secondary" className="text-xs">
-                                                                Actif
-                                                            </Badge>
-                                                        </div>
-                                                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                                                            <span className="flex items-center gap-1">
-                                                                <Globe className="h-3 w-3"/>
-                                                                {container.Labels?.['traefik.http.routers.' + container.Names[0].replace("/wordpress-", "") + '.rule']?.replace('Host("', '').replace('")', '') || 'N/A'}
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Database className="h-3 w-3"/>
-                                                                wp_{container.Names[0].replace('wordpress-', '').replace(/[^a-zA-Z0-9]/g, '_')}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right text-sm text-gray-500">
-                                                    <div>Créé le</div>
-                                                    <div>{new Date(container.Created).toLocaleDateString('fr-FR')}</div>
-                                                    <div>{new Date(container.Created).toLocaleTimeString('fr-FR', {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}</div>
-                                                </div>
-                                            </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                )}
+            {/* Information */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-sm">ℹ️ Important information</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-gray-600 space-y-2">
+                    <ul className="space-y-1">
+                        <li>• Each WordPress site will have its own MySQL database</li>
+                        <li>• Access is via Traefik on the configured domain</li>
+                        <li>• Data is persisted in Docker volumes</li>
+                        <li>• Make sure the WordPress infrastructure is configured before creating sites</li>
+                    </ul>
+                </CardContent>
+            </Card>
 
-                {/* Informations */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-sm">ℹ️ Informations importantes</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm text-gray-600 space-y-2">
-                        <ul className="space-y-1">
-                            <li>• Chaque site WordPress aura sa propre base de données MySQL</li>
-                            <li>• L'accès se fait via Traefik sur le domaine configuré</li>
-                            <li>• Les données sont persistées dans des volumes Docker</li>
-                            <li>• Assurez-vous que l'infrastructure WordPress est configurée avant de créer des sites
-                            </li>
-                        </ul>
-                    </CardContent>
-                </Card>
-            </div>
+            {/* WordPress Info Dialog */}
+            <WordPressInfoDialog
+                container={selectedContainer}
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+            />
+        </div>
     );
 }

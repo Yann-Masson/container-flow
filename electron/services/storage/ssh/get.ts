@@ -17,7 +17,7 @@ export default function get(): SSHSavedConfig {
         }
 
         const userDataPath = app.getPath('userData');
-        const preferencesPath = path.join(userDataPath, 'preferences.encrypted');
+        const preferencesPath = path.join(userDataPath, 'ssh.encrypted');
 
         const encryptedData = fs.readFileSync(preferencesPath);
         const decryptedBuffer = safeStorage.decryptString(encryptedData);

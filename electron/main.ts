@@ -442,6 +442,17 @@ function setupIpcHandlers() {
             }
         });
 
+        // System handlers
+        ipcMain.handle('system:openExternal', async (_, url: string) => {
+            try {
+                await shell.openExternal(url);
+                return true;
+            } catch (error) {
+                log(`Error opening external URL: ${error}`);
+                throw error;
+            }
+        });
+
         // Storage handlers
         ipcMain.handle('storage:app:get', async () => {
             try {
