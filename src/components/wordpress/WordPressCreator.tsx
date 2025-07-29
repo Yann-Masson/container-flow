@@ -3,17 +3,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Database, Globe, Info, Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ContainerInspectInfo } from "dockerode";
-import WordPressInfoDialog from './WordPressInfoDialog';
+import WordPressServiceCard from './WordPressServiceCard';
+
+interface WordPressService {
+    name: string;
+    containers: ContainerInspectInfo[];
+    dbName: string;
+    dbUser: string;
+    url: string;
+}
 
 export default function WordPressCreator() {
     const [isCreating, setIsCreating] = useState(false);
     const [containers, setContainers] = useState<ContainerInspectInfo[]>([]);
-    const [selectedContainer, setSelectedContainer] = useState<ContainerInspectInfo | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [services, setServices] = useState<WordPressService[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         domain: '',
@@ -31,7 +37,7 @@ export default function WordPressCreator() {
         setFormData(prev => ({
             ...prev,
             name: value,
-            domain: prev.domain || generateDomainFromName(value),
+            domain: generateDomainFromName(value),
         }));
     };
 
@@ -50,16 +56,10 @@ export default function WordPressCreator() {
             errors.push('Domain must be valid (e.g. my-site.agence-lumia.com)');
         }
 
-        // Check if name or domain already exists
-        const nameExists = containers.some(c => c.Name === `wordpress-${formData.name}`);
-        const domainExists = containers.some(c => c.Config?.Labels?.[`traefik.http.routers.${c.Name}.rule`] === `Host("${formData.domain}")`);
-
-        if (nameExists) {
-            errors.push('A container with this name already exists');
-        }
-
-        if (domainExists) {
-            errors.push('A container with this domain already exists');
+        // Check if service name already exists
+        const serviceExists = services.some(s => s.name === formData.name);
+        if (serviceExists) {
+            errors.push('A service with this name already exists');
         }
 
         return errors;
@@ -79,7 +79,7 @@ export default function WordPressCreator() {
         try {
             setIsCreating(true);
 
-            toast.info('🚀 Creating WordPress container...', {
+            toast.info('🚀 Creating WordPress service...', {
                 description: `Name: ${formData.name}, Domain: ${formData.domain}`,
             });
 
@@ -88,17 +88,16 @@ export default function WordPressCreator() {
                 domain: formData.domain,
             });
 
-            toast.success('✅ WordPress container created!', {
+            toast.success('✅ WordPress service created!', {
                 description: `Accessible at https://${formData.domain}`,
                 duration: 5000,
             });
 
             setFormData({ name: '', domain: '' });
-
             await retrieveContainers();
 
         } catch (error) {
-            console.error('Failed to create WordPress container:', error);
+            console.error('Failed to create WordPress service:', error);
             toast.error('❌ Error during creation', {
                 description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
@@ -112,21 +111,18 @@ export default function WordPressCreator() {
     const retrieveContainers = async () => {
         try {
             const allContainers = await window.electronAPI.docker.containers.list();
-            console.log(allContainers);
             const wpContainers = allContainers.filter(c => c.Names[0].startsWith('/wordpress-'));
 
             const tempWpContainers: ContainerInspectInfo[] = [];
             for (const container of wpContainers) {
                 const inspectInfo = await window.electronAPI.docker.containers.get(container.Id);
-
                 // Remove the leading slash from the name
                 inspectInfo.Name = inspectInfo.Name.replace(/^\/+/, '');
                 tempWpContainers.push(inspectInfo);
             }
 
-            console.log(tempWpContainers);
-
             setContainers(tempWpContainers);
+            groupContainersIntoServices(tempWpContainers);
         } catch (error) {
             console.error('Failed to retrieve containers:', error);
             toast.error('❌ Error retrieving containers', {
@@ -135,9 +131,58 @@ export default function WordPressCreator() {
         }
     };
 
-    const handleContainerClick = (container: ContainerInspectInfo) => {
-        setSelectedContainer(container);
-        setIsDialogOpen(true);
+    const groupContainersIntoServices = (containers: ContainerInspectInfo[]) => {
+        const serviceMap = new Map<string, ContainerInspectInfo[]>();
+
+        containers.forEach(container => {
+            // Extract service name from container name (wordpress-{serviceName}-{instanceNumber})
+            const serviceName = container.Config.Labels?.['container-flow.name'];
+
+            if (!serviceName) {
+                console.warn(`Container ${container.Name} does not have a valid service name label`);
+                return;
+            }
+
+            if (!serviceMap.has(serviceName)) {
+                serviceMap.set(serviceName, []);
+            }
+            serviceMap.get(serviceName)!.push(container);
+        });
+
+        const groupedServices: WordPressService[] = [];
+
+        serviceMap.forEach((containers, serviceName) => {
+            // Use the first container to get shared configuration
+            const firstContainer = containers[0];
+            const env = firstContainer.Config.Env || [];
+            const labels = firstContainer.Config.Labels || {};
+
+            const dbName = env.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.replace('WORDPRESS_DB_NAME=', '') || 'N/A';
+            const dbUser = env.find(env => env.startsWith('WORDPRESS_DB_USER='))?.replace('WORDPRESS_DB_USER=', '') || 'N/A';
+
+            // Extract URL from traefik labels
+            const traefikRule = Object.keys(labels).find(key => key.includes('.rule') && labels[key].includes('Host('));
+            const url = traefikRule
+                ? labels[traefikRule].replace('Host("', '').replace('")', '')
+                : 'N/A';
+
+            groupedServices.push({
+                name: serviceName,
+                containers: containers.sort((a, b) => {
+                    // Sort by instance number
+                    const aMatch = a.Name.match(/-(\d+)$/);
+                    const bMatch = b.Name.match(/-(\d+)$/);
+                    const aNum = aMatch ? parseInt(aMatch[1]) : 1;
+                    const bNum = bMatch ? parseInt(bMatch[1]) : 1;
+                    return aNum - bNum;
+                }),
+                dbName,
+                dbUser,
+                url
+            });
+        });
+
+        setServices(groupedServices);
     };
 
     useEffect(() => {
@@ -146,21 +191,42 @@ export default function WordPressCreator() {
 
     return (
         <div className="space-y-6">
+
+            {/* List of WordPress Services */}
+            {services.length > 0 && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-semibold">WordPress Services ({services.length})</h2>
+                        <p className="text-sm text-gray-600">
+                            {services.reduce((total, service) => total + service.containers.length, 0)} total containers
+                        </p>
+                    </div>
+
+                    {services.map((service) => (
+                        <WordPressServiceCard
+                            key={service.name}
+                            service={service}
+                            onContainerUpdate={retrieveContainers}
+                        />
+                    ))}
+                </div>
+            )}
+
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Plus className="h-5 w-5"/>
-                        Create a new WordPress site
+                        Create a new WordPress service
                     </CardTitle>
                     <CardDescription>
-                        Create a new WordPress container with its own database and Traefik configuration.
+                        Create a new WordPress service with its own database and Traefik configuration.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {/* Form */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Site name</Label>
+                            <Label htmlFor="name">Service name</Label>
                             <Input
                                 id="name"
                                 placeholder="my-site"
@@ -191,12 +257,13 @@ export default function WordPressCreator() {
                     {/* Preview */}
                     {formData.name && (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 className="font-medium text-blue-900 mb-2">📋 Configuration preview</h4>
+                            <h4 className="font-medium text-blue-900 mb-2">📋 Service preview</h4>
                             <div className="text-sm text-blue-800 space-y-1">
-                                <div><strong>Container name:</strong> wordpress-{formData.name}</div>
+                                <div><strong>Service name:</strong> {formData.name}</div>
+                                <div><strong>First container:</strong> wordpress-{formData.name}-1</div>
                                 <div><strong>Database name:</strong> wp_{formData.name.replace(/[^a-zA-Z0-9]/g, '_')}
                                 </div>
-                                <div><strong>Access URL:</strong> http://{formData.domain}</div>
+                                <div><strong>Access URL:</strong> https://{formData.domain}</div>
                                 <div><strong>Traefik routing:</strong> Host("{formData.domain}")</div>
                             </div>
                         </div>
@@ -217,81 +284,12 @@ export default function WordPressCreator() {
                         ) : (
                             <>
                                 <Plus className="mr-2 h-4 w-4"/>
-                                Create WordPress site
+                                Create WordPress service
                             </>
                         )}
                     </Button>
                 </CardContent>
             </Card>
-
-            {/* List of created containers */}
-            {containers.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Globe className="h-5 w-5"/>
-                            Created WordPress sites ({containers.length})
-                        </CardTitle>
-                        <CardDescription>
-                            List of WordPress containers you have created
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {containers.map((container) => {
-                                const match = container.Name.replace("wordpress-", "").match(/^(.*?)-(\d+)$/);
-                                const baseName = match ? match[1] : container.Name;
-
-                                return (
-                                    <div
-                                        key={container.Id}
-                                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:text-black transition-colors cursor-pointer"
-                                        onClick={() => handleContainerClick(container)}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex-shrink-0">
-                                                <CheckCircle className="h-5 w-5 text-green-500"/>
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                <span
-                                                    className="font-medium">{baseName}</span>
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        Active
-                                                    </Badge>
-                                                </div>
-                                                <div className="flex items-center gap-4 text-sm text-gray-600">
-                                                <span className="flex items-center gap-1">
-                                                    <Globe className="h-3 w-3"/>
-                                                    {container.Config.Labels?.['traefik.http.routers.' + baseName + '.rule']?.replace('Host("', '').replace('")', '') || 'N/A'}
-                                                </span>
-                                                    <span className="flex items-center gap-1">
-                                                    <Database className="h-3 w-3"/>
-                                                        {container.Config.Env?.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.replace('WORDPRESS_DB_NAME=', '') || 'N/A'}
-                                                </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <div className="text-right text-sm text-gray-500">
-                                                Created on {
-                                                new Date(container.Created).toLocaleDateString('en-US')
-                                            } {
-                                                new Date(container.Created).toLocaleTimeString('en-US', {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })
-                                            }
-                                            </div>
-                                            <Info className="h-4 w-4 text-gray-400"/>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
 
             {/* Information */}
             <Card>
@@ -300,21 +298,14 @@ export default function WordPressCreator() {
                 </CardHeader>
                 <CardContent className="text-sm text-gray-600 space-y-2">
                     <ul className="space-y-1">
-                        <li>• Each WordPress site will have its own MySQL database</li>
+                        <li>• Each WordPress service can have multiple container instances</li>
+                        <li>• All instances in a service share the same database and files</li>
+                        <li>• Use +/- buttons to add or remove container instances</li>
                         <li>• Access is via Traefik on the configured domain</li>
-                        <li>• Data is persisted in Docker volumes</li>
-                        <li>• Make sure the WordPress infrastructure is configured before creating sites</li>
+                        <li>• Make sure the WordPress infrastructure is configured before creating services</li>
                     </ul>
                 </CardContent>
             </Card>
-
-            {/* WordPress Info Dialog */}
-            <WordPressInfoDialog
-                container={selectedContainer}
-                open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
-                onContainerUpdate={retrieveContainers}
-            />
         </div>
     );
 }

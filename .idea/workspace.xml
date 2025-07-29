@@ -6,16 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/main.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/preload.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/preload.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/configs/mysql.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/configs/mysql.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/configs/wordpress.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/configs/wordpress.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/containers/get-by-id.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/containers/get-by-id.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/services/docker/wordpress/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/wordpress/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/electron/services/docker/wordpress/setup.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/docker/wordpress/setup.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/types/electron.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/types/electron.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressInfoDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressInfoDialog.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +113,7 @@
       <workItem from="1753735841431" duration="64000" />
       <workItem from="1753735937317" duration="7170000" />
       <workItem from="1753779253309" duration="180000" />
-      <workItem from="1753788864806" duration="7703000" />
+      <workItem from="1753788864806" duration="11340000" />
     </task>
     <servers />
   </component>
