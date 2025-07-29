@@ -442,6 +442,15 @@ function setupIpcHandlers() {
             }
         });
 
+        ipcMain.handle('docker:wordpress:cloneWordPress', async (_, sourceContainer) => {
+            try {
+                return await services.docker.wordpress.cloneWordPress(sourceContainer);
+            } catch (error) {
+                log(`Error in docker:wordpress:cloneWordPress: ${error}`);
+                throw error;
+            }
+        });
+
         // System handlers
         ipcMain.handle('system:openExternal', async (_, url: string) => {
             try {

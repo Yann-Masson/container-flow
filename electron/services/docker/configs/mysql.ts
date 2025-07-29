@@ -6,14 +6,8 @@ const mysql: ContainerCreateOptions = {
     ExposedPorts: {
         '3306/tcp': {},
     },
-    Volumes: {
-        '/var/lib/mysql': {
-            Host: {},
-            Type: 'volume',
-        },
-    },
     HostConfig: {
-        Binds: ['/var/lib/mysql:/var/lib/mysql'],
+        Binds: [`mysql-data:/var/lib/mysql`],
         PortBindings: {
             '3306/tcp': [{ HostPort: '3306' }],
         },

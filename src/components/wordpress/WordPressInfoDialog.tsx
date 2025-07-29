@@ -7,19 +7,28 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Copy, Database, ExternalLink, Eye, EyeOff, Globe } from 'lucide-react';
 import { ContainerInspectInfo } from "dockerode";
 import { toast } from 'sonner';
+import WordPressCloneDialog from './WordPressCloneDialog';
 
 interface WordPressInfoDialogProps {
     container: ContainerInspectInfo | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onContainerUpdate?: () => void;
 }
 
-export default function WordPressInfoDialog({ container, open, onOpenChange }: WordPressInfoDialogProps) {
+export default function WordPressInfoDialog({
+                                                container,
+                                                open,
+                                                onOpenChange,
+                                                onContainerUpdate
+                                            }: WordPressInfoDialogProps) {
     const [showPassword, setShowPassword] = useState(false);
+    const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
 
     if (!container) return null;
 
-    const containerName = container.Name.replace("/wordpress-", "");
+    const match = container.Name.replace("wordpress-", "").match(/^(.*?)-(\d+)$/);
+    const containerName = match ? match[1] : container.Name;
     const domain = container.Config.Labels?.['traefik.http.routers.' + containerName + '.rule']?.replace('Host("', '').replace('")', '') || 'N/A';
 
     // Extract database information from environment variables
@@ -48,174 +57,197 @@ export default function WordPressInfoDialog({ container, open, onOpenChange }: W
         }
     };
 
+    const handleCloneContainer = () => {
+        setIsCloneDialogOpen(true);
+    };
+
+    const handleCloneSuccess = () => {
+        onContainerUpdate?.();
+    };
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Globe className="h-5 w-5"/>
-                        WordPress Site Information
-                    </DialogTitle>
-                    <DialogDescription>
-                        Detailed information for WordPress container: {containerName}
-                    </DialogDescription>
-                </DialogHeader>
+        <>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="max-w-2xl max-h-[90vh]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Globe className="h-5 w-5"/>
+                            WordPress Site Information
+                        </DialogTitle>
+                        <DialogDescription>
+                            Detailed information for WordPress container: {containerName}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <ScrollArea className="max-h-[calc(90vh-120px)] p-4">
-                    <div className="space-y-4">
-                        {/* General Information */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Globe className="h-4 w-4"/>
-                                    General Information
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Site Name:</span>
-                                    <Badge variant="outline">{containerName}</Badge>
-                                </div>
-
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Domain:</span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm">{domain}</span>
-                                        {domain !== 'N/A' && (
-                                            <>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => copyToClipboard(domain, 'Domain')}
-                                                >
-                                                    <Copy className="h-3 w-3"/>
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={openUrl}
-                                                >
-                                                    <ExternalLink className="h-3 w-3"/>
-                                                </Button>
-                                            </>
-                                        )}
+                    <ScrollArea className="max-h-[calc(90vh-120px)] p-4">
+                        <div className="space-y-4">
+                            {/* General Information */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Globe className="h-4 w-4"/>
+                                        General Information
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Site Name:</span>
+                                        <Badge variant="outline">{containerName}</Badge>
                                     </div>
-                                </div>
 
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Status:</span>
-                                    <Badge variant="secondary" className="text-green-600">
-                                        {container.State.Status}
-                                    </Badge>
-                                </div>
-
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Created:</span>
-                                    <span className="text-sm">
-                                        {new Date(container.Created).toLocaleDateString('en-US')} at{' '}
-                                        {new Date(container.Created).toLocaleTimeString('en-US', {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Database Configuration */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Database className="h-4 w-4"/>
-                                    Database Configuration
-                                </CardTitle>
-                                <CardDescription>
-                                    Database connection details for this WordPress installation
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Database Name:</span>
-                                    <div className="flex items-center gap-2">
-                                        <code className="bg-black px-2 py-1 rounded text-sm">{dbName}</code>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => copyToClipboard(dbName, 'Database name')}
-                                        >
-                                            <Copy className="h-3 w-3"/>
-                                        </Button>
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Domain:</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm">{domain}</span>
+                                            {domain !== 'N/A' && (
+                                                <>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => copyToClipboard(domain, 'Domain')}
+                                                    >
+                                                        <Copy className="h-3 w-3"/>
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={openUrl}
+                                                    >
+                                                        <ExternalLink className="h-3 w-3"/>
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Database User:</span>
-                                    <div className="flex items-center gap-2">
-                                        <code className="bg-black px-2 py-1 rounded text-sm">{dbUser}</code>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => copyToClipboard(dbUser, 'Database user')}
-                                        >
-                                            <Copy className="h-3 w-3"/>
-                                        </Button>
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Status:</span>
+                                        <Badge variant="secondary" className="text-green-600">
+                                            {container.State.Status}
+                                        </Badge>
                                     </div>
-                                </div>
 
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Database Password:</span>
-                                    <div className="flex items-center gap-2">
-                                        <code className="bg-black px-2 py-1 rounded text-sm">
-                                            {showPassword ? dbPassword : '••••••••'}
-                                        </code>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                        >
-                                            {showPassword ? <EyeOff className="h-3 w-3"/> : <Eye className="h-3 w-3"/>}
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => copyToClipboard(dbPassword, 'Database password')}
-                                        >
-                                            <Copy className="h-3 w-3"/>
-                                        </Button>
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Created:</span>
+                                        <span className="text-sm">
+                                            {new Date(container.Created).toLocaleDateString('en-US')} at{' '}
+                                            {new Date(container.Created).toLocaleTimeString('en-US', {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </span>
                                     </div>
-                                </div>
+                                </CardContent>
+                            </Card>
 
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium">Database Host:</span>
-                                    <div className="flex items-center gap-2">
-                                        <code className="bg-black px-2 py-1 rounded text-sm">{dbHost}</code>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => copyToClipboard(dbHost, 'Database host')}
-                                        >
-                                            <Copy className="h-3 w-3"/>
-                                        </Button>
+                            {/* Database Configuration */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Database className="h-4 w-4"/>
+                                        Database Configuration
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Database connection details for this WordPress installation
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Database Name:</span>
+                                        <div className="flex items-center gap-2">
+                                            <code className="bg-black px-2 py-1 rounded text-sm">{dbName}</code>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => copyToClipboard(dbName, 'Database name')}
+                                            >
+                                                <Copy className="h-3 w-3"/>
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
 
-                        {/* Quick Actions */}
-                        <div className="flex justify-end gap-2">
-                            {domain !== 'N/A' && (
-                                <Button variant="outline" onClick={openUrl}>
-                                    <ExternalLink className="h-4 w-4 mr-2"/>
-                                    Open Website
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Database User:</span>
+                                        <div className="flex items-center gap-2">
+                                            <code className="bg-black px-2 py-1 rounded text-sm">{dbUser}</code>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => copyToClipboard(dbUser, 'Database user')}
+                                            >
+                                                <Copy className="h-3 w-3"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Database Password:</span>
+                                        <div className="flex items-center gap-2">
+                                            <code className="bg-black px-2 py-1 rounded text-sm">
+                                                {showPassword ? dbPassword : '••••••••'}
+                                            </code>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                            >
+                                                {showPassword ? <EyeOff className="h-3 w-3"/> :
+                                                    <Eye className="h-3 w-3"/>}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => copyToClipboard(dbPassword, 'Database password')}
+                                            >
+                                                <Copy className="h-3 w-3"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-medium">Database Host:</span>
+                                        <div className="flex items-center gap-2">
+                                            <code className="bg-black px-2 py-1 rounded text-sm">{dbHost}</code>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => copyToClipboard(dbHost, 'Database host')}
+                                            >
+                                                <Copy className="h-3 w-3"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Quick Actions */}
+                            <div className="flex justify-end gap-2">
+                                <Button variant="outline" onClick={handleCloneContainer}>
+                                    <Copy className="h-4 w-4 mr-2"/>
+                                    Clone Container
                                 </Button>
-                            )}
-                            <Button variant="outline" onClick={() => onOpenChange(false)}>
-                                Close
-                            </Button>
+                                {domain !== 'N/A' && (
+                                    <Button variant="outline" onClick={openUrl}>
+                                        <ExternalLink className="h-4 w-4 mr-2"/>
+                                        Open Website
+                                    </Button>
+                                )}
+                                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                                    Close
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                </ScrollArea>
-            </DialogContent>
-        </Dialog>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
+
+            {/* Clone Dialog */}
+            <WordPressCloneDialog
+                container={container}
+                open={isCloneDialogOpen}
+                onOpenChange={setIsCloneDialogOpen}
+                onCloneSuccess={handleCloneSuccess}
+            />
+        </>
     );
 }

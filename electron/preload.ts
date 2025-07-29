@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { SSHConfig } from "./services/docker/connection/try-to-connect.ts";
 import {
     ContainerCreateOptions,
+    ContainerInspectInfo,
     ContainerLogsOptions,
     NetworkConnectOptions,
     NetworkCreateOptions,
@@ -64,6 +65,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
             setup: (options?: { force?: boolean }) => ipcRenderer.invoke('docker:wordpress:setup', options),
             createWordPress: (options: { name: string; domain?: string }) =>
                 ipcRenderer.invoke('docker:wordpress:createWordPress', options),
+            cloneWordPress: (sourceContainer: ContainerInspectInfo) =>
+                ipcRenderer.invoke('docker:wordpress:cloneWordPress', sourceContainer),
             onSetupProgress: (callback: (event: { step: string; status: string; message?: string }) => void) => {
                 const handleProgress = (_: any, event: { step: string; status: string; message?: string }) => {
                     callback(event);
