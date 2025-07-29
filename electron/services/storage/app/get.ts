@@ -15,7 +15,7 @@ export default function get(): AppSavedConfig {
         }
 
         const userDataPath = app.getPath('userData');
-        const configPath = path.join(userDataPath, 'config.encrypted');
+        const configPath = path.join(userDataPath, 'app.encrypted');
 
         const encryptedData = fs.readFileSync(configPath);
         const decryptedBuffer = safeStorage.decryptString(encryptedData);

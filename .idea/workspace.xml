@@ -5,7 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressInfoDialog.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/preload.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/preload.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/storage/app/get.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/storage/app/get.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/storage/app/save.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/storage/app/save.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/storage/ssh/get.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/storage/ssh/get.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/services/storage/ssh/save.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/services/storage/ssh/save.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/types/electron.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/electron/types/electron.d.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -62,7 +70,7 @@
     &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
     &quot;nx.console.mcp.server.install.notification.hide&quot;: &quot;true&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Yann\\Documents\\Lumia\\container-flow\\node_modules\\typescript\\lib&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\yann.masson\\WebstormProjects\\container-flow\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -104,6 +112,8 @@
       <workItem from="1753733680196" duration="2124000" />
       <workItem from="1753735841431" duration="64000" />
       <workItem from="1753735937317" duration="7170000" />
+      <workItem from="1753779253309" duration="180000" />
+      <workItem from="1753788864806" duration="2366000" />
     </task>
     <servers />
   </component>

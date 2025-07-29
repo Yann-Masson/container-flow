@@ -12,6 +12,9 @@ import { SSHSavedConfig } from "./services/storage/ssh/ssh.type.ts";
 
 // Expose Docker API
 contextBridge.exposeInMainWorld('electronAPI', {
+    system: {
+        openExternal: (url: string) => ipcRenderer.invoke('system:openExternal', url),
+    },
     docker: {
         connection: {
             connect: (config: SSHConfig) => ipcRenderer.invoke('docker:connection:connect', config),
