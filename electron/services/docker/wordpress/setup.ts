@@ -316,6 +316,8 @@ export const createWordPress = async (options: WordPressSetupOptions): Promise<{
                 [`traefik.http.routers.${name}.entrypoints`]: 'websecure',
                 [`traefik.http.routers.${name}.tls.certresolver`]: 'letsencrypt',
                 [`traefik.http.services.${name}.loadbalancer.server.port`]: '80',
+                'container-flow.name': `${name}`,
+                'container-flow.type': 'wordpress',
             },
             HostConfig: {
                 ...wordpress.HostConfig,
