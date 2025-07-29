@@ -3,10 +3,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Copy, Database, ExternalLink, Globe, Minus, Play, Plus, Square } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronRight,
+    Copy,
+    Database,
+    ExternalLink,
+    Globe,
+    Minus,
+    Play,
+    Plus,
+    Settings,
+    Square
+} from 'lucide-react';
 import { ContainerInspectInfo } from "dockerode";
 import { toast } from 'sonner';
 import { ContainerLogsDialog } from "@/components/container/ContainerLogsDialog.tsx";
+import ChangeUrlDialog from './ChangeUrlDialog';
 
 interface WordPressService {
     name: string;
@@ -25,6 +38,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
     const [isExpanded, setIsExpanded] = useState(false);
     const [isAddingInstance, setIsAddingInstance] = useState(false);
     const [isRemovingInstance, setIsRemovingInstance] = useState(false);
+    const [isChangeUrlDialogOpen, setIsChangeUrlDialogOpen] = useState(false);
 
     const runningCount = service.containers.filter(c => c.State.Status === 'running').length;
     const totalCount = service.containers.length;
@@ -159,6 +173,14 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
         }
     };
 
+    const handleChangeUrl = () => {
+        setIsChangeUrlDialogOpen(true);
+    };
+
+    const handleUrlChanged = () => {
+        onContainerUpdate();
+    };
+
     return (
         <>
             <Card>
@@ -241,6 +263,14 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                         <Copy className="h-3 w-3 mr-1"/>
                                         Copy URL
                                     </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleChangeUrl}
+                                    >
+                                        <Settings className="h-3 w-3 mr-1"/>
+                                        Change URL
+                                    </Button>
                                     {service.url !== 'N/A' && (
                                         <Button
                                             size="sm"
@@ -319,6 +349,14 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                     </CollapsibleContent>
                 </Collapsible>
             </Card>
+
+            {/* Change URL Dialog */}
+            <ChangeUrlDialog
+                service={service}
+                open={isChangeUrlDialogOpen}
+                onOpenChange={setIsChangeUrlDialogOpen}
+                onUrlChanged={handleUrlChanged}
+            />
         </>
     );
 }
