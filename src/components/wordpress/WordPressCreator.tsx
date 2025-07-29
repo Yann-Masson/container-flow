@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,17 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Database, Globe, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface WordPressContainer {
-    id: string;
-    name: string;
-    domain: string;
-    createdAt: Date;
-}
+import { ContainerInfo } from "dockerode";
 
 export default function WordPressCreator() {
     const [isCreating, setIsCreating] = useState(false);
-    const [containers, setContainers] = useState<WordPressContainer[]>([]);
+    const [containers, setContainers] = useState<ContainerInfo[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         domain: '',
@@ -54,8 +48,8 @@ export default function WordPressCreator() {
         }
 
         // Vérifier si le nom ou domaine existe déjà
-        const nameExists = containers.some(c => c.name === `wordpress-${formData.name}`);
-        const domainExists = containers.some(c => c.domain === formData.domain);
+        const nameExists = containers.some(c => c.Names[0] === `wordpress-${formData.name}`);
+        const domainExists = containers.some(c => c.Labels?.[`traefik.http.routers.${c.Names[0]}.rule`] === `Host("${formData.domain}")`);
 
         if (nameExists) {
             errors.push('Un container avec ce nom existe déjà');
@@ -86,28 +80,19 @@ export default function WordPressCreator() {
                 description: `Nom: ${formData.name}, Domaine: ${formData.domain}`,
             });
 
-            const result = await window.electronAPI.docker.wordpress.createWordPress({
+            await window.electronAPI.docker.wordpress.createWordPress({
                 name: formData.name,
                 domain: formData.domain,
             });
 
-            // Ajouter le nouveau container à la liste
-            const newContainer: WordPressContainer = {
-                id: result.id,
-                name: result.name,
-                domain: formData.domain,
-                createdAt: new Date(),
-            };
-
-            setContainers(prev => [...prev, newContainer]);
-
             toast.success('✅ Container WordPress créé !', {
-                description: `Accessible sur http://${formData.domain}`,
+                description: `Accessible sur https://${formData.domain}`,
                 duration: 5000,
             });
 
-            // Reset le formulaire
             setFormData({ name: '', domain: '' });
+
+            await retrieveContainers();
 
         } catch (error) {
             console.error('Failed to create WordPress container:', error);
@@ -120,6 +105,25 @@ export default function WordPressCreator() {
     };
 
     const isFormValid = formData.name.trim() && formData.domain.trim() && validateForm().length === 0;
+
+    const retrieveContainers = async () => {
+        try {
+            const allContainers = await window.electronAPI.docker.containers.list();
+            console.log(allContainers);
+            const wpContainers = allContainers.filter(c => c.Names[0].startsWith('/wordpress-'));
+            console.log(wpContainers);
+            setContainers(wpContainers);
+        } catch (error) {
+            console.error('Failed to retrieve containers:', error);
+            toast.error('❌ Erreur lors de la récupération des containers', {
+                description: error instanceof Error ? error.message : 'Une erreur inconnue est survenue',
+            });
+        }
+    };
+
+    useEffect(() => {
+        retrieveContainers().then();
+    }, []);
 
     return (
             <div className="space-y-6">
@@ -218,8 +222,8 @@ export default function WordPressCreator() {
                                 <div className="space-y-3">
                                     {containers.map((container) => (
                                             <div
-                                                    key={container.id}
-                                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                                                    key={container.Id}
+                                                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:text-black transition-colors"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex-shrink-0">
@@ -227,27 +231,27 @@ export default function WordPressCreator() {
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="font-medium">{container.name}</span>
+                                                            <span className="font-medium">{container.Names[0]}</span>
                                                             <Badge variant="secondary" className="text-xs">
                                                                 Actif
                                                             </Badge>
                                                         </div>
                                                         <div className="flex items-center gap-4 text-sm text-gray-600">
-                                                <span className="flex items-center gap-1">
-                                                    <Globe className="h-3 w-3"/>
-                                                    {container.domain}
-                                                </span>
                                                             <span className="flex items-center gap-1">
-                                                    <Database className="h-3 w-3"/>
-                                                    wp_{container.name.replace('wordpress-', '').replace(/[^a-zA-Z0-9]/g, '_')}
-                                                </span>
+                                                                <Globe className="h-3 w-3"/>
+                                                                {container.Labels?.['traefik.http.routers.' + container.Names[0].replace("/wordpress-", "") + '.rule']?.replace('Host("', '').replace('")', '') || 'N/A'}
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                <Database className="h-3 w-3"/>
+                                                                wp_{container.Names[0].replace('wordpress-', '').replace(/[^a-zA-Z0-9]/g, '_')}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="text-right text-sm text-gray-500">
                                                     <div>Créé le</div>
-                                                    <div>{container.createdAt.toLocaleDateString('fr-FR')}</div>
-                                                    <div>{container.createdAt.toLocaleTimeString('fr-FR', {
+                                                    <div>{new Date(container.Created).toLocaleDateString('fr-FR')}</div>
+                                                    <div>{new Date(container.Created).toLocaleTimeString('fr-FR', {
                                                         hour: '2-digit',
                                                         minute: '2-digit'
                                                     })}</div>

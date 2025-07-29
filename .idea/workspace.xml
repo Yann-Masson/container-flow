@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/ui/progress.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressSetup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressSetup.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pages/HomePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/HomePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,7 +103,7 @@
       <workItem from="1753368292298" duration="1910000" />
       <workItem from="1753733680196" duration="2124000" />
       <workItem from="1753735841431" duration="64000" />
-      <workItem from="1753735937317" duration="3494000" />
+      <workItem from="1753735937317" duration="7170000" />
     </task>
     <servers />
   </component>
