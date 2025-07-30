@@ -1,12 +1,17 @@
 import { Badge } from "@/components/ui/badge.tsx";
-import { Button } from "@/components/ui/button.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx";
-import WordPressSetup from "@/components/wordpress/WordPressSetup.tsx";
-import WordPressCreator from "@/components/wordpress/WordPressCreator.tsx";
-import { Server, Settings } from "lucide-react";
+import SettingsDialog from "@/components/SettingsDialog.tsx";
+import { AppPreference } from "../../electron/services/storage/app/app.type";
+import WordPressSetupCard from "@/components/wordpress/WordPressSetupCard.tsx";
+import ListContainers from "@/components/ListContainers.tsx";
 
-export default function HomePage() {
+interface HomePageProps {
+    appMode: AppPreference;
+    onModeChange: (mode: AppPreference) => void;
+    onDisconnect: () => void;
+}
+
+export default function HomePage({ appMode, onModeChange, onDisconnect }: HomePageProps) {
     return (
         <div className="container mx-auto max-w-6xl">
             <header className="flex flex-col md:flex-row justify-between items-center py-6">
@@ -25,39 +30,29 @@ export default function HomePage() {
                         Container Flow
                     </h1>
                 </div>
-                <Badge variant="outline"
-                       className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1">
-                    Connected to Docker server
-                </Badge>
+                <div className="flex items-center gap-2">
+                    <Badge variant="outline"
+                           className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1">
+                        Connected to Docker server
+                    </Badge>
+                    <SettingsDialog
+                        currentMode={appMode}
+                        onModeChange={onModeChange}
+                        onDisconnect={onDisconnect}
+                    />
+                </div>
             </header>
 
             <Separator className="my-4"/>
 
-            <div className="space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Server className="h-5 w-5"/>
-                            WordPress Infrastructure
-                        </CardTitle>
-                        <CardDescription>
-                            Manage your WordPress infrastructure and create new sites
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <WordPressSetup>
-                            <Button variant="outline" className="w-full">
-                                <Settings className="mr-2 h-4 w-4"/>
-                                Configure WordPress Infrastructure
-                            </Button>
-                        </WordPressSetup>
+            {
+                appMode === AppPreference.WORDPRESS ? (
+                    <WordPressSetupCard/>
+                ) : (
+                    <ListContainers/>
+                )
+            }
 
-                        <WordPressCreator/>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/*<ListContainers/>*/}
 
             <footer className="mt-12 mb-4 text-center text-sm text-gray-500">
                 <p>© 2025 Container Flow - Docker Management Platform</p>

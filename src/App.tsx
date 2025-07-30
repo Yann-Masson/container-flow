@@ -42,6 +42,14 @@ export default function App() {
         }
     };
 
+    const handleModeChange = (newMode: AppPreference) => {
+        setAppMode(newMode);
+    };
+
+    const handleDisconnect = () => {
+        setIsConnected(State.IDLE);
+    };
+
     // Check connection when component loads
     useEffect(() => {
         retrieveAppMode().then();
@@ -49,21 +57,26 @@ export default function App() {
     }, []);
 
     return (
-            <>
-                <div className='min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 font-[family-name:var(--font-geist-sans)]'>
-                    {isConnected === State.IDLE ? (
-                            <FormPage setIsConnected={setIsConnected}/>
-                    ) : isConnected === State.SUCCESS ? (
-                            appMode === AppPreference.NONE ? (
-                                    <FirstSetupPage setAppMode={setAppMode}/>
-                            ) : (
-                                    <HomePage/>
-                            )
+        <>
+            <div
+                className='min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 font-[family-name:var(--font-geist-sans)]'>
+                {isConnected === State.IDLE ? (
+                    <FormPage setIsConnected={setIsConnected}/>
+                ) : isConnected === State.SUCCESS ? (
+                    appMode === AppPreference.NONE ? (
+                        <FirstSetupPage setAppMode={setAppMode}/>
                     ) : (
-                            <PendingPage/>
-                    )}
-                </div>
-                <Toaster/>
-            </>
+                        <HomePage
+                            appMode={appMode}
+                            onModeChange={handleModeChange}
+                            onDisconnect={handleDisconnect}
+                        />
+                    )
+                ) : (
+                    <PendingPage/>
+                )}
+            </div>
+            <Toaster/>
+        </>
     );
 }

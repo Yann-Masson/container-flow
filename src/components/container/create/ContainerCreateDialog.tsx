@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator.tsx";
 import { Switch } from "@/components/ui/switch.tsx";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
-import { DockerClientService } from "@/docker/docker-client.ts";
+import { dockerClientService } from "@/docker/docker-client.ts";
 
 interface ContainerCreateDialogProps {
     previousContainerName?: string;
@@ -88,8 +88,9 @@ export function ContainerCreateDialog({
             toast.error("No previous container ID provided");
             return;
         }
-        const dockerClientService = new DockerClientService();
+
         setLoading(true);
+
         try {
             const details = await dockerClientService.containers.get(previousContainerId);
 

@@ -198,40 +198,42 @@ export default function WordPressCreator() {
     return (
         <div className="space-y-6">
 
-            {/* List of WordPress Services */}
-            {services.length > 0 && (
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-lg font-semibold">WordPress Services ({services.length})</h2>
-                            <p className="text-sm text-gray-600">
-                                {services.reduce((total, service) => total + service.containers.length, 0)} total
-                                containers
-                            </p>
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={retrieveContainers}
-                            disabled={isRefreshing}
-                        >
-                            {isRefreshing ? (
-                                <Loader2 className="h-4 w-4 animate-spin"/>
-                            ) : (
-                                <RefreshCw className="h-4 w-4"/>
-                            )}
-                        </Button>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-semibold">WordPress Services ({services.length})</h2>
+                        <p className="text-sm text-gray-600">
+                            {services.reduce((total, service) => total + service.containers.length, 0)} total
+                            containers
+                        </p>
                     </div>
-
-                    {services.map((service) => (
-                        <WordPressServiceCard
-                            key={service.name}
-                            service={service}
-                            onContainerUpdate={retrieveContainers}
-                        />
-                    ))}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={retrieveContainers}
+                        disabled={isRefreshing}
+                    >
+                        {isRefreshing ? (
+                            <Loader2 className="h-4 w-4 animate-spin"/>
+                        ) : (
+                            <RefreshCw className="h-4 w-4"/>
+                        )}
+                    </Button>
                 </div>
-            )}
+
+                {services.length === 0 && (
+                    <p className="text-sm text-gray-500">
+                        No WordPress services found. Create a new service to get started.
+                    </p>
+                )}
+                {services.map((service) => (
+                    <WordPressServiceCard
+                        key={service.name}
+                        service={service}
+                        onContainerUpdate={retrieveContainers}
+                    />
+                ))}
+            </div>
 
             <Card>
                 <CardHeader>
