@@ -5,9 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a96a6f5f-3230-4cb6-8a48-56ab41bbf676" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/components/SettingsDialog.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressSetupCard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressSetupProgress.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/container/ContainerLogsDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/container/ContainerLogsDialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ui/scroll-area.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ui/scroll-area.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ListContainers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ListContainers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/container/create/ContainerCreateDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/container/create/ContainerCreateDialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressCreator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressServiceCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressServiceCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/wordpress/WordPressSetup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wordpress/WordPressSetup.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pages/HomePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/HomePage.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -46,35 +53,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;code.cleanup.on.save&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/yann.masson/WebstormProjects/container-flow/electron/services/storage/app&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.standard&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.standard&quot;: &quot;&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
-    &quot;nx.console.mcp.server.install.notification.hide&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\yann.masson\\WebstormProjects\\container-flow\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "code.cleanup.on.save": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/yann.masson/WebstormProjects/container-flow/electron/services/docker/wordpress",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.standard": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.standard": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "pnpm",
+    "nx.console.mcp.server.install.notification.hide": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\Users\\yann.masson\\WebstormProjects\\container-flow\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;mysql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\yann.masson\WebstormProjects\container-flow\electron\services\docker\wordpress" />
       <recent name="C:\Users\yann.masson\WebstormProjects\container-flow\electron\services\storage\app" />
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\src" />
       <recent name="C:\Users\Yann\Documents\Lumia\container-flow\electron" />
@@ -114,7 +122,7 @@
       <workItem from="1753735937317" duration="7170000" />
       <workItem from="1753779253309" duration="180000" />
       <workItem from="1753788864806" duration="12678000" />
-      <workItem from="1753866783722" duration="11277000" />
+      <workItem from="1753866783722" duration="20198000" />
     </task>
     <servers />
   </component>

@@ -183,11 +183,11 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
 
     return (
         <>
-            <Card>
+            <Card className="py-0">
                 <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
                     <CollapsibleTrigger asChild>
-                        <CardHeader className="cursor-pointer transition-colors">
-                            <div className="flex items-center justify-between">
+                        <CardHeader className="cursor-pointer transition-colors p-4 flex">
+                            <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-3">
                                     {isExpanded ? (
                                         <ChevronDown className="h-4 w-4"/>
@@ -205,7 +205,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center gap-2">
                                     <div className="text-right text-sm text-gray-600 mr-4">
                                         <div className="flex items-center gap-4">
                                             <span className="flex items-center gap-1">
@@ -219,68 +219,76 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                         </div>
                                     </div>
 
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={handleRemoveInstance}
-                                        disabled={service.containers.length <= 1 || isRemovingInstance}
-                                    >
-                                        <Minus className="h-3 w-3"/>
-                                    </Button>
+                                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleRemoveInstance}
+                                            disabled={service.containers.length <= 1 || isRemovingInstance}
+                                        >
+                                            <Minus className="h-3 w-3"/>
+                                        </Button>
 
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={handleAddInstance}
-                                        disabled={isAddingInstance}
-                                    >
-                                        <Plus className="h-3 w-3"/>
-                                    </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleAddInstance}
+                                            disabled={isAddingInstance}
+                                        >
+                                            <Plus className="h-3 w-3"/>
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </CardHeader>
                     </CollapsibleTrigger>
 
                     <CollapsibleContent>
-                        <CardContent className="pt-0">
+                        <CardContent className="pb-4">
                             <div className="space-y-3 ml-7">
                                 {/* Service Actions */}
-                                <div className="flex items-center gap-2 p-3 bg-black rounded-lg">
-                                    <span className="text-sm font-medium">Service Actions:</span>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => copyToClipboard(service.dbName, 'Database name')}
-                                    >
-                                        <Copy className="h-3 w-3 mr-1"/>
-                                        Copy DB
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => copyToClipboard(service.url, 'URL')}
-                                    >
-                                        <Copy className="h-3 w-3 mr-1"/>
-                                        Copy URL
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={handleChangeUrl}
-                                    >
-                                        <Settings className="h-3 w-3 mr-1"/>
-                                        Change URL
-                                    </Button>
-                                    {service.url !== 'N/A' && (
+                                <div className="flex items-center justify-between w-full p-3 bg-black rounded-lg">
+                                    <span className="text-sm font-medium ml-4">Service Actions</span>
+                                    <div className="flex items-center gap-2">
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            onClick={openUrl}
+                                            onClick={() => copyToClipboard(service.dbName, 'Database name')}
+                                            className="cursor-pointer"
                                         >
-                                            <ExternalLink className="h-3 w-3 mr-1"/>
-                                            Open
+                                            <Copy className="h-3 w-3 mr-1"/>
+                                            Copy DB
                                         </Button>
-                                    )}
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => copyToClipboard(service.url, 'URL')}
+                                            className="cursor-pointer"
+                                        >
+                                            <Copy className="h-3 w-3 mr-1"/>
+                                            Copy URL
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleChangeUrl}
+                                            className="cursor-pointer"
+                                        >
+                                            <Settings className="h-3 w-3 mr-1"/>
+                                            Change URL
+                                        </Button>
+                                        {service.url !== 'N/A' && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={openUrl}
+                                                className="cursor-pointer"
+                                            >
+                                                <ExternalLink className="h-3 w-3 mr-1"/>
+                                                Open
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Individual Containers */}
