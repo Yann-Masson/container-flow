@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle, Globe, Loader2 } from 'lucide-react';
-import { ContainerCreateOptions, ContainerInspectInfo } from "dockerode";
+import { ContainerInspectInfo } from "dockerode";
 import { toast } from 'sonner';
 
 interface WordPressService {
@@ -91,47 +91,9 @@ export default function ChangeUrlDialog({ service, open, onOpenChange, onUrlChan
     const recreateContainerWithNewUrl = async (container: ContainerInspectInfo, newUrl: string) => {
         const containerName = container.Name.replace('wordpress-', '');
 
-        // Extract configuration from existing container
-        const config = container.Config;
-
-        // Create new Traefik labels with new URL
-        const newLabels = { ...config.Labels };
-
-        // Update all Traefik router rules to use new URL
-        Object.keys(newLabels).forEach(key => {
-            if (key.includes('.rule') && newLabels[key].includes('Host(')) {
-                newLabels[key] = `Host("${newUrl}")`;
-            }
-        });
-
-        // Prepare new container configuration
-        const newContainerConfig: ContainerCreateOptions = {
-            ...config,
-            Labels: newLabels,
-        };
-
         toast.info(`🔄 Recreating container ${containerName}...`);
 
-        // Stop the existing container
-        if (container.State.Status === 'running') {
-            await window.electronAPI.docker.containers.stop(container.Id);
-        }
-
-        // Remove the existing container
-        await window.electronAPI.docker.containers.remove(container.Id, { force: true });
-
-        // Create new container with updated configuration
-        const newContainer = await window.electronAPI.docker.containers.create(newContainerConfig);
-
-        // Connect to the CF-WP network
-        try {
-            await window.electronAPI.docker.network.connect('CF-WP', { Container: newContainer.id });
-        } catch (error) {
-            console.warn('Network connection might already exist:', error);
-        }
-
-        // Start the new container
-        await window.electronAPI.docker.containers.start(newContainer.id);
+        await window.electronAPI.docker.wordpress.changeUrl(container, newUrl);
 
         toast.success(`✅ Container ${containerName} recreated with new URL`);
     };
