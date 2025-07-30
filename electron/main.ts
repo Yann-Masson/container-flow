@@ -433,20 +433,29 @@ function setupIpcHandlers() {
             }
         });
 
-        ipcMain.handle('docker:wordpress:createWordPress', async (_, options) => {
+        ipcMain.handle('docker:wordpress:create', async (_, options) => {
             try {
-                return await services.docker.wordpress.createWordPress(options);
+                return await services.docker.wordpress.create(options);
             } catch (error) {
-                log(`Error in docker:wordpress:createWordPress: ${error}`);
+                log(`Error in docker:wordpress:create: ${error}`);
                 throw error;
             }
         });
 
-        ipcMain.handle('docker:wordpress:cloneWordPress', async (_, sourceContainer) => {
+        ipcMain.handle('docker:wordpress:clone', async (_, sourceContainer) => {
             try {
-                return await services.docker.wordpress.cloneWordPress(sourceContainer);
+                return await services.docker.wordpress.clone(sourceContainer);
             } catch (error) {
-                log(`Error in docker:wordpress:cloneWordPress: ${error}`);
+                log(`Error in docker:wordpress:clone: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:wordpress:changeUrl', async (_, container, newUrl) => {
+            try {
+                return await services.docker.wordpress.changeUrl(container, newUrl);
+            } catch (error) {
+                log(`Error in docker:wordpress:changeUrl: ${error}`);
                 throw error;
             }
         });

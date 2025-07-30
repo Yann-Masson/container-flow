@@ -82,7 +82,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
 
             // Use the last container as source for cloning
             const sourceContainer = service.containers[service.containers.length - 1];
-            await window.electronAPI.docker.wordpress.cloneWordPress(sourceContainer);
+            await window.electronAPI.docker.wordpress.clone(sourceContainer);
 
             toast.success('✅ New container instance added!', {
                 description: `${service.name}-${nextInstanceNumber} is now available`,

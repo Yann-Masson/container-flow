@@ -1,6 +1,4 @@
-import { ContainerCreateOptions, ContainerInspectInfo, NetworkInspectInfo } from 'dockerode';
-import mysql from 'mysql2/promise';
-import { createMySQLTunnel, getClient, getMySQLConnectionOptions } from '../client';
+import { getClient } from '../client';
 import { create as createContainer } from '../containers/create';
 import { start as startContainer } from '../containers/start';
 import { remove as removeContainer } from '../containers/remove';
@@ -12,86 +10,29 @@ import listNetworks from '../network/list';
 import removeNetwork from '../network/remove';
 import traefik from '../configs/traefik';
 import mysqlConfig from '../configs/mysql';
-import wordpress from '../configs/wordpress';
-import { getById } from "../containers/get-by-id.ts";
-
-// Types for WordPress container creation
-interface WordPressSetupOptions {
-    name: string;
-    domain?: string;
-}
-
-interface MySQLConnectionOptions {
-    host: string;
-    port: number;
-    user: string;
-    password: string;
-    database?: string;
-}
+import validate from "./validate";
+import utils from "./utils";
 
 // Event emitter for setup progress
 type ProgressCallback = (step: string, status: 'starting' | 'completed' | 'error', message?: string) => void;
 
-// Configuration validation interface
+// Configuration validate interface
 interface SetupOptions {
     force?: boolean;
 }
 
 /**
- * Validate if a network has the correct configuration
- */
-const validateNetworkConfig = (networkInfo: NetworkInspectInfo): boolean => {
-    return networkInfo.Driver === 'bridge' && networkInfo.Name === 'CF-WP';
-};
-
-/**
- * Validate if a container has the correct configuration
- */
-const validateContainerConfig = (containerInfo: ContainerInspectInfo, expectedConfig: ContainerCreateOptions): boolean => {
-    // Basic validation - check image and key environment variables
-    // Docker stores images as SHA256 hashes after pulling, so we need to check the RepoTags
-    const expectedImage = expectedConfig.Image;
-    const actualImage = containerInfo.Image;
-    const repoTags = containerInfo.Config?.Image || '';
-
-    // Check if the image matches either by name or if the RepoTags contain the expected image
-    const imageMatches = actualImage === expectedImage ||
-        repoTags === expectedImage ||
-        (actualImage.startsWith('sha256:') && repoTags === expectedImage);
-
-    if (!imageMatches) {
-        console.warn(`Container image mismatch: expected ${expectedImage}, got ${actualImage} (RepoTags: ${repoTags})`);
-        return false;
-    }
-
-    // For MySQL, check if root password env is set
-    if (expectedConfig.name === 'mysql') {
-        return containerInfo.Config?.Env?.some((env: string) =>
-            env.startsWith('MYSQL_ROOT_PASSWORD=')
-        ) ?? false;
-    }
-
-    // For Traefik, check if it has the required labels
-    if (expectedConfig.name === 'traefik') {
-        const labels = containerInfo.Config?.Labels || {};
-        return labels['traefik.enable'] === 'true';
-    }
-
-    return true;
-};
-
-/**
  * Setup the complete WordPress infrastructure
  * Creates network, Traefik and MySQL containers
  */
-export const setup = async (
+export default async function setup(
     options: SetupOptions = {},
     progressCallback?: ProgressCallback
 ): Promise<{
     network: { id: string; name: string };
     traefik: { id: string; name: string };
     mysql: { id: string; name: string };
-}> => {
+}> {
     const client = getClient();
     if (!client) {
         throw new Error('Docker client not initialized');
@@ -118,7 +59,7 @@ export const setup = async (
             console.log('Network CF-WP already exists, validating configuration...');
             const networkInfo = await inspectNetwork('CF-WP');
 
-            if (!validateNetworkConfig(networkInfo)) {
+            if (!validate.networkConfig(networkInfo)) {
                 if (force) {
                     console.log('Invalid network configuration, removing and recreating...');
                     progressCallback?.('network', 'starting', 'Removing invalid network configuration...');
@@ -156,7 +97,7 @@ export const setup = async (
             const container = client.getContainer(existingTraefik.id);
             const containerInfo = await container.inspect();
 
-            if (!validateContainerConfig(containerInfo, traefik)) {
+            if (!validate.containerConfig(containerInfo, traefik)) {
                 if (force) {
                     console.log('Invalid Traefik configuration, removing and recreating...');
                     progressCallback?.('traefik', 'starting', 'Removing invalid Traefik configuration...');
@@ -203,7 +144,7 @@ export const setup = async (
             const container = client.getContainer(existingMySQL.id);
             const containerInfo = await container.inspect();
 
-            if (!validateContainerConfig(containerInfo, mysqlConfig)) {
+            if (!validate.containerConfig(containerInfo, mysqlConfig)) {
                 if (force) {
                     console.log('Invalid MySQL configuration, removing and recreating...');
                     progressCallback?.('mysql', 'starting', 'Removing invalid MySQL configuration...');
@@ -241,13 +182,12 @@ export const setup = async (
 
         progressCallback?.('mysql-ready', 'starting', 'Waiting for MySQL to be ready...');
         console.log('Waiting for MySQL to be ready...');
-        await waitForMySQLReady();
+        await utils.waitMysql();
         progressCallback?.('mysql-ready', 'completed', 'MySQL is ready');
 
         console.log('WordPress infrastructure setup completed successfully!');
         progressCallback?.('setup', 'completed', 'WordPress infrastructure setup completed successfully!');
 
-        // Return serializable objects only
         return {
             network: { id: network.id, name: 'CF-WP' },
             traefik: { id: traefikContainer.id, name: traefik.name || 'traefik' },
@@ -258,237 +198,4 @@ export const setup = async (
         progressCallback?.('setup', 'error', `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         throw error;
     }
-};
-
-/**
- * Create a new WordPress container with its own database
- * @param options - WordPress setup options
- */
-export const createWordPress = async (options: WordPressSetupOptions): Promise<{ id: string; name: string }> => {
-    const client = getClient();
-    if (!client) {
-        throw new Error('Docker client not initialized');
-    }
-
-    const { name, domain } = options;
-
-    if (!name) {
-        throw new Error('WordPress name is required');
-    }
-
-    console.log(`Creating WordPress container: ${name}...`);
-
-    try {
-        // Ensure MySQL tunnel is available
-        try {
-            await createMySQLTunnel();
-        } catch (error) {
-            console.error('Failed to create MySQL tunnel:', error);
-            throw new Error('MySQL tunnel is required but could not be established');
-        }
-
-        // Generate database credentials
-        const dbName = `wp_${name.replace(/[^a-zA-Z0-9]/g, '_')}`;
-        const dbUser = `wp_${name.replace(/[^a-zA-Z0-9]/g, '_')}`;
-        const dbPassword = generateRandomPassword();
-
-        // 1. Create database and user in MySQL using the tunnel
-        const mysqlConnectionOptions = getMySQLConnectionOptions();
-        await createDatabaseAndUser(mysqlConnectionOptions, {
-            dbName,
-            dbUser,
-            dbPassword,
-        });
-
-        // 2. Prepare WordPress container configuration
-        const wordpressConfig: ContainerCreateOptions = {
-            ...wordpress,
-            name: `wordpress-${name}-1`,
-            Env: [
-                'WORDPRESS_DB_HOST=mysql:3306',
-                `WORDPRESS_DB_USER=${dbUser}`,
-                `WORDPRESS_DB_PASSWORD=${dbPassword}`,
-                `WORDPRESS_DB_NAME=${dbName}`,
-            ],
-            Labels: {
-                'traefik.enable': 'true',
-                [`traefik.http.routers.${name}.rule`]: `Host("${domain || name + '.agence-lumia.com'}")`,
-                [`traefik.http.routers.${name}.entrypoints`]: 'websecure',
-                [`traefik.http.routers.${name}.tls.certresolver`]: 'letsencrypt',
-                [`traefik.http.services.${name}.loadbalancer.server.port`]: '80',
-                'container-flow.name': `${name}`,
-                'container-flow.type': 'wordpress',
-            },
-            HostConfig: {
-                ...wordpress.HostConfig,
-                Binds: [`wordpress-${name}-data:/var/www/html`],
-                PortBindings: {},
-            },
-        };
-
-        // 3. Create and start WordPress container
-        const container = await createContainer(wordpressConfig);
-
-        // Connect to network
-        await connectToNetwork('CF-WP', { Container: container.id });
-        await startContainer(container.id);
-
-        console.log(`WordPress container '${name}' created successfully!`);
-        console.log(`Database: ${dbName}`);
-        console.log(`Database User: ${dbUser}`);
-        console.log(`Access URL: http://${domain || name + '.agence-lumia.com'}`);
-
-        // Return serializable object only
-        return { id: container.id, name: `wordpress-${domain || name}` };
-    } catch (error) {
-        console.error(`Error creating WordPress container '${name}':`, error);
-        throw error;
-    }
-};
-
-/**
- * Clone an existing WordPress container with the same database and configuration
- * @param sourceContainer - The container to clone from
- */
-export const cloneWordPress = async (
-    sourceContainer: ContainerInspectInfo,
-): Promise<ContainerInspectInfo> => {
-    const client = getClient();
-    if (!client) {
-        throw new Error('Docker client not initialized');
-    }
-
-    console.log(`Cloning WordPress container from: ${sourceContainer.Name}...`);
-
-    try {
-        // Extract configuration from source container
-        const sourceEnv = sourceContainer.Config.Env || [];
-        const sourceLabels = sourceContainer.Config.Labels || {};
-
-        const sourceName = sourceContainer.Name.replace('wordpress-', '').replace(/-\d+$/, '');
-        const sourceHostConfig = sourceContainer.HostConfig || {
-            ...wordpress.HostConfig,
-            // Use the same volume as the source container to share files
-            Binds: [`wordpress-${sourceName}-data:/var/www/html`],
-            PortBindings: {},
-        };
-
-        const match = sourceContainer.Name.match(/^(.*?)-(\d+)$/);
-        const baseName = match ? match[1] : sourceContainer.Name;
-        const currentNumber = match ? parseInt(match[2], 10) : 1;
-        const name = `${baseName}-${currentNumber + 1}`;
-
-        if (!sourceEnv.some(env => env.startsWith('WORDPRESS_DB_NAME='))) {
-            throw new Error('Source container does not have a valid WordPress database configuration');
-        }
-        if (!sourceLabels['traefik.http.routers.' + sourceName + '.rule']) {
-            throw new Error('Source container does not have a valid Traefik rule');
-        }
-        if (!sourceHostConfig.Binds || !sourceHostConfig.Binds.some(bind => bind.startsWith('wordpress-'))) {
-            throw new Error('Source container does not have a valid volume bind');
-        }
-
-        // Prepare cloned WordPress container configuration
-        const clonedConfig: ContainerCreateOptions = {
-            ...wordpress,
-            name,
-            Env: sourceEnv,
-            Labels: sourceLabels,
-            HostConfig: sourceHostConfig,
-        };
-
-        // Create and start cloned WordPress container
-        const container = await createContainer(clonedConfig);
-
-        // Connect to network
-        await connectToNetwork('CF-WP', { Container: container.id });
-        await startContainer(container.id);
-
-        console.log(`WordPress container '${name}' cloned successfully from '${sourceName}'!`);
-        console.log(`Shared Database: ${sourceContainer.Config.Env?.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.split('=')[1] || 'unknown'}`);
-        console.log(`Shared Volume: wordpress-${sourceName}-data`);
-        console.log(`Access URL: https://${sourceContainer.Config.Labels?.['traefik.http.routers.' + sourceName + '.rule']?.replace('Host("', '').replace('")', '') || name + '.agence-lumia.com'}`);
-
-        return await getById(container.id);
-    } catch (error) {
-        console.error(`Error cloning WordPress container:`, error);
-        throw error;
-    }
-};
-
-/**
- * Create database and user for WordPress
- */
-async function createDatabaseAndUser(
-    connectionOptions: MySQLConnectionOptions,
-    dbOptions: { dbName: string; dbUser: string; dbPassword: string }
-): Promise<void> {
-    const { dbName, dbUser, dbPassword } = dbOptions;
-
-    console.log(`Creating database '${dbName}' and user '${dbUser}'...`);
-
-    let connection;
-    try {
-        // Connect to MySQL
-        connection = await mysql.createConnection({
-            host: connectionOptions.host,
-            port: connectionOptions.port,
-            user: connectionOptions.user,
-            password: connectionOptions.password,
-        });
-
-        // Create database
-        await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-
-        // Create user and grant privileges
-        await connection.execute(
-            `CREATE USER IF NOT EXISTS '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}'`
-        );
-
-        await connection.execute(
-            `GRANT ALL PRIVILEGES ON \`${dbName}\`.* TO '${dbUser}'@'%'`
-        );
-
-        await connection.execute('FLUSH PRIVILEGES');
-
-        console.log(`Database '${dbName}' and user '${dbUser}' created successfully`);
-    } finally {
-        if (connection) {
-            await connection.end();
-        }
-    }
-}
-
-/**
- * Generate a random password
- */
-function generateRandomPassword(length: number = 16): string {
-    const charset = 'SJ4Mmr5e@v6ewzRSLthZG1zJ$8PeDcM2Nru3a!pt@^*a9cHY*ZzFngcV4q%wVdeqabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < length; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return password;
-}
-
-/**
- * Wait for MySQL to be ready by attempting to connect
- */
-async function waitForMySQLReady(retries: number = 10, delay: number = 5000): Promise<void> {
-    const mysqlConnectionOptions = getMySQLConnectionOptions();
-
-    for (let i = 0; i < retries; i++) {
-        try {
-            // Try to connect to the MySQL server
-            const connection = await mysql.createConnection(mysqlConnectionOptions);
-            await connection.end();
-            console.log('MySQL is ready');
-            return;
-        } catch (error) {
-            console.log(`MySQL not ready yet, retrying in ${delay / 1000} seconds...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
-
-    throw new Error('MySQL is not ready after multiple retries');
 }

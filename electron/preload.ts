@@ -63,10 +63,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         },
         wordpress: {
             setup: (options?: { force?: boolean }) => ipcRenderer.invoke('docker:wordpress:setup', options),
-            createWordPress: (options: { name: string; domain?: string }) =>
-                ipcRenderer.invoke('docker:wordpress:createWordPress', options),
-            cloneWordPress: (sourceContainer: ContainerInspectInfo) =>
-                ipcRenderer.invoke('docker:wordpress:cloneWordPress', sourceContainer),
+            create: (options: { name: string; domain?: string }) =>
+                ipcRenderer.invoke('docker:wordpress:create', options),
+            clone: (sourceContainer: ContainerInspectInfo) =>
+                ipcRenderer.invoke('docker:wordpress:clone', sourceContainer),
             onSetupProgress: (callback: (event: { step: string; status: string; message?: string }) => void) => {
                 const handleProgress = (_: any, event: { step: string; status: string; message?: string }) => {
                     callback(event);
@@ -74,6 +74,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
                 ipcRenderer.on('wordpress:setup:progress', handleProgress);
                 return () => ipcRenderer.removeListener('wordpress:setup:progress', handleProgress);
             },
+            changeUrl: (container: ContainerInspectInfo, newUrl: string) =>
+                ipcRenderer.invoke('docker:wordpress:changeUrl', container, newUrl),
         },
     },
     storage: {

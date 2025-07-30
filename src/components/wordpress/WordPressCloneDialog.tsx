@@ -41,7 +41,7 @@ export default function WordPressCloneDialog({
                 description: `Creating new container for ${sourceName}`,
             });
 
-            const inspectedContainer = await window.electronAPI.docker.wordpress.cloneWordPress(container);
+            const inspectedContainer = await window.electronAPI.docker.wordpress.clone(container);
 
             toast.success('✅ WordPress container cloned successfully!', {
                 description: `${inspectedContainer.Name} has been created with shared database and files.`,

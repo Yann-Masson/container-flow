@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { ContainerInspectInfo } from "dockerode";
 import WordPressServiceCard from './WordPressServiceCard';
@@ -18,7 +18,7 @@ interface WordPressService {
 
 export default function WordPressCreator() {
     const [isCreating, setIsCreating] = useState(false);
-    const [containers, setContainers] = useState<ContainerInspectInfo[]>([]);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [services, setServices] = useState<WordPressService[]>([]);
     const [formData, setFormData] = useState({
         name: '',
@@ -83,7 +83,7 @@ export default function WordPressCreator() {
                 description: `Name: ${formData.name}, Domain: ${formData.domain}`,
             });
 
-            await window.electronAPI.docker.wordpress.createWordPress({
+            await window.electronAPI.docker.wordpress.create({
                 name: formData.name,
                 domain: formData.domain,
             });
@@ -110,8 +110,11 @@ export default function WordPressCreator() {
 
     const retrieveContainers = async () => {
         try {
+            setIsRefreshing(true);
             const allContainers = await window.electronAPI.docker.containers.list();
-            const wpContainers = allContainers.filter(c => c.Names[0].startsWith('/wordpress-'));
+            console.log('Retrieved containers:', allContainers);
+            const wpContainers = allContainers.filter(c => c.Labels?.['container-flow.type'] === 'wordpress');
+            console.log('Filtered WordPress containers:', wpContainers);
 
             const tempWpContainers: ContainerInspectInfo[] = [];
             for (const container of wpContainers) {
@@ -121,18 +124,21 @@ export default function WordPressCreator() {
                 tempWpContainers.push(inspectInfo);
             }
 
-            setContainers(tempWpContainers);
             groupContainersIntoServices(tempWpContainers);
         } catch (error) {
             console.error('Failed to retrieve containers:', error);
             toast.error('❌ Error retrieving containers', {
                 description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
     const groupContainersIntoServices = (containers: ContainerInspectInfo[]) => {
         const serviceMap = new Map<string, ContainerInspectInfo[]>();
+
+        console.log('Grouping containers into services...');
 
         containers.forEach(container => {
             // Extract service name from container name (wordpress-{serviceName}-{instanceNumber})
@@ -195,11 +201,26 @@ export default function WordPressCreator() {
             {/* List of WordPress Services */}
             {services.length > 0 && (
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-semibold">WordPress Services ({services.length})</h2>
-                        <p className="text-sm text-gray-600">
-                            {services.reduce((total, service) => total + service.containers.length, 0)} total containers
-                        </p>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-lg font-semibold">WordPress Services ({services.length})</h2>
+                            <p className="text-sm text-gray-600">
+                                {services.reduce((total, service) => total + service.containers.length, 0)} total
+                                containers
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={retrieveContainers}
+                            disabled={isRefreshing}
+                        >
+                            {isRefreshing ? (
+                                <Loader2 className="h-4 w-4 animate-spin"/>
+                            ) : (
+                                <RefreshCw className="h-4 w-4"/>
+                            )}
+                        </Button>
                     </div>
 
                     {services.map((service) => (

@@ -1,7 +1,15 @@
-import { cloneWordPress, createWordPress, setup } from './setup';
+import validate from './validate';
+import setup from './setup';
+import create from './create';
+import clone from './clone';
+import utils from './utils';
+import changeUrl from "./change-url.ts";
 
 export default {
     setup,
-    createWordPress,
-    cloneWordPress,
+    create,
+    clone,
+    changeUrl,
+    validate,
+    utils,
 };

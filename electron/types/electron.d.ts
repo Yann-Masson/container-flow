@@ -58,13 +58,14 @@ interface ElectronAPI {
                 traefik: { id: string; name: string };
                 mysql: { id: string; name: string };
             }>;
-            createWordPress: (options: { name: string; domain?: string }) => Promise<{ id: string; name: string }>;
-            cloneWordPress: (sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo) => Promise<ContainerInspectInfo>;
+            create: (options: { name: string; domain?: string }) => Promise<{ id: string; name: string }>;
+            clone: (sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo) => Promise<ContainerInspectInfo>;
             onSetupProgress: (callback: (event: {
                 step: string;
                 status: 'starting' | 'completed' | 'error';
                 message?: string
             }) => void) => () => void;
+            changeUrl: (container: ContainerInspectInfo, newUrl: string) => Promise<ContainerInspectInfo>;
         };
     };
     storage: {
