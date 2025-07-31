@@ -28,17 +28,15 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null;
 
-// Configuration des logs
+// Logs setup
 const logPath = path.join(app.getPath('userData'), 'updater.log');
 
 function log(message: string) {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] ${message}\n`;
 
-    // Log to console
     console.log(message);
 
-    // Log to file
     try {
         fs.appendFileSync(logPath, logMessage);
     } catch (error) {
@@ -456,6 +454,15 @@ function setupIpcHandlers() {
                 return await services.docker.wordpress.changeUrl(container, newUrl);
             } catch (error) {
                 log(`Error in docker:wordpress:changeUrl: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:wordpress:delete', async (_, options) => {
+            try {
+                return await services.docker.wordpress.delete(options);
+            } catch (error) {
+                log(`Error in docker:wordpress:delete: ${error}`);
                 throw error;
             }
         });

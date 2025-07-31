@@ -6,8 +6,7 @@ import connectToNetwork from '../network/connect';
 import wordpress from '../configs/wordpress';
 import utils from "./utils";
 
-// Types for WordPress container creation
-interface WordPressSetupOptions {
+export interface WordPressCreateOptions {
     name: string;
     domain?: string;
 }
@@ -16,7 +15,7 @@ interface WordPressSetupOptions {
  * Create a new WordPress container with its own database
  * @param options - WordPress setup options
  */
-export default async function create(options: WordPressSetupOptions): Promise<{ id: string; name: string }> {
+export default async function create(options: WordPressCreateOptions): Promise<{ id: string; name: string }> {
     const client = getClient();
     if (!client) {
         throw new Error('Docker client not initialized');
@@ -51,6 +50,10 @@ export default async function create(options: WordPressSetupOptions): Promise<{ 
             dbUser,
             dbPassword,
         });
+
+        // Wait a bit to ensure MySQL has fully processed the user creation
+        console.log('Waiting for MySQL to process user creation...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // 2. Prepare WordPress container configuration
         const wordpressConfig: ContainerCreateOptions = {

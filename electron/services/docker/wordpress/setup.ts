@@ -101,7 +101,7 @@ export default async function setup(
                 if (force) {
                     console.log('Invalid Traefik configuration, removing and recreating...');
                     progressCallback?.('traefik', 'starting', 'Removing invalid Traefik configuration...');
-                    await removeContainer(existingTraefik.id, { force: true, v: true });
+                    await removeContainer(existingTraefik.id, { force: true, volume: true });
                     traefikContainer = await createContainer(traefik);
                     await connectToNetwork('CF-WP', { Container: traefikContainer.id });
                     await startContainer(traefikContainer.id);
@@ -148,7 +148,7 @@ export default async function setup(
                 if (force) {
                     console.log('Invalid MySQL configuration, removing and recreating...');
                     progressCallback?.('mysql', 'starting', 'Removing invalid MySQL configuration...');
-                    await removeContainer(existingMySQL.id, { force: true, v: true });
+                    await removeContainer(existingMySQL.id, { force: true, volume: true });
                     mysqlContainer = await createContainer(mysqlConfig);
                     await connectToNetwork('CF-WP', { Container: mysqlContainer.id });
                     await startContainer(mysqlContainer.id);
