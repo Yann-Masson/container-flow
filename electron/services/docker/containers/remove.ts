@@ -11,7 +11,7 @@ import docker from "../index.ts";
 export const remove = async (
     containerId: string,
     options: {
-        v?: boolean;
+        volume?: boolean;
         force?: boolean;
     } = {}
 ): Promise<void> => {
@@ -25,7 +25,7 @@ export const remove = async (
 
         // Set default options
         const removeOptions = {
-            v: options.v !== undefined ? options.v : false,
+            v: options.volume !== undefined ? options.volume : false,
             force: options.force !== undefined ? options.force : false
         };
 

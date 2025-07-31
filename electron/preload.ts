@@ -10,6 +10,8 @@ import {
 } from "dockerode";
 import { AppSavedConfig } from "./services/storage/app/app.type.ts";
 import { SSHSavedConfig } from "./services/storage/ssh/ssh.type.ts";
+import { WordPressDeleteOptions } from "./services/docker/wordpress/delete.ts";
+import { WordPressCreateOptions } from "./services/docker/wordpress/create.ts";
 
 // Expose Docker API
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -63,7 +65,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         },
         wordpress: {
             setup: (options?: { force?: boolean }) => ipcRenderer.invoke('docker:wordpress:setup', options),
-            create: (options: { name: string; domain?: string }) =>
+            create: (options: WordPressCreateOptions) =>
                 ipcRenderer.invoke('docker:wordpress:create', options),
             clone: (sourceContainer: ContainerInspectInfo) =>
                 ipcRenderer.invoke('docker:wordpress:clone', sourceContainer),
@@ -76,6 +78,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
             },
             changeUrl: (container: ContainerInspectInfo, newUrl: string) =>
                 ipcRenderer.invoke('docker:wordpress:changeUrl', container, newUrl),
+            'delete': (options: WordPressDeleteOptions) => ipcRenderer.invoke('docker:wordpress:delete', options),
         },
     },
     storage: {
