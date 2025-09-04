@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import WordPressSetupCard from './setup/WordPressSetupCard';
 import WordPressCreator from './WordPressCreator';
+import WordPressList from './WordPressList';
 
 type TransitionState = 'setup' | 'transitioning' | 'creator';
 
 export default function WordPress() {
     const [setupCompleted, setSetupCompleted] = useState(false);
     const [transitionState, setTransitionState] = useState<TransitionState>('setup');
+    const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         if (setupCompleted && transitionState === 'setup') {
@@ -38,11 +40,26 @@ export default function WordPress() {
         setTransitionState('setup');
     };
 
+    const handleServiceCreated = () => {
+        setRefreshKey(prev => prev + 1);
+    };
+
+    const handleRefresh = () => {
+        // This will be called by WordPressList when it refreshes
+        // We can use this to update any parent state if needed
+    };
+
     // Render based on transition state
     if (transitionState === 'creator') {
         return (
-            <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-                <WordPressCreator />
+            <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 space-y-6">
+                <WordPressList
+                    key={refreshKey} 
+                    onRefresh={handleRefresh} 
+                />
+                <WordPressCreator 
+                    onServiceCreated={handleServiceCreated} 
+                />
             </div>
         );
     }
