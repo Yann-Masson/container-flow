@@ -3,13 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from "@/components/ui/progress.tsx";
 import { CheckCircle, ChevronDown, ChevronUp, Database, Globe, Loader2, Server, XCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 interface SetupStep {
     id: string;
     label: string;
     icon: React.ReactNode;
     status: 'pending' | 'running' | 'completed' | 'error';
-    message?: string;
+    description: string;
+    statusMessage?: string;
 }
 
 interface ProgressEvent {
@@ -41,24 +43,28 @@ export default function WordPressSetupProgress({
             label: 'Creating CF-WP network',
             icon: <Globe className="h-4 w-4"/>,
             status: 'pending',
+            description: 'The CF-WP network will enable communication between containers',
         },
         {
             id: 'traefik',
             label: 'Deploying Traefik',
             icon: <Server className="h-4 w-4"/>,
             status: 'pending',
+            description: 'Traefik will serve as a reverse proxy to route traffic',
         },
         {
             id: 'mysql',
             label: 'Deploying MySQL',
             icon: <Database className="h-4 w-4"/>,
             status: 'pending',
+            description: 'MySQL will store data for your WordPress sites',
         },
         {
             id: 'mysql-ready',
             label: 'Waiting for MySQL',
             icon: <Database className="h-4 w-4"/>,
             status: 'pending',
+            description: 'Once configured, you can create as many WordPress sites as you want',
         },
     ]);
 
@@ -91,7 +97,7 @@ export default function WordPressSetupProgress({
                         default:
                             newStatus = step.status;
                     }
-                    return { ...step, status: newStatus, message };
+                    return { ...step, status: newStatus, statusMessage: message };
                 }
                 return step;
             })
@@ -213,54 +219,47 @@ export default function WordPressSetupProgress({
                     <h3 className="text-lg font-semibold">Setup Steps</h3>
                     <div className="space-y-2">
                         {steps.map((step, index) => (
-                            <div
-                                key={step.id}
-                                className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
-                                    step.status === 'running'
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
-                                        : step.status === 'completed'
-                                            ? 'border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-400'
-                                            : step.status === 'error'
-                                                ? 'border-red-500 bg-red-50 dark:bg-red-950 dark:border-red-400'
-                                                : 'border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600'
-                                }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="flex-shrink-0">
-                                        {getStepIcon(step)}
-                                    </div>
-                                    <div className="flex-grow">
-                                        <div className="flex items-center gap-2">
-                                            <span
-                                                className="font-medium text-gray-900 dark:text-gray-100">{step.label}</span>
-                                            <Badge variant={getStepBadgeVariant(step.status)}
-                                                   className="text-xs">
-                                                {getStepBadgeText(step.status)}
-                                            </Badge>
+                            <Tooltip key={step.id}>
+                                <TooltipTrigger asChild>
+                                    <div
+                                        className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+                                            step.status === 'running'
+                                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
+                                                : step.status === 'completed'
+                                                    ? 'border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-400'
+                                                    : step.status === 'error'
+                                                        ? 'border-red-500 bg-red-50 dark:bg-red-950 dark:border-red-400'
+                                                        : 'border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex-shrink-0">
+                                                {getStepIcon(step)}
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="flex items-center gap-2">
+                                                    <span
+                                                        className="font-medium text-gray-900 dark:text-gray-100">{step.label}</span>
+                                                    <Badge variant={getStepBadgeVariant(step.status)}
+                                                        className="text-xs">
+                                                        {getStepBadgeText(step.status)}
+                                                    </Badge>
+                                                </div>
+                                                {step.statusMessage && (
+                                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{step.statusMessage}</p>
+                                                )}
+                                            </div>
                                         </div>
-                                        {step.message && (
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{step.message}</p>
-                                        )}
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            {index + 1}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    {index + 1}
-                                </div>
-                            </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {step.description}
+                                </TooltipContent>
+                            </Tooltip>
                         ))}
-                    </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">ℹ️ Information</h4>
-                        <ul className="text-sm text-blue-800 space-y-1">
-                            <li>• The <code>CF-WP</code> network will enable communication between
-                                containers
-                            </li>
-                            <li>• Traefik will serve as a reverse proxy to route traffic</li>
-                            <li>• MySQL will store data for your WordPress sites</li>
-                            <li>• Once configured, you can create as many WordPress sites as you
-                                want
-                            </li>
-                        </ul>
                     </div>
                 </div>
             )}

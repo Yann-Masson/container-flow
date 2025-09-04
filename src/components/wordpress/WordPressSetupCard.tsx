@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Loader2, Play, Server } from 'lucide-react';
@@ -8,41 +8,21 @@ import WordPressSetupProgress from './WordPressSetupProgress';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button.tsx";
 import WordPressCreator from "@/components/wordpress/WordPressCreator.tsx";
+import { StatusIndicator } from './StatusIndicator';
+
+type TransitionState = 'setup' | 'transitioning' | 'creator';
 
 export default function WordPressSetupCard() {
     const [setupCompleted, setSetupCompleted] = useState(false);
-    const [minimumDelayPassed, setMinimumDelayPassed] = useState(false);
-    const [timerProgress, setTimerProgress] = useState(0);
+
     const [failed, setFailed] = useState(false);
     const [start, setIsRunning] = useState(true);
     const [forceSetup, setForceSetup] = useState(false);
+    const [transitionState, setTransitionState] = useState<TransitionState>('setup');
 
     useEffect(() => {
         setSetupCompleted(false);
-        setMinimumDelayPassed(false);
-        setTimerProgress(0);
         console.log("Starting WordPress setup...");
-
-        const progressInterval = setInterval(() => {
-            setTimerProgress(prev => {
-                const newProgress = prev + 2;
-                if (newProgress >= 100) {
-                    clearInterval(progressInterval);
-                    return 100;
-                }
-                return newProgress;
-            });
-        }, 100);
-
-        // Délai minimum de 5 secondes
-        const timer = setTimeout(() => {
-            setMinimumDelayPassed(true);
-        }, 5000);
-
-        return () => {
-            clearTimeout(timer);
-            clearInterval(progressInterval);
-        };
     }, []);
 
     const handleSetupComplete = () => {
@@ -52,6 +32,27 @@ export default function WordPressSetupCard() {
             description: 'You can now create WordPress sites.',
         });
     };
+
+    useEffect(() => {
+        if (setupCompleted && transitionState === 'setup') {
+            // Wait 2 seconds after setup completion before transitioning
+            const transitionTimer = setTimeout(() => {
+                setTransitionState('transitioning');
+            }, 2000);
+
+            return () => clearTimeout(transitionTimer);
+        }
+    }, [setupCompleted, transitionState]);
+
+    useEffect(() => {
+        if (transitionState === 'transitioning') {
+            const transitionTimer = setTimeout(() => {
+                setTransitionState('creator');
+            }, 300); // Duration of the transition
+
+            return () => clearTimeout(transitionTimer);
+        }
+    }, [transitionState]);
 
     const handleSetupError = (error: Error) => {
         toast.error('❌ Setup error', {
@@ -65,14 +66,25 @@ export default function WordPressSetupCard() {
     const handleRetrySetup = () => {
         setIsRunning(true);
         setSetupCompleted(false);
+        setTransitionState('setup');
     };
 
-    if (setupCompleted && minimumDelayPassed) {
-        return <WordPressCreator/>;
+    // Render based on transition state
+    if (transitionState === 'creator') {
+        console.log("Transitioning to creator");
+        return (
+            <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+                <WordPressCreator/>
+            </div>
+        );
     }
 
     return (
-        <div className="flex items-center justify-center h-full p-4">
+        <div className={`flex items-center justify-center h-full p-4 transition-all duration-500 ${
+            transitionState === 'transitioning' 
+                ? 'opacity-0 scale-95 translate-y-4' 
+                : 'opacity-100 scale-100 translate-y-0'
+        }`}>
             <Card className="w-2xl">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -120,6 +132,7 @@ export default function WordPressSetupCard() {
                             </Button>
                         </div>
                     )}
+
                     <WordPressSetupProgress
                         onComplete={handleSetupComplete}
                         onError={handleSetupError}
@@ -128,15 +141,8 @@ export default function WordPressSetupCard() {
                         force={forceSetup}
                     />
 
-                    {!minimumDelayPassed && !failed && (
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm text-muted-foreground">
-                                <span>Délai minimum avant transition</span>
-                                <span>{Math.ceil((100 - timerProgress) / 20)}s restantes</span>
-                            </div>
-                            <Progress value={timerProgress} className="w-full"/>
-                        </div>
-                    )}
+                    <StatusIndicator status={start ? "pending" : "success"} size="lg"/>
+
                 </CardContent>
             </Card>
         </div>
