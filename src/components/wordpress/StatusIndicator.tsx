@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
-type Status = "pending" | "success";
+type Status = "pending" | "running" | "success" | "error";
 type Size = "sm" | "md" | "lg" | number;
 
 export function StatusIndicator({
@@ -17,6 +17,7 @@ export function StatusIndicator({
     return sizes[s];
   };
   const pixelSize = getSize(size);
+  const pendingSize = pixelSize * 0.7;
 
   return (
     <div className="flex items-center justify-center">
@@ -27,6 +28,31 @@ export function StatusIndicator({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            <motion.div
+              style={{
+                width: pendingSize,
+                height: pendingSize,
+                backgroundColor: "#d1d5db",
+                borderRadius: "50%",
+              }}
+              animate={{
+                scale: [1, 1.3, 1],
+              }}
+              transition={{
+                duration: 1.2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </motion.div>
+        ) : status === "running" ? (
+          <motion.div
+            key="running"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
           >
             <Loader2
@@ -34,7 +60,7 @@ export function StatusIndicator({
               style={{ width: pixelSize, height: pixelSize }}
             />
           </motion.div>
-        ) : (
+        ) : status === "success" ? (
           <motion.div
             key="success"
             initial={{ opacity: 0, scale: 0.8 }}
@@ -51,9 +77,6 @@ export function StatusIndicator({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              initial={{ strokeDasharray: "0 100" }}
-              animate={{ strokeDasharray: "100 0" }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
               className="text-green-500"
             >
               <motion.path
@@ -66,6 +89,35 @@ export function StatusIndicator({
                 d="m9 11 3 3L22 4"
                 strokeDasharray="0 100"
                 animate={{ strokeDasharray: "100 0" }}
+                transition={{ duration: 0.3, delay: 0.2, ease: "easeOut" }}
+              />
+            </motion.svg>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+          >
+            <motion.svg
+              width={pixelSize}
+              height={pixelSize}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-red-500"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <motion.path
+                d="m9 9 6 6m0-6-6 6"
+                strokeDasharray="0 100"
+                initial={{ strokeDasharray: "0 100", opacity: 0, pathLength: 0 }}
+                animate={{ strokeDasharray: "100 0", opacity: 1, pathLength: 1 }}
                 transition={{ duration: 0.3, delay: 0.2, ease: "easeOut" }}
               />
             </motion.svg>

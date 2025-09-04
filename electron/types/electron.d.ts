@@ -65,7 +65,7 @@ interface ElectronAPI {
             clone: (sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo) => Promise<ContainerInspectInfo>;
             onSetupProgress: (callback: (event: {
                 step: string;
-                status: 'starting' | 'completed' | 'error';
+                status: 'starting' | 'success' | 'error';
                 message?: string
             }) => void) => () => void;
             changeUrl: (container: ContainerInspectInfo, newUrl: string) => Promise<ContainerInspectInfo>;

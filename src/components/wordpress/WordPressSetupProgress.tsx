@@ -2,21 +2,22 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from "@/components/ui/progress.tsx";
-import { CheckCircle, ChevronDown, ChevronUp, Database, Globe, Loader2, Server, XCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Database, Globe, Server } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { StatusIndicator } from './StatusIndicator';
 
 interface SetupStep {
     id: string;
     label: string;
     icon: React.ReactNode;
-    status: 'pending' | 'running' | 'completed' | 'error';
+    status: 'pending' | 'running' | 'success' | 'error';
     description: string;
     statusMessage?: string;
 }
 
 interface ProgressEvent {
     step: string;
-    status: 'starting' | 'completed' | 'error';
+    status: 'starting' | 'success' | 'error';
     message?: string;
 }
 
@@ -79,7 +80,7 @@ export default function WordPressSetupProgress({
         };
     }, []);
 
-    const updateStepStatus = (stepId: string, status: 'starting' | 'completed' | 'error', message?: string) => {
+    const updateStepStatus = (stepId: string, status: 'starting' | 'success' | 'error', message?: string) => {
         setSteps(prevSteps =>
             prevSteps.map(step => {
                 if (step.id === stepId) {
@@ -88,8 +89,8 @@ export default function WordPressSetupProgress({
                         case 'starting':
                             newStatus = 'running';
                             break;
-                        case 'completed':
-                            newStatus = 'completed';
+                        case 'success':
+                            newStatus = 'success';
                             break;
                         case 'error':
                             newStatus = 'error';
@@ -138,24 +139,11 @@ export default function WordPressSetupProgress({
         }
     }, [autoStart]);
 
-    const getStepIcon = (step: SetupStep) => {
-        switch (step.status) {
-            case 'running':
-                return <Loader2 className="h-4 w-4 animate-spin text-blue-500"/>;
-            case 'completed':
-                return <CheckCircle className="h-4 w-4 text-green-500"/>;
-            case 'error':
-                return <XCircle className="h-4 w-4 text-red-500"/>;
-            default:
-                return <div className="h-4 w-4 rounded-full border-2 border-gray-300"/>;
-        }
-    };
-
     const getStepBadgeVariant = (status: SetupStep['status']) => {
         switch (status) {
             case 'running':
                 return 'default';
-            case 'completed':
+            case 'success':
                 return 'secondary';
             case 'error':
                 return 'destructive';
@@ -168,7 +156,7 @@ export default function WordPressSetupProgress({
         switch (status) {
             case 'running':
                 return 'Running...';
-            case 'completed':
+            case 'success':
                 return 'Completed';
             case 'error':
                 return 'Error';
@@ -177,7 +165,7 @@ export default function WordPressSetupProgress({
         }
     };
 
-    const completedSteps = steps.filter(step => step.status === 'completed').length;
+    const completedSteps = steps.filter(step => step.status === 'success').length;
     const totalSteps = steps.length;
     const progress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
@@ -225,7 +213,7 @@ export default function WordPressSetupProgress({
                                         className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
                                             step.status === 'running'
                                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
-                                                : step.status === 'completed'
+                                                : step.status === 'success'
                                                     ? 'border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-400'
                                                     : step.status === 'error'
                                                         ? 'border-red-500 bg-red-50 dark:bg-red-950 dark:border-red-400'
@@ -234,7 +222,14 @@ export default function WordPressSetupProgress({
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="flex-shrink-0">
-                                                {getStepIcon(step)}
+                                                <div className="flex items-center gap-2">
+                                                    <StatusIndicator 
+                                                        status={step.status} 
+                                                        size="md"
+                                                    />
+
+                                                    {step.icon}
+                                                </div>
                                             </div>
                                             <div className="flex-grow">
                                                 <div className="flex items-center gap-2">

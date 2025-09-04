@@ -14,7 +14,7 @@ import validate from "./validate";
 import utils from "./utils";
 
 // Event emitter for setup progress
-type ProgressCallback = (step: string, status: 'starting' | 'completed' | 'error', message?: string) => void;
+type ProgressCallback = (step: string, status: 'starting' | 'success' | 'error', message?: string) => void;
 
 // Configuration validate interface
 interface SetupOptions {
@@ -84,7 +84,7 @@ export default async function setup(
                 Driver: 'bridge',
             });
         }
-        progressCallback?.('network', 'completed', 'Network CF-WP ready');
+        progressCallback?.('network', 'success', 'Network CF-WP ready');
 
         // 2. Check and handle Traefik container
         progressCallback?.('traefik', 'starting', 'Checking Traefik container...');
@@ -131,7 +131,7 @@ export default async function setup(
             await connectToNetwork('CF-WP', { Container: traefikContainer.id });
             await startContainer(traefikContainer.id);
         }
-        progressCallback?.('traefik', 'completed', 'Traefik container ready');
+        progressCallback?.('traefik', 'success', 'Traefik container ready');
 
         // 3. Check and handle MySQL container
         progressCallback?.('mysql', 'starting', 'Checking MySQL container...');
@@ -178,15 +178,15 @@ export default async function setup(
             await connectToNetwork('CF-WP', { Container: mysqlContainer.id });
             await startContainer(mysqlContainer.id);
         }
-        progressCallback?.('mysql', 'completed', 'MySQL container ready');
+        progressCallback?.('mysql', 'success', 'MySQL container ready');
 
         progressCallback?.('mysql-ready', 'starting', 'Waiting for MySQL to be ready...');
         console.log('Waiting for MySQL to be ready...');
         await utils.waitMysql();
-        progressCallback?.('mysql-ready', 'completed', 'MySQL is ready');
+        progressCallback?.('mysql-ready', 'success', 'MySQL is ready');
 
         console.log('WordPress infrastructure setup completed successfully!');
-        progressCallback?.('setup', 'completed', 'WordPress infrastructure setup completed successfully!');
+        progressCallback?.('setup', 'success', 'WordPress infrastructure setup completed successfully!');
 
         return {
             network: { id: network.id, name: 'CF-WP' },

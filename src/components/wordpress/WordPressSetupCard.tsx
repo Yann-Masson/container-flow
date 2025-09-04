@@ -133,6 +133,7 @@ export default function WordPressSetupCard() {
                         </div>
                     )}
 
+
                     <WordPressSetupProgress
                         onComplete={handleSetupComplete}
                         onError={handleSetupError}
@@ -141,7 +142,7 @@ export default function WordPressSetupCard() {
                         force={forceSetup}
                     />
 
-                    <StatusIndicator status={start ? "pending" : "success"} size="lg"/>
+                    <StatusIndicator status={start ? "running" : "success"} size="lg"/>
 
                 </CardContent>
             </Card>
