@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
@@ -17,7 +18,7 @@ export function StatusIndicator({
     return sizes[s];
   };
   const pixelSize = getSize(size);
-  const pendingSize = pixelSize * 0.7;
+  const pendingSize = pixelSize * 0.5;
 
   return (
     <div className="flex items-center justify-center">
@@ -37,6 +38,7 @@ export function StatusIndicator({
                 backgroundColor: "#d1d5db",
                 borderRadius: "50%",
               }}
+              className={cn("bg-accent animate-pulse rounded-md")}
               animate={{
                 scale: [1, 1.3, 1],
               }}

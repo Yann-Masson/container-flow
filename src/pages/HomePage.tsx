@@ -2,8 +2,8 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import SettingsDialog from "@/components/SettingsDialog.tsx";
 import { AppPreference } from "../../electron/services/storage/app/app.type";
-import WordPressSetupCard from "@/components/wordpress/WordPressSetupCard.tsx";
-import ListContainers from "@/components/ListContainers.tsx";
+import List from "@/features/list/List";
+import WordPress from "@/features/wordpress/WordPress";
 
 interface HomePageProps {
     appMode: AppPreference;
@@ -12,6 +12,18 @@ interface HomePageProps {
 }
 
 export default function HomePage({ appMode, onModeChange, onDisconnect }: HomePageProps) {
+
+    const getModeComponent = (mode: AppPreference) => {
+        switch (mode) {
+            case AppPreference.WORDPRESS:
+                return <WordPress />;
+            case AppPreference.LIST:
+                return <List />;
+            default:
+                return <div className="text-center text-gray-500 mt-20">Select a mode to get started</div>;
+        }
+    }
+
     return (
         <div className="container mx-auto max-w-6xl">
             <header className="flex flex-col md:flex-row justify-between items-center py-6">
@@ -46,11 +58,7 @@ export default function HomePage({ appMode, onModeChange, onDisconnect }: HomePa
             <Separator className="my-4"/>
 
             {
-                appMode === AppPreference.WORDPRESS ? (
-                    <WordPressSetupCard/>
-                ) : (
-                    <ListContainers/>
-                )
+                getModeComponent(appMode)
             }
 
 

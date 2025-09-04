@@ -17,14 +17,14 @@ interface WordPressService {
     url: string;
 }
 
-interface ChangeUrlDialogProps {
+interface WordPressChangeUrlDialogProps {
     service: WordPressService | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onUrlChanged?: () => void;
 }
 
-export default function ChangeUrlDialog({ service, open, onOpenChange, onUrlChanged }: ChangeUrlDialogProps) {
+export default function WordPressChangeUrlDialog({ service, open, onOpenChange, onUrlChanged }: WordPressChangeUrlDialogProps) {
     const [isChanging, setIsChanging] = useState(false);
     const [newUrl, setNewUrl] = useState('');
 

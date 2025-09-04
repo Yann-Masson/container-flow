@@ -7,52 +7,29 @@ import { Loader2, Play, Server } from 'lucide-react';
 import WordPressSetupProgress from './WordPressSetupProgress';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button.tsx";
-import WordPressCreator from "@/components/wordpress/WordPressCreator.tsx";
-import { StatusIndicator } from './StatusIndicator';
+import { StatusIndicator } from '@/components/StatusIndicator';
 
-type TransitionState = 'setup' | 'transitioning' | 'creator';
+interface WordPressSetupCardProps {
+    onSetupComplete: () => void;
+    onRetrySetup: () => void;
+}
 
-export default function WordPressSetupCard() {
-    const [setupCompleted, setSetupCompleted] = useState(false);
-
+export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: WordPressSetupCardProps) {
     const [failed, setFailed] = useState(false);
     const [start, setIsRunning] = useState(true);
     const [forceSetup, setForceSetup] = useState(false);
-    const [transitionState, setTransitionState] = useState<TransitionState>('setup');
 
     useEffect(() => {
-        setSetupCompleted(false);
         console.log("Starting WordPress setup...");
     }, []);
 
     const handleSetupComplete = () => {
-        setSetupCompleted(true);
         setIsRunning(false);
         toast.success('🎉 WordPress infrastructure configured successfully!', {
             description: 'You can now create WordPress sites.',
         });
+        onSetupComplete();
     };
-
-    useEffect(() => {
-        if (setupCompleted && transitionState === 'setup') {
-            // Wait 2 seconds after setup completion before transitioning
-            const transitionTimer = setTimeout(() => {
-                setTransitionState('transitioning');
-            }, 2000);
-
-            return () => clearTimeout(transitionTimer);
-        }
-    }, [setupCompleted, transitionState]);
-
-    useEffect(() => {
-        if (transitionState === 'transitioning') {
-            const transitionTimer = setTimeout(() => {
-                setTransitionState('creator');
-            }, 300); // Duration of the transition
-
-            return () => clearTimeout(transitionTimer);
-        }
-    }, [transitionState]);
 
     const handleSetupError = (error: Error) => {
         toast.error('❌ Setup error', {
@@ -65,26 +42,13 @@ export default function WordPressSetupCard() {
 
     const handleRetrySetup = () => {
         setIsRunning(true);
-        setSetupCompleted(false);
-        setTransitionState('setup');
+        setFailed(false);
+        setForceSetup(false);
+        onRetrySetup();
     };
 
-    // Render based on transition state
-    if (transitionState === 'creator') {
-        console.log("Transitioning to creator");
-        return (
-            <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-                <WordPressCreator/>
-            </div>
-        );
-    }
-
     return (
-        <div className={`flex items-center justify-center h-full p-4 transition-all duration-500 ${
-            transitionState === 'transitioning' 
-                ? 'opacity-0 scale-95 translate-y-4' 
-                : 'opacity-100 scale-100 translate-y-0'
-        }`}>
+        <div className="flex items-center justify-center h-full p-4">
             <Card className="w-2xl">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -132,7 +96,6 @@ export default function WordPressSetupCard() {
                             </Button>
                         </div>
                     )}
-
 
                     <WordPressSetupProgress
                         onComplete={handleSetupComplete}

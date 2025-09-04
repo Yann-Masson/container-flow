@@ -32,7 +32,7 @@ export default function FirstSetupPage(props: FirstSetupPageProps) {
 
     const getModeDescription = (mode: AppPreference) => {
         switch (mode) {
-            case AppPreference.BASIC:
+            case AppPreference.LIST:
                 return "Mode standard avec gestion des conteneurs Docker";
             case AppPreference.WORDPRESS:
                 return "Mode WordPress avec configuration automatique";
@@ -61,7 +61,7 @@ export default function FirstSetupPage(props: FirstSetupPageProps) {
                                     <SelectValue placeholder="Sélectionnez un mode"/>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={AppPreference.BASIC}>
+                                    <SelectItem value={AppPreference.LIST}>
                                         Basique
                                     </SelectItem>
                                     <SelectItem value={AppPreference.WORDPRESS}>

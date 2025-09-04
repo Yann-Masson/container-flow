@@ -15,7 +15,7 @@ import {
 import { LogOut, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppPreference } from '../../electron/services/storage/app/app.type';
-import WordPressSetup from "@/components/wordpress/WordPressSetup.tsx";
+import WordPressSetup from '@/features/wordpress/setup/WordPressSetup';
 
 interface SettingsDialogProps {
     currentMode: AppPreference;
@@ -63,7 +63,7 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
 
     const getModeLabel = (mode: AppPreference) => {
         switch (mode) {
-            case AppPreference.BASIC:
+            case AppPreference.LIST:
                 return 'Basique';
             case AppPreference.WORDPRESS:
                 return 'WordPress';
@@ -97,7 +97,7 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
                                     <SelectValue placeholder="Sélectionner un mode"/>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={AppPreference.BASIC}>
+                                    <SelectItem value={AppPreference.LIST}>
                                         Basique - Gestion simple des conteneurs
                                     </SelectItem>
                                     <SelectItem value={AppPreference.WORDPRESS}>

@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { ContainerCreateOptions, ContainerInfo } from 'dockerode';
-import { State } from "../types/state.ts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { State } from "../../types/state.ts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card.tsx";
 import { toast } from "sonner";
-import { ContainerHeader } from "./container/ContainerHeader";
-import { ContainerCard } from "./container/ContainerCard";
-import { LoadingSkeleton } from "./container/LoadingSkeleton";
+import { ContainerHeader } from "../../components/container/ContainerHeader.tsx";
+import { ContainerCard } from "../../components/container/ContainerCard.tsx";
+import { LoadingSkeleton } from "../../components/container/LoadingSkeleton.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
-import traefik from "../../electron/services/docker/configs/traefik.ts";
+import traefik from "../../../electron/services/docker/configs/traefik.ts";
 import { ContainerCreateDialog } from "@/components/container/create/ContainerCreateDialog.tsx";
 import { dockerClientService } from "@/docker/docker-client.ts";
 
-export default function ListContainers() {
+export default function List() {
     const [state, setState] = useState(State.LOADING);
     const [containers, setContainers] = useState<ContainerInfo[]>([]);
     const [message, setMessage] = useState('');

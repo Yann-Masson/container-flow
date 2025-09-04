@@ -1,6 +1,6 @@
 export enum AppPreference {
     NONE = "NONE",
-    BASIC = "BASIC",
+    LIST = "LIST",
     WORDPRESS = "WORDPRESS",
 }
 

@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from "@/components/ui/progress.tsx";
 import { ChevronDown, ChevronUp, Database, Globe, Server } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { StatusIndicator } from './StatusIndicator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { StatusIndicator } from '@/components/StatusIndicator';
 
 interface SetupStep {
     id: string;

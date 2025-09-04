@@ -19,7 +19,7 @@ import {
 import { ContainerInspectInfo } from "dockerode";
 import { toast } from 'sonner';
 import { ContainerLogsDialog } from "@/components/container/ContainerLogsDialog.tsx";
-import ChangeUrlDialog from './ChangeUrlDialog';
+import WordPressChangeUrlDialog from './WordPressChangeUrlDialog';
 
 interface WordPressService {
     name: string;
@@ -359,7 +359,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
             </Card>
 
             {/* Change URL Dialog */}
-            <ChangeUrlDialog
+            <WordPressChangeUrlDialog
                 service={service}
                 open={isChangeUrlDialogOpen}
                 onOpenChange={setIsChangeUrlDialogOpen}
