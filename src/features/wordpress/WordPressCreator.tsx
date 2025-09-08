@@ -5,15 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import type { WordPressService } from './WordPressList';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createWordPressService, fetchContainers } from '@/store/slices/containerSlice';
+import { selectIsCreating, selectServices } from '@/store/selectors/containerSelectors';
 
 interface WordPressCreatorProps {
-    services?: WordPressService[];
     onServiceCreated?: () => void;
+    disabled?: boolean; // New prop to disable creation when loading
 }
 
-export default function WordPressCreator({ services = [], onServiceCreated }: WordPressCreatorProps) {
-    const [isCreating, setIsCreating] = useState(false);
+export default function WordPressCreator({ onServiceCreated, disabled = false }: WordPressCreatorProps) {
+    const dispatch = useAppDispatch();
+    
+    // Redux state
+    const services = useAppSelector(selectServices);
+    const isCreating = useAppSelector(selectIsCreating);
+    
     const [formData, setFormData] = useState({
         name: '',
         domain: '',
@@ -71,32 +78,35 @@ export default function WordPressCreator({ services = [], onServiceCreated }: Wo
         }
 
         try {
-            setIsCreating(true);
-
             toast.info('🚀 Creating WordPress service...', {
                 description: `Name: ${formData.name}, Domain: ${formData.domain}`,
             });
 
-            await window.electronAPI.docker.wordpress.create({
+            const resultAction = await dispatch(createWordPressService({
                 name: formData.name,
                 domain: formData.domain,
-            });
+            }));
 
-            toast.success('✅ WordPress service created!', {
-                description: `Accessible at https://${formData.domain}`,
-                duration: 5000,
-            });
+            if (createWordPressService.fulfilled.match(resultAction)) {
+                toast.success('✅ WordPress service created!', {
+                    description: `Accessible at https://${formData.domain}`,
+                    duration: 5000,
+                });
 
-            setFormData({ name: '', domain: '' });
-            onServiceCreated?.();
-
+                setFormData({ name: '', domain: '' });
+                // Refresh containers after successful creation
+                dispatch(fetchContainers());
+                onServiceCreated?.();
+            } else if (createWordPressService.rejected.match(resultAction)) {
+                toast.error('❌ Error during creation', {
+                    description: resultAction.payload as string || 'An unknown error occurred',
+                });
+            }
         } catch (error) {
             console.error('Failed to create WordPress service:', error);
             toast.error('❌ Error during creation', {
                 description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
-        } finally {
-            setIsCreating(false);
         }
     };
 
@@ -122,7 +132,7 @@ export default function WordPressCreator({ services = [], onServiceCreated }: Wo
                             placeholder="my-site"
                             value={formData.name}
                             onChange={(e) => handleNameChange(e.target.value)}
-                            disabled={isCreating}
+                            disabled={isCreating || disabled}
                         />
                         <p className="text-xs text-gray-500">
                             Only letters, numbers, dashes and underscores
@@ -136,7 +146,7 @@ export default function WordPressCreator({ services = [], onServiceCreated }: Wo
                             placeholder="my-site.agence-lumia.com"
                             value={formData.domain}
                             onChange={(e) => handleInputChange('domain', e.target.value)}
-                            disabled={isCreating}
+                            disabled={isCreating || disabled}
                         />
                         <p className="text-xs text-gray-500">
                             Full domain (e.g. my-site.agence-lumia.com)
@@ -162,7 +172,7 @@ export default function WordPressCreator({ services = [], onServiceCreated }: Wo
                 {/* Create button */}
                 <Button
                     onClick={handleCreate}
-                    disabled={!isFormValid || isCreating}
+                    disabled={!isFormValid || isCreating || disabled}
                     size="lg"
                     className="w-full"
                 >

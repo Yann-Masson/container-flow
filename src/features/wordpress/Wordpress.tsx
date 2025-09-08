@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import WordPressSetupCard from './setup/WordPressSetupCard';
 import WordPressCreator from './WordPressCreator';
 import WordPressList from './WordPressList';
+import { useAppSelector } from '@/store/hooks';
+import { selectContainerStatus } from '@/store/selectors/containerSelectors';
+import { State } from '@/types/state';
 
 type TransitionState = 'setup' | 'transitioning' | 'creator';
 
@@ -9,6 +12,10 @@ export default function WordPress() {
     const [setupCompleted, setSetupCompleted] = useState(false);
     const [transitionState, setTransitionState] = useState<TransitionState>('setup');
     const [refreshKey, setRefreshKey] = useState(0);
+    
+    // Redux state
+    const containerStatus = useAppSelector(selectContainerStatus);
+    const isLoading = containerStatus === State.LOADING;
 
     useEffect(() => {
         if (setupCompleted && transitionState === 'setup') {
@@ -58,7 +65,8 @@ export default function WordPress() {
                     onRefresh={handleRefresh} 
                 />
                 <WordPressCreator 
-                    onServiceCreated={handleServiceCreated} 
+                    onServiceCreated={handleServiceCreated}
+                    disabled={isLoading} // Disable when container list is loading
                 />
             </div>
         );

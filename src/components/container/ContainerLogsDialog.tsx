@@ -8,9 +8,10 @@ import { Input } from "../ui/input";
 interface ContainerLogsDialogProps {
     containerName: string;
     onGetLogs: () => Promise<string>;
+    disabled?: boolean; // New prop to disable the dialog
 }
 
-export function ContainerLogsDialog({ containerName, onGetLogs }: ContainerLogsDialogProps) {
+export function ContainerLogsDialog({ containerName, onGetLogs, disabled = false }: ContainerLogsDialogProps) {
     const [logs, setLogs] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>("");
@@ -109,6 +110,7 @@ export function ContainerLogsDialog({ containerName, onGetLogs }: ContainerLogsD
                 <Button
                     variant="outline"
                     className="h-8 w-8 p-0"
+                    disabled={disabled}
                 >
                     <FileText className="h-4 w-4"/>
                 </Button>

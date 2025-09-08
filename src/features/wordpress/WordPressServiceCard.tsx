@@ -20,25 +20,49 @@ import { ContainerInspectInfo } from "dockerode";
 import { toast } from 'sonner';
 import { ContainerLogsDialog } from "@/components/container/ContainerLogsDialog.tsx";
 import WordPressChangeUrlDialog from './WordPressChangeUrlDialog';
-
-interface WordPressService {
-    name: string;
-    containers: ContainerInspectInfo[];
-    dbName: string;
-    dbUser: string;
-    url: string;
-}
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { 
+    cloneContainer, 
+    startContainer, 
+    stopContainer, 
+    removeContainer,
+    fetchContainers 
+} from '@/store/slices/containerSlice';
+import { 
+    selectIsCloning,
+    selectIsContainerStarting,
+    selectIsContainerStopping,
+    selectIsContainerRemoving
+} from '@/store/selectors/containerSelectors';
+import { WordPressService } from '@/store/types/container';
 
 interface WordPressServiceCardProps {
     service: WordPressService;
     onContainerUpdate: () => void;
+    isGloballyDisabled?: boolean; // New prop for global disabled state
 }
 
-export default function WordPressServiceCard({ service, onContainerUpdate }: WordPressServiceCardProps) {
+export default function WordPressServiceCard({ service, onContainerUpdate, isGloballyDisabled = false }: WordPressServiceCardProps) {
+    const dispatch = useAppDispatch();
+    
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isAddingInstance, setIsAddingInstance] = useState(false);
-    const [isRemovingInstance, setIsRemovingInstance] = useState(false);
     const [isChangeUrlDialogOpen, setIsChangeUrlDialogOpen] = useState(false);
+    
+    // Redux selectors for operation states
+    const isCloning = useAppSelector(selectIsCloning);
+    
+    // Create selectors for each container's operations
+    const containerOperations = service.containers.reduce((acc, container) => {
+        acc[container.Id] = {
+            isStarting: useAppSelector(selectIsContainerStarting(container.Id)),
+            isStopping: useAppSelector(selectIsContainerStopping(container.Id)),
+            isRemoving: useAppSelector(selectIsContainerRemoving(container.Id)),
+        };
+        return acc;
+    }, {} as Record<string, { isStarting: boolean; isStopping: boolean; isRemoving: boolean }>);
+
+    // Check if any instance operation is in progress
+    const isAnyInstanceRemoving = Object.values(containerOperations).some(op => op.isRemoving);
 
     const runningCount = service.containers.filter(c => c.State.Status === 'running').length;
     const totalCount = service.containers.length;
@@ -64,11 +88,9 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
     };
 
     const handleAddInstance = async () => {
-        if (isAddingInstance) return;
+        if (isCloning) return;
 
         try {
-            setIsAddingInstance(true);
-
             // Find the highest instance number
             const instanceNumbers = service.containers.map(container => {
                 const match = container.Name.match(/-(\d+)$/);
@@ -82,30 +104,36 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
 
             // Use the last container as source for cloning
             const sourceContainer = service.containers[service.containers.length - 1];
-            await window.electronAPI.docker.wordpress.clone(sourceContainer);
+            const resultAction = await dispatch(cloneContainer({
+                sourceContainer,
+                serviceName: service.name
+            }));
 
-            toast.success('✅ New container instance added!', {
-                description: `${service.name}-${nextInstanceNumber} is now available`,
-                duration: 5000,
-            });
-
-            onContainerUpdate();
+            if (cloneContainer.fulfilled.match(resultAction)) {
+                toast.success('✅ New container instance added!', {
+                    description: `${service.name}-${nextInstanceNumber} is now available`,
+                    duration: 5000,
+                });
+                // Refresh containers after successful creation
+                dispatch(fetchContainers());
+                onContainerUpdate();
+            } else if (cloneContainer.rejected.match(resultAction)) {
+                toast.error('❌ Error adding instance', {
+                    description: resultAction.payload as string || 'An unknown error occurred',
+                });
+            }
         } catch (error) {
             console.error('Failed to add container instance:', error);
             toast.error('❌ Error adding instance', {
                 description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
-        } finally {
-            setIsAddingInstance(false);
         }
     };
 
     const handleRemoveInstance = async () => {
-        if (isRemovingInstance || service.containers.length <= 1) return;
+        if (isAnyInstanceRemoving || service.containers.length <= 1) return;
 
         try {
-            setIsRemovingInstance(true);
-
             const containers = [...service.containers];
 
             // Find the container with the highest instance number
@@ -124,25 +152,29 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                 description: `Removing ${containerName}`,
             });
 
-            // Stop and remove the container
-            if (containerToRemove.State.Status === 'running') {
-                await window.electronAPI.docker.containers.stop(containerToRemove.Id);
+            const resultAction = await dispatch(removeContainer({
+                containerId: containerToRemove.Id,
+                containerName
+            }));
+
+            if (removeContainer.fulfilled.match(resultAction)) {
+                toast.success('✅ Container instance removed!', {
+                    description: `${containerName} has been removed`,
+                    duration: 5000,
+                });
+                // Refresh containers after successful removal
+                dispatch(fetchContainers());
+                onContainerUpdate();
+            } else if (removeContainer.rejected.match(resultAction)) {
+                toast.error('❌ Error removing instance', {
+                    description: resultAction.payload as string || 'An unknown error occurred',
+                });
             }
-            await window.electronAPI.docker.containers.remove(containerToRemove.Id, { force: true });
-
-            toast.success('✅ Container instance removed!', {
-                description: `${containerName} has been removed`,
-                duration: 5000,
-            });
-
-            onContainerUpdate();
         } catch (error) {
             console.error('Failed to remove container instance:', error);
             toast.error('❌ Error removing instance', {
                 description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
-        } finally {
-            setIsRemovingInstance(false);
         }
     };
 
@@ -154,17 +186,35 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                 toast.info('▶️ Starting container...', {
                     description: `Starting ${containerName}`,
                 });
-                await window.electronAPI.docker.containers.start(container.Id);
-                toast.success('✅ Container started!');
+                const resultAction = await dispatch(startContainer({ containerId: container.Id, containerName }));
+                
+                if (startContainer.fulfilled.match(resultAction)) {
+                    toast.success('✅ Container started!');
+                    // Refresh containers after successful start
+                    dispatch(fetchContainers());
+                    onContainerUpdate();
+                } else if (startContainer.rejected.match(resultAction)) {
+                    toast.error('❌ Error starting container', {
+                        description: resultAction.payload as string || 'An unknown error occurred',
+                    });
+                }
             } else {
                 toast.info('⏹️ Stopping container...', {
                     description: `Stopping ${containerName}`,
                 });
-                await window.electronAPI.docker.containers.stop(container.Id);
-                toast.success('✅ Container stopped!');
+                const resultAction = await dispatch(stopContainer({ containerId: container.Id, containerName }));
+                
+                if (stopContainer.fulfilled.match(resultAction)) {
+                    toast.success('✅ Container stopped!');
+                    // Refresh containers after successful stop
+                    dispatch(fetchContainers());
+                    onContainerUpdate();
+                } else if (stopContainer.rejected.match(resultAction)) {
+                    toast.error('❌ Error stopping container', {
+                        description: resultAction.payload as string || 'An unknown error occurred',
+                    });
+                }
             }
-
-            onContainerUpdate();
         } catch (error) {
             console.error(`Failed to ${action} container:`, error);
             toast.error(`❌ Error ${action}ing container`, {
@@ -224,7 +274,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                             size="sm"
                                             variant="outline"
                                             onClick={handleRemoveInstance}
-                                            disabled={service.containers.length <= 1 || isRemovingInstance}
+                                            disabled={service.containers.length <= 1 || isAnyInstanceRemoving || isGloballyDisabled}
                                         >
                                             <Minus className="h-3 w-3"/>
                                         </Button>
@@ -233,7 +283,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                             size="sm"
                                             variant="outline"
                                             onClick={handleAddInstance}
-                                            disabled={isAddingInstance}
+                                            disabled={isCloning || isGloballyDisabled}
                                         >
                                             <Plus className="h-3 w-3"/>
                                         </Button>
@@ -255,6 +305,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                             variant="outline"
                                             onClick={() => copyToClipboard(service.dbName, 'Database name')}
                                             className="cursor-pointer"
+                                            disabled={isGloballyDisabled}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
                                             Copy DB
@@ -264,6 +315,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                             variant="outline"
                                             onClick={() => copyToClipboard(service.url, 'URL')}
                                             className="cursor-pointer"
+                                            disabled={isGloballyDisabled}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
                                             Copy URL
@@ -273,6 +325,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                             variant="outline"
                                             onClick={handleChangeUrl}
                                             className="cursor-pointer"
+                                            disabled={isGloballyDisabled}
                                         >
                                             <Settings className="h-3 w-3 mr-1"/>
                                             Change URL
@@ -283,6 +336,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                                 variant="outline"
                                                 onClick={openUrl}
                                                 className="cursor-pointer"
+                                                disabled={isGloballyDisabled}
                                             >
                                                 <ExternalLink className="h-3 w-3 mr-1"/>
                                                 Open
@@ -329,6 +383,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                                 <ContainerLogsDialog
                                                     containerName={container.Name.replace('wordpress-', '')}
                                                     onGetLogs={() => window.electronAPI.docker.containers.getLogs(container.Id, { follow: true })}
+                                                    disabled={isGloballyDisabled}
                                                 />
 
                                                 {isRunning ? (
@@ -336,6 +391,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={() => handleContainerAction(container, 'stop')}
+                                                        disabled={containerOperations[container.Id]?.isStopping || isGloballyDisabled}
                                                     >
                                                         <Square className="h-3 w-3"/>
                                                     </Button>
@@ -344,6 +400,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate }: Wor
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={() => handleContainerAction(container, 'start')}
+                                                        disabled={containerOperations[container.Id]?.isStarting || isGloballyDisabled}
                                                     >
                                                         <Play className="h-3 w-3"/>
                                                     </Button>
