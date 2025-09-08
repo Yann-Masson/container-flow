@@ -4,6 +4,7 @@ import SettingsDialog from "@/components/SettingsDialog.tsx";
 import { AppPreference } from "../../electron/services/storage/app/app.type";
 import List from "@/features/list/List";
 import WordPress from "@/features/wordpress/WordPress";
+import ContainerFlowSvg from '../../assets/icons/container-flow.svg';
 
 interface HomePageProps {
     appMode: AppPreference;
@@ -25,19 +26,10 @@ export default function HomePage({ appMode, onModeChange, onDisconnect }: HomePa
     }
 
     return (
-        <div className="container mx-auto max-w-6xl">
-            <header className="flex flex-col md:flex-row justify-between items-center py-6">
-                <div className="flex items-center mb-4 md:mb-0">
-                    <div
-                        className="bg-gradient-to-r from-blue-500 to-cyan-500 p-1 rounded-full w-10 h-10 flex items-center justify-center mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                             viewBox="0 0 24 24"
-                             fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                             strokeLinejoin="round" className="text-white">
-                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                            <line x1="9" x2="15" y1="15" y2="15"/>
-                        </svg>
-                    </div>
+        <div className="container mx-auto max-w-6xl px-4 flex flex-col flex-grow h-full">
+            <header className="flex flex-col sm:flex-row justify-between items-center py-6">
+                <div className="flex items-center mb-4 sm:mb-0 space-x-3">
+                    <img src={ContainerFlowSvg} alt="Container Flow" className="w-12 h-12"/>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
                         Container Flow
                     </h1>
@@ -60,11 +52,6 @@ export default function HomePage({ appMode, onModeChange, onDisconnect }: HomePa
             {
                 getModeComponent(appMode)
             }
-
-
-            <footer className="mt-12 mb-4 text-center text-sm text-gray-500">
-                <p>© 2025 Container Flow - Docker Management Platform</p>
-            </footer>
         </div>
     );
 }

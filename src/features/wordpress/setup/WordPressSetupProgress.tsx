@@ -170,11 +170,11 @@ export default function WordPressSetupProgress({
     const progress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 w-full max-w-2xl mx-auto px-2 sm:px-4">
             {/* Progress bar is always visible when setup is running */}
             {(isSetupRunning || progress === 100) && (
                 <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex flex-col sm:flex-row sm:justify-between text-sm gap-1">
                         <span>Progress</span>
                         <span>{completedSteps}/{totalSteps}</span>
                     </div>
@@ -191,12 +191,14 @@ export default function WordPressSetupProgress({
                 {showDetailsState ? (
                     <>
                         <ChevronUp className="mr-2 h-4 w-4"/>
-                        Hide Details
+                        <span className="hidden xs:inline">Hide Details</span>
+                        <span className="inline xs:hidden">Hide</span>
                     </>
                 ) : (
                     <>
                         <ChevronDown className="mr-2 h-4 w-4"/>
-                        Show Details
+                        <span className="hidden xs:inline">Show Details</span>
+                        <span className="inline xs:hidden">Show</span>
                     </>
                 )}
             </Button>
@@ -210,7 +212,7 @@ export default function WordPressSetupProgress({
                             <Tooltip key={step.id}>
                                 <TooltipTrigger asChild>
                                     <div
-                                        className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+                                        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
                                             step.status === 'running'
                                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
                                                 : step.status === 'success'
@@ -220,32 +222,31 @@ export default function WordPressSetupProgress({
                                                         : 'border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-row items-center gap-3 w-full">
                                             <div className="flex-shrink-0">
                                                 <div className="flex items-center gap-2">
                                                     <StatusIndicator 
                                                         status={step.status} 
                                                         size="md"
                                                     />
-
                                                     {step.icon}
                                                 </div>
                                             </div>
-                                            <div className="flex-grow">
-                                                <div className="flex items-center gap-2">
+                                            <div className="flex-grow min-w-0">
+                                                <div className="flex flex-col xs:flex-row xs:items-center gap-2">
                                                     <span
-                                                        className="font-medium text-gray-900 dark:text-gray-100">{step.label}</span>
+                                                        className="font-medium text-gray-900 dark:text-gray-100 truncate">{step.label}</span>
                                                     <Badge variant={getStepBadgeVariant(step.status)}
-                                                        className="text-xs">
+                                                        className="text-xs whitespace-nowrap">
                                                         {getStepBadgeText(step.status)}
                                                     </Badge>
                                                 </div>
                                                 {step.statusMessage && (
-                                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{step.statusMessage}</p>
+                                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 break-words">{step.statusMessage}</p>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 sm:mt-0 sm:ml-4">
                                             {index + 1}
                                         </div>
                                     </div>

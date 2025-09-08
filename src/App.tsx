@@ -7,6 +7,7 @@ import FormPage from "@/pages/FormPage.tsx";
 import PendingPage from "@/pages/PendingPage.tsx";
 import HomePage from "@/pages/HomePage.tsx";
 import FirstSetupPage from "@/pages/FirstSetupPage.tsx";
+import { ScrollArea } from './components/ui/scroll-area.tsx';
 
 export default function App() {
     const [isConnected, setIsConnected] = useState(State.LOADING);
@@ -57,14 +58,21 @@ export default function App() {
     }, []);
 
     return (
-        <>
-            <div
-                className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 font-[family-name:var(--font-geist-sans)]'>
-                {isConnected === State.IDLE ? (
-                    <FormPage setIsConnected={setIsConnected}/>
+    <>
+        <ScrollArea className="h-screen w-screen">
+        <div
+            className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b 
+                    from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 
+                    font-[family-name:var(--font-geist-sans)]"
+        >
+            <div className="flex-grow w-full h-full flex flex-col justify-center items-center">
+            {
+                isConnected === State.IDLE ? (
+                    <FormPage setIsConnected={setIsConnected} />
                 ) : isConnected === State.SUCCESS ? (
+
                     appMode === AppPreference.NONE ? (
-                        <FirstSetupPage setAppMode={setAppMode}/>
+                        <FirstSetupPage setAppMode={setAppMode} />
                     ) : (
                         <HomePage
                             appMode={appMode}
@@ -72,11 +80,19 @@ export default function App() {
                             onDisconnect={handleDisconnect}
                         />
                     )
+
                 ) : (
-                    <PendingPage/>
-                )}
+                    <PendingPage />
+                )
+            }
             </div>
-            <Toaster/>
-        </>
+
+            <footer className="mt-8 mb-4 text-center text-sm text-gray-500">
+                <p>© 2025 Container Flow - Docker Management Platform</p>
+            </footer>
+        </div>
+        </ScrollArea>
+        <Toaster />
+    </>
     );
 }

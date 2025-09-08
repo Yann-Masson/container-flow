@@ -42,10 +42,10 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
             onModeChange(selectedMode);
             setShowModeConfirmation(false);
             setOpen(false);
-            toast.success('Mode de l\'application changé avec succès');
+            toast.success("Application mode changed successfully");
         } catch (error) {
             console.error('Error changing mode:', error);
-            toast.error('Erreur lors du changement de mode');
+            toast.error("Error while changing mode");
         }
     };
 
@@ -54,21 +54,21 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
             await window.electronAPI.docker.connection.disconnect();
             onDisconnect();
             setOpen(false);
-            toast.success('Déconnecté avec succès');
+            toast.success("Disconnected successfully");
         } catch (error) {
             console.error('Error disconnecting:', error);
-            toast.error('Erreur lors de la déconnexion');
+            toast.error("Error while disconnecting");
         }
     };
 
     const getModeLabel = (mode: AppPreference) => {
         switch (mode) {
             case AppPreference.LIST:
-                return 'Basique';
+                return 'Basic';
             case AppPreference.WORDPRESS:
                 return 'WordPress';
             default:
-                return 'Non défini';
+                return 'Undefined';
         }
     };
 
@@ -84,36 +84,36 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Settings className="h-5 w-5"/>
-                            Paramètres
+                            Settings
                         </DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-6 py-4">
-                        {/* Mode de l'application */}
+                        {/* Application Mode */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-medium">Mode de l'application</h3>
+                            <h3 className="text-sm font-medium">Application Mode</h3>
                             <Select value={currentMode} onValueChange={handleModeChange}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionner un mode"/>
+                                    <SelectValue placeholder="Select a mode"/>
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value={AppPreference.LIST}>
-                                        Basique - Gestion simple des conteneurs
+                                        Basic - Simple container management
                                     </SelectItem>
                                     <SelectItem value={AppPreference.WORDPRESS}>
-                                        WordPress - Infrastructure complète
+                                        WordPress - Complete infrastructure
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-muted-foreground">
-                                Mode actuel : {getModeLabel(currentMode)}
+                                Current mode: {getModeLabel(currentMode)}
                             </p>
                         </div>
 
-                        {/* Vérification infrastructure WordPress */}
+                        {/* WordPress Infrastructure Check */}
                         {currentMode === AppPreference.WORDPRESS && (
                             <div className="space-y-3">
-                                <h3 className="text-sm font-medium">Infrastructure WordPress</h3>
+                                <h3 className="text-sm font-medium">WordPress Infrastructure</h3>
                                 <WordPressSetup>
                                     <Button variant="outline" className="w-full">
                                         <Settings className="mr-2 h-4 w-4"/>
@@ -129,59 +129,59 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
                                 {/*    {isCheckingInfrastructure ? (*/}
                                 {/*        <>*/}
                                 {/*            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>*/}
-                                {/*            Vérification...*/}
+                                {/*            Checking...*/}
                                 {/*        </>*/}
                                 {/*    ) : (*/}
                                 {/*        <>*/}
                                 {/*            <CheckCircle className="mr-2 h-4 w-4"/>*/}
-                                {/*            Vérifier l'infrastructure*/}
+                                {/*            Check infrastructure*/}
                                 {/*        </>*/}
                                 {/*    )}*/}
                                 {/*</Button>*/}
                                 <p className="text-xs text-muted-foreground">
-                                    Vérifie que Traefik, MySQL et le réseau sont opérationnels
+                                    Checks that Traefik, MySQL, and the network are operational
                                 </p>
                             </div>
                         )}
 
-                        {/* Déconnexion */}
+                        {/* Disconnect */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-medium">Connexion Docker</h3>
+                            <h3 className="text-sm font-medium">Docker Connection</h3>
                             <Button
                                 onClick={handleDisconnect}
                                 variant="destructive"
                                 className="w-full"
                             >
                                 <LogOut className="mr-2 h-4 w-4"/>
-                                Se déconnecter
+                                Disconnect
                             </Button>
                             <p className="text-xs text-muted-foreground">
-                                Ferme la connexion et retourne à l'écran de connexion
+                                Closes the connection and returns to the login screen
                             </p>
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
 
-            {/* Confirmation du changement de mode */}
+            {/* Mode Change Confirmation */}
             <AlertDialog open={showModeConfirmation} onOpenChange={setShowModeConfirmation}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmer le changement de mode</AlertDialogTitle>
+                        <AlertDialogTitle>Confirm mode change</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Voulez-vous vraiment changer le mode de l'application de "{getModeLabel(currentMode)}"
-                            vers "{getModeLabel(selectedMode)}" ?
+                            Do you really want to change the application mode from "{getModeLabel(currentMode)}"
+                            to "{getModeLabel(selectedMode)}"?
                             {selectedMode === AppPreference.WORDPRESS &&
-                                ' Le mode WordPress nécessite une infrastructure spécifique.'
+                                ' WordPress mode requires a specific infrastructure.'
                             }
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setShowModeConfirmation(false)}>
-                            Annuler
+                            Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction onClick={confirmModeChange}>
-                            Confirmer
+                            Confirm
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

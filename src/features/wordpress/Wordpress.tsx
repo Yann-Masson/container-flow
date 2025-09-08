@@ -65,12 +65,13 @@ export default function WordPress() {
     }
 
     return (
-        <div className={`transition-all duration-500 ${
+        <div className={`transition-all duration-500 flex flex-col flex-grow justify-center items-center 
+             ${
             transitionState === 'transitioning' 
                 ? 'opacity-0 scale-95 translate-y-4' 
                 : 'opacity-100 scale-100 translate-y-0'
         }`}>
-            <WordPressSetupCard 
+            <WordPressSetupCard
                 onSetupComplete={handleSetupComplete}
                 onRetrySetup={handleRetrySetup}
             />

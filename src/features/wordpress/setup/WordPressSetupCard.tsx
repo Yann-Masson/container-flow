@@ -48,8 +48,8 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
     };
 
     return (
-        <div className="flex items-center justify-center h-full p-4">
-            <Card className="w-2xl">
+        <div className="flex items-center justify-center w-full h-full p-4">
+            <Card className="max-w-2xl w-full">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Server className="h-5 w-5"/>
