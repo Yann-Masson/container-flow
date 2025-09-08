@@ -10,9 +10,9 @@ export const selectContainers = createSelector(
     (containerState) => containerState.containers
 );
 
-export const selectServices = createSelector(
+export const selectProjects = createSelector(
     [selectContainerState],
-    (containerState) => containerState.services
+    (containerState) => containerState.projects
 );
 
 export const selectContainerStatus = createSelector(
@@ -57,24 +57,24 @@ export const selectIsContainerRemoving = (containerId: string) => createSelector
 );
 
 // Service-specific selectors
-export const selectServiceByName = (serviceName: string) => createSelector(
-    [selectServices],
-    (services) => services.find(service => service.name === serviceName)
+export const selectProjectByName = (serviceName: string) => createSelector(
+    [selectProjects],
+    (projects) => projects.find(service => service.name === serviceName)
 );
 
-export const selectServiceCount = createSelector(
-    [selectServices],
-    (services) => services.length
+export const selectProjectCount = createSelector(
+    [selectProjects],
+    (projects) => projects.length
 );
 
 export const selectTotalContainerCount = createSelector(
-    [selectServices],
-    (services) => services.reduce((total, service) => total + service.containers.length, 0)
+    [selectProjects],
+    (projects) => projects.reduce((total, service) => total + service.containers.length, 0)
 );
 
 export const selectRunningContainerCount = createSelector(
-    [selectServices],
-    (services) => services.reduce(
+    [selectProjects],
+    (projects) => projects.reduce(
         (total, service) => total + service.containers.filter(c => c.State.Status === 'running').length,
         0
     )

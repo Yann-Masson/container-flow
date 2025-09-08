@@ -3,8 +3,8 @@ import { ContainerInspectInfo } from 'dockerode';
 import { State } from '@/types/state';
 import { 
     ContainerState, 
-    WordPressService, 
-    CreateWordPressServicePayload, 
+    WordPressProject, 
+    CreateWordPressServicePayload as CreateWordPressProjectPayload, 
     ContainerActionPayload,
     CloneContainerPayload 
 } from '../types/container';
@@ -12,7 +12,7 @@ import {
 // Initial state
 const initialState: ContainerState = {
     containers: [],
-    services: [],
+    projects: [],
     status: State.IDLE,
     error: null,
     operationStatus: {
@@ -48,14 +48,14 @@ export const fetchContainers = createAsyncThunk(
     }
 );
 
-export const createWordPressService = createAsyncThunk(
-    'containers/createWordPressService',
-    async (payload: CreateWordPressServicePayload, { rejectWithValue }) => {
+export const createWordPressProject = createAsyncThunk(
+    'containers/createWordPressProject',
+    async (payload: CreateWordPressProjectPayload, { rejectWithValue }) => {
         try {
             await window.electronAPI.docker.wordpress.create(payload);
             return payload;
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to create WordPress service';
+            const message = error instanceof Error ? error.message : 'Failed to create WordPress project';
             return rejectWithValue(message);
         }
     }
@@ -119,7 +119,7 @@ export const removeContainer = createAsyncThunk(
 );
 
 // Helper function to group containers into services
-const groupContainersIntoServices = (containers: ContainerInspectInfo[]): WordPressService[] => {
+const groupContainersIntoServices = (containers: ContainerInspectInfo[]): WordPressProject[] => {
     const serviceMap = new Map<string, ContainerInspectInfo[]>();
 
     containers.forEach(container => {
@@ -132,7 +132,7 @@ const groupContainersIntoServices = (containers: ContainerInspectInfo[]): WordPr
         serviceMap.get(serviceName)!.push(container);
     });
 
-    const groupedServices: WordPressService[] = [];
+    const groupedServices: WordPressProject[] = [];
 
     serviceMap.forEach((containers, serviceName) => {
         const firstContainer = containers[0];
@@ -194,7 +194,7 @@ const containerSlice = createSlice({
             .addCase(fetchContainers.fulfilled, (state, action) => {
                 state.status = State.SUCCESS;
                 state.containers = action.payload;
-                state.services = groupContainersIntoServices(action.payload);
+                state.projects = groupContainersIntoServices(action.payload);
                 state.error = null;
             })
             .addCase(fetchContainers.rejected, (state, action) => {
@@ -204,15 +204,15 @@ const containerSlice = createSlice({
 
         // Create WordPress service
         builder
-            .addCase(createWordPressService.pending, (state) => {
+            .addCase(createWordPressProject.pending, (state) => {
                 state.operationStatus.creating = true;
                 state.error = null;
             })
-            .addCase(createWordPressService.fulfilled, (state) => {
+            .addCase(createWordPressProject.fulfilled, (state) => {
                 state.operationStatus.creating = false;
                 state.error = null;
             })
-            .addCase(createWordPressService.rejected, (state, action) => {
+            .addCase(createWordPressProject.rejected, (state, action) => {
                 state.operationStatus.creating = false;
                 state.error = action.payload as string;
             });

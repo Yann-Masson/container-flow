@@ -1,7 +1,7 @@
 import { ContainerInspectInfo } from 'dockerode';
 import { State } from '@/types/state';
 
-export interface WordPressService {
+export interface WordPressProject {
     name: string;
     containers: ContainerInspectInfo[];
     dbName: string;
@@ -12,7 +12,7 @@ export interface WordPressService {
 export interface ContainerState {
     // Container data
     containers: ContainerInspectInfo[];
-    services: WordPressService[];
+    projects: WordPressProject[];
     
     // Loading states
     status: State;

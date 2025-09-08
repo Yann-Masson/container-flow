@@ -34,15 +34,15 @@ import {
     selectIsContainerStopping,
     selectIsContainerRemoving
 } from '@/store/selectors/containerSelectors';
-import { WordPressService } from '@/store/types/container';
+import { WordPressProject } from '@/store/types/container';
 
-interface WordPressServiceCardProps {
-    service: WordPressService;
+interface WordPressProjectCardProps {
+    project: WordPressProject;
     onContainerUpdate: () => void;
     isGloballyDisabled?: boolean; // New prop for global disabled state
 }
 
-export default function WordPressServiceCard({ service, onContainerUpdate, isGloballyDisabled = false }: WordPressServiceCardProps) {
+export default function WordPressServiceCard({ project, onContainerUpdate, isGloballyDisabled = false }: WordPressProjectCardProps) {
     const dispatch = useAppDispatch();
     
     const [isExpanded, setIsExpanded] = useState(false);
@@ -52,7 +52,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
     const isCloning = useAppSelector(selectIsCloning);
     
     // Create selectors for each container's operations
-    const containerOperations = service.containers.reduce((acc, container) => {
+    const containerOperations = project.containers.reduce((acc, container) => {
         acc[container.Id] = {
             isStarting: useAppSelector(selectIsContainerStarting(container.Id)),
             isStopping: useAppSelector(selectIsContainerStopping(container.Id)),
@@ -64,8 +64,8 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
     // Check if any instance operation is in progress
     const isAnyInstanceRemoving = Object.values(containerOperations).some(op => op.isRemoving);
 
-    const runningCount = service.containers.filter(c => c.State.Status === 'running').length;
-    const totalCount = service.containers.length;
+    const runningCount = project.containers.filter(c => c.State.Status === 'running').length;
+    const totalCount = project.containers.length;
 
     const copyToClipboard = async (text: string, label: string) => {
         try {
@@ -77,9 +77,9 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
     };
 
     const openUrl = async () => {
-        if (service.url !== 'N/A') {
+        if (project.url !== 'N/A') {
             try {
-                await window.electronAPI.system.openExternal(`https://${service.url}`);
+                await window.electronAPI.system.openExternal(`https://${project.url}`);
             } catch (error) {
                 toast.error('Failed to open URL in browser');
                 console.error('Error opening external URL:', error);
@@ -92,26 +92,26 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
 
         try {
             // Find the highest instance number
-            const instanceNumbers = service.containers.map(container => {
+            const instanceNumbers = project.containers.map(container => {
                 const match = container.Name.match(/-(\d+)$/);
                 return match ? parseInt(match[1]) : 1;
             });
             const nextInstanceNumber = Math.max(...instanceNumbers) + 1;
 
             toast.info('🚀 Adding new container instance...', {
-                description: `Creating ${service.name}-${nextInstanceNumber}`,
+                description: `Creating ${project.name}-${nextInstanceNumber}`,
             });
 
             // Use the last container as source for cloning
-            const sourceContainer = service.containers[service.containers.length - 1];
+            const sourceContainer = project.containers[project.containers.length - 1];
             const resultAction = await dispatch(cloneContainer({
                 sourceContainer,
-                serviceName: service.name
+                serviceName: project.name
             }));
 
             if (cloneContainer.fulfilled.match(resultAction)) {
                 toast.success('✅ New container instance added!', {
-                    description: `${service.name}-${nextInstanceNumber} is now available`,
+                    description: `${project.name}-${nextInstanceNumber} is now available`,
                     duration: 5000,
                 });
                 // Refresh containers after successful creation
@@ -131,10 +131,10 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
     };
 
     const handleRemoveInstance = async () => {
-        if (isAnyInstanceRemoving || service.containers.length <= 1) return;
+        if (isAnyInstanceRemoving || project.containers.length <= 1) return;
 
         try {
-            const containers = [...service.containers];
+            const containers = [...project.containers];
 
             // Find the container with the highest instance number
             const sortedContainers = containers.sort((a, b) => {
@@ -247,7 +247,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                     <div>
                                         <CardTitle className="flex items-center gap-2">
                                             <Globe className="h-5 w-5"/>
-                                            {service.name}
+                                            {project.name}
                                         </CardTitle>
                                         <CardDescription>
                                             {totalCount} container{totalCount !== 1 ? 's' : ''} • {runningCount} running
@@ -260,11 +260,11 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                         <div className="flex items-center gap-4">
                                             <span className="flex items-center gap-1">
                                                 <Database className="h-3 w-3"/>
-                                                {service.dbName}
+                                                {project.dbName}
                                             </span>
                                             <span className="flex items-center gap-1">
                                                 <Globe className="h-3 w-3"/>
-                                                {service.url}
+                                                {project.url}
                                             </span>
                                         </div>
                                     </div>
@@ -274,7 +274,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                             size="sm"
                                             variant="outline"
                                             onClick={handleRemoveInstance}
-                                            disabled={service.containers.length <= 1 || isAnyInstanceRemoving || isGloballyDisabled}
+                                            disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isGloballyDisabled}
                                         >
                                             <Minus className="h-3 w-3"/>
                                         </Button>
@@ -303,7 +303,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            onClick={() => copyToClipboard(service.dbName, 'Database name')}
+                                            onClick={() => copyToClipboard(project.dbName, 'Database name')}
                                             className="cursor-pointer"
                                             disabled={isGloballyDisabled}
                                         >
@@ -313,7 +313,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            onClick={() => copyToClipboard(service.url, 'URL')}
+                                            onClick={() => copyToClipboard(project.url, 'URL')}
                                             className="cursor-pointer"
                                             disabled={isGloballyDisabled}
                                         >
@@ -330,7 +330,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                             <Settings className="h-3 w-3 mr-1"/>
                                             Change URL
                                         </Button>
-                                        {service.url !== 'N/A' && (
+                                        {project.url !== 'N/A' && (
                                             <Button
                                                 size="sm"
                                                 variant="outline"
@@ -346,7 +346,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                 </div>
 
                                 {/* Individual Containers */}
-                                {service.containers.map((container) => {
+                                {project.containers.map((container) => {
                                     const instanceMatch = container.Name.match(/-(\d+)$/);
                                     const instanceNumber = instanceMatch ? instanceMatch[1] : '1';
                                     const isRunning = container.State.Status === 'running';
@@ -363,7 +363,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
                                                 <div>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-medium">
-                                                            {service.name}
+                                                            {project.name}
                                                             <span className="text-gray-500">-{instanceNumber}</span>
                                                         </span>
                                                         <Badge
@@ -417,7 +417,7 @@ export default function WordPressServiceCard({ service, onContainerUpdate, isGlo
 
             {/* Change URL Dialog */}
             <WordPressChangeUrlDialog
-                service={service}
+                project={project}
                 open={isChangeUrlDialogOpen}
                 onOpenChange={setIsChangeUrlDialogOpen}
                 onUrlChanged={handleUrlChanged}

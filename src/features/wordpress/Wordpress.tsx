@@ -47,7 +47,7 @@ export default function WordPress() {
         setTransitionState('setup');
     };
 
-    const handleServiceCreated = () => {
+    const handleProjectCreated = () => {
         setRefreshKey(prev => prev + 1);
     };
 
@@ -65,7 +65,7 @@ export default function WordPress() {
                     onRefresh={handleRefresh} 
                 />
                 <WordPressCreator 
-                    onServiceCreated={handleServiceCreated}
+                    onProjectCreated={handleProjectCreated}
                     disabled={isLoading} // Disable when container list is loading
                 />
             </div>

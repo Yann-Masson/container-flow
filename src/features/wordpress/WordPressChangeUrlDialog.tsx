@@ -9,7 +9,7 @@ import { AlertTriangle, Globe, Loader2 } from 'lucide-react';
 import { ContainerInspectInfo } from "dockerode";
 import { toast } from 'sonner';
 
-interface WordPressService {
+interface WordPressProject {
     name: string;
     containers: ContainerInspectInfo[];
     dbName: string;
@@ -18,17 +18,17 @@ interface WordPressService {
 }
 
 interface WordPressChangeUrlDialogProps {
-    service: WordPressService | null;
+    project: WordPressProject | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onUrlChanged?: () => void;
 }
 
-export default function WordPressChangeUrlDialog({ service, open, onOpenChange, onUrlChanged }: WordPressChangeUrlDialogProps) {
+export default function WordPressChangeUrlDialog({ project, open, onOpenChange, onUrlChanged }: WordPressChangeUrlDialogProps) {
     const [isChanging, setIsChanging] = useState(false);
     const [newUrl, setNewUrl] = useState('');
 
-    if (!service) return null;
+    if (!project) return null;
 
     const validateUrl = () => {
         const errors: string[] = [];
@@ -39,7 +39,7 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
             errors.push('URL must be valid (e.g. my-new-site.agence-lumia.com)');
         }
 
-        if (newUrl === service.url) {
+        if (newUrl === project.url) {
             errors.push('New URL must be different from current URL');
         }
 
@@ -60,17 +60,17 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
         try {
             setIsChanging(true);
 
-            toast.info('🔄 Changing service URL...', {
-                description: `Updating ${service.name} to ${newUrl}`,
+            toast.info('🔄 Changing project URL...', {
+                description: `Updating ${project.name} to ${newUrl}`,
             });
 
-            // Process each container in the service
-            for (const container of service.containers) {
+            // Process each container in the project
+            for (const container of project.containers) {
                 await recreateContainerWithNewUrl(container, newUrl);
             }
 
-            toast.success('✅ Service URL changed successfully!', {
-                description: `${service.name} is now accessible at https://${newUrl}`,
+            toast.success('✅ Project URL changed successfully!', {
+                description: `${project.name} is now accessible at https://${newUrl}`,
                 duration: 5000,
             });
 
@@ -79,7 +79,7 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
             onUrlChanged?.();
 
         } catch (error) {
-            console.error('Failed to change service URL:', error);
+            console.error('Failed to change project URL:', error);
             toast.error('❌ Error changing URL', {
                 description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
@@ -106,10 +106,10 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Globe className="h-5 w-5"/>
-                        Change Service URL
+                        Change Project URL
                     </DialogTitle>
                     <DialogDescription>
-                        Change the URL for WordPress service "{service.name}" and all its container instances
+                        Change the URL for WordPress project "{project.name}" and all its container instances
                     </DialogDescription>
                 </DialogHeader>
 
@@ -123,22 +123,22 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
                                     Current Configuration
                                 </CardTitle>
                                 <CardDescription>
-                                    Current settings for the WordPress service
+                                    Current settings for the WordPress project
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="font-medium">Service Name:</span>
-                                    <code className="bg-black px-2 py-1 rounded text-sm">{service.name}</code>
+                                    <span className="font-medium">Project Name:</span>
+                                    <code className="bg-black px-2 py-1 rounded text-sm">{project.name}</code>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="font-medium">Current URL:</span>
-                                    <code className="bg-black px-2 py-1 rounded text-sm">{service.url}</code>
+                                    <code className="bg-black px-2 py-1 rounded text-sm">{project.url}</code>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="font-medium">Container Count:</span>
                                     <code
-                                        className="bg-black px-2 py-1 rounded text-sm">{service.containers.length}</code>
+                                        className="bg-black px-2 py-1 rounded text-sm">{project.containers.length}</code>
                                 </div>
                             </CardContent>
                         </Card>
@@ -151,7 +151,7 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
                                     New URL Configuration
                                 </CardTitle>
                                 <CardDescription>
-                                    Enter the new URL for this WordPress service
+                                    Enter the new URL for this WordPress project
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -174,10 +174,10 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                         <h4 className="font-medium text-blue-900 mb-2">📋 URL Change Preview</h4>
                                         <div className="text-sm text-blue-800 space-y-1">
-                                            <div><strong>Service:</strong> {service.name}</div>
-                                            <div><strong>Old URL:</strong> {service.url}</div>
+                                            <div><strong>Project:</strong> {project.name}</div>
+                                            <div><strong>Old URL:</strong> {project.url}</div>
                                             <div><strong>New URL:</strong> {newUrl}</div>
-                                            <div><strong>Containers to update:</strong> {service.containers.length}
+                                            <div><strong>Containers to update:</strong> {project.containers.length}
                                             </div>
                                         </div>
                                     </div>
@@ -195,7 +195,7 @@ export default function WordPressChangeUrlDialog({ service, open, onOpenChange, 
                             </CardHeader>
                             <CardContent className="text-sm text-yellow-800">
                                 <ul className="space-y-1">
-                                    <li>• All containers in this service will be recreated with the new URL</li>
+                                    <li>• All containers in this project will be recreated with the new URL</li>
                                     <li>• The containers will be briefly unavailable during the update</li>
                                     <li>• Database and files will be preserved (volumes are maintained)</li>
                                     <li>• Traefik routing will be updated automatically</li>
