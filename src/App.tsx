@@ -59,7 +59,7 @@ export default function App() {
     return (
         <>
             <div
-                className='min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 font-[family-name:var(--font-geist-sans)]'>
+                className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 font-[family-name:var(--font-geist-sans)]'>
                 {isConnected === State.IDLE ? (
                     <FormPage setIsConnected={setIsConnected}/>
                 ) : isConnected === State.SUCCESS ? (

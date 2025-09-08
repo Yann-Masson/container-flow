@@ -46,7 +46,7 @@ function log(message: string) {
 
 function createWindow() {
     win = new BrowserWindow({
-        icon: path.join(process.env.APP_ROOT, 'assets/icons/container-flow-white-circle-1024.png'),
+        icon: path.join(process.env.APP_ROOT, 'assets/icons/container-flow-1024.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.mjs'),
             contextIsolation: true,

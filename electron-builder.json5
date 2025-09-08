@@ -10,14 +10,14 @@
     "dist",
     "dist-electron"
   ],
-  "icon": "assets/icons/container-flow-white-circle-1024.png",
+  "icon": "assets/icons/container-flow-1024.png",
   "mac": {
     "target": [
       "dmg",
       "zip"
     ],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
-    "icon": "assets/icons/container-flow-white-circle-512.icns"
+    "icon": "assets/icons/container-flow-512.icns"
   },
   "win": {
     "target": [
@@ -42,7 +42,7 @@
       "AppImage"
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}",
-    "icon": "assets/icons/container-flow-white-circle-512.png",
+    "icon": "assets/icons/container-flow-512.png",
   },
   "publish": {
     "provider": "github",

@@ -84,7 +84,7 @@ export default function SSHForm(props: SSHFormProps) {
 
     return (
             <div className="flex w-full justify-center">
-                <form onSubmit={handleConnect} className='space-y-4 px-6 pb-6 w-2/3'>
+                <form onSubmit={handleConnect} className='space-y-4 sm:pb-6 w-full sm:w-2/3'>
                     <div>
                         <label className='block mb-1 text-sm font-medium'>Host</label>
                         <Input
