@@ -16,8 +16,9 @@ const initialState: ContainerState = {
     status: State.IDLE,
     error: null,
     operationStatus: {
+        retrievingAll: true,
         creating: false,
-        cloning: false,
+        cloning: {},
         starting: {},
         stopping: {},
         removing: {},
@@ -65,8 +66,9 @@ export const cloneContainer = createAsyncThunk(
     'containers/cloneContainer',
     async (payload: CloneContainerPayload, { rejectWithValue }) => {
         try {
-            await window.electronAPI.docker.wordpress.clone(payload.sourceContainer);
-            return payload;
+            const newContainer = await window.electronAPI.docker.wordpress.clone(payload.sourceContainer);
+            newContainer.Name = newContainer.Name.replace(/^\/+/, '');
+            return { ...payload, newContainer };
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to clone container';
             return rejectWithValue(message);
@@ -79,7 +81,10 @@ export const startContainer = createAsyncThunk(
     async (payload: ContainerActionPayload, { rejectWithValue }) => {
         try {
             await window.electronAPI.docker.containers.start(payload.containerId);
-            return payload;
+            // Re-inspect container after start
+            const inspectInfo = await window.electronAPI.docker.containers.get(payload.containerId);
+            inspectInfo.Name = inspectInfo.Name.replace(/^\/+/, '');
+            return { ...payload, inspectInfo };
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to start container';
             return rejectWithValue(message);
@@ -92,7 +97,9 @@ export const stopContainer = createAsyncThunk(
     async (payload: ContainerActionPayload, { rejectWithValue }) => {
         try {
             await window.electronAPI.docker.containers.stop(payload.containerId);
-            return payload;
+            const inspectInfo = await window.electronAPI.docker.containers.get(payload.containerId);
+            inspectInfo.Name = inspectInfo.Name.replace(/^\/+/, '');
+            return { ...payload, inspectInfo };
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to stop container';
             return rejectWithValue(message);
@@ -104,13 +111,12 @@ export const removeContainer = createAsyncThunk(
     'containers/removeContainer',
     async (payload: ContainerActionPayload, { rejectWithValue }) => {
         try {
-            // Stop container first if running
             const container = await window.electronAPI.docker.containers.get(payload.containerId);
             if (container.State.Status === 'running') {
                 await window.electronAPI.docker.containers.stop(payload.containerId);
             }
             await window.electronAPI.docker.containers.remove(payload.containerId, { force: true });
-            return payload;
+            return payload; // containerId is enough to prune from state
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to remove container';
             return rejectWithValue(message);
@@ -166,6 +172,35 @@ const groupContainersIntoServices = (containers: ContainerInspectInfo[]): WordPr
     return groupedServices;
 };
 
+// Utility to recompute a single WordPress project from its containers
+const buildProjectFromContainers = (serviceName: string, containers: ContainerInspectInfo[]): WordPressProject | null => {
+    if (!containers.length) return null;
+    const firstContainer = containers[0];
+    const env = firstContainer.Config.Env || [];
+    const labels = firstContainer.Config.Labels || {};
+
+    const dbName = env.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.replace('WORDPRESS_DB_NAME=', '') || 'N/A';
+    const dbUser = env.find(env => env.startsWith('WORDPRESS_DB_USER='))?.replace('WORDPRESS_DB_USER=', '') || 'N/A';
+    const traefikRule = Object.keys(labels).find(key => key.includes('.rule') && labels[key].includes('Host('));
+    const url = traefikRule
+        ? labels[traefikRule].replace('Host("', '').replace('")', '')
+        : 'N/A';
+
+    return {
+        name: serviceName,
+        containers: containers.sort((a, b) => {
+            const aMatch = a.Name.match(/-(\d+)$/);
+            const bMatch = b.Name.match(/-(\d+)$/);
+            const aNum = aMatch ? parseInt(aMatch[1]) : 1;
+            const bNum = bMatch ? parseInt(bMatch[1]) : 1;
+            return aNum - bNum;
+        }),
+        dbName,
+        dbUser,
+        url
+    };
+};
+
 // Container slice
 const containerSlice = createSlice({
     name: 'containers',
@@ -176,13 +211,18 @@ const containerSlice = createSlice({
         },
         resetOperationStatus: (state) => {
             state.operationStatus = {
+                retrievingAll: true,
                 creating: false,
-                cloning: false,
+                cloning: {},
                 starting: {},
                 stopping: {},
                 removing: {},
             };
         },
+        // Optional reducer to force recompute all projects from current containers
+        recomputeProjects: (state) => {
+            state.projects = groupContainersIntoServices(state.containers);
+        }
     },
     extraReducers: (builder) => {
         // Fetch containers
@@ -190,16 +230,19 @@ const containerSlice = createSlice({
             .addCase(fetchContainers.pending, (state) => {
                 state.status = State.LOADING;
                 state.error = null;
+                state.operationStatus.retrievingAll = true;
             })
             .addCase(fetchContainers.fulfilled, (state, action) => {
                 state.status = State.SUCCESS;
                 state.containers = action.payload;
                 state.projects = groupContainersIntoServices(action.payload);
                 state.error = null;
+                state.operationStatus.retrievingAll = false;
             })
             .addCase(fetchContainers.rejected, (state, action) => {
                 state.status = State.ERROR;
                 state.error = action.payload as string;
+                state.operationStatus.retrievingAll = false;
             });
 
         // Create WordPress service
@@ -219,16 +262,28 @@ const containerSlice = createSlice({
 
         // Clone container
         builder
-            .addCase(cloneContainer.pending, (state) => {
-                state.operationStatus.cloning = true;
+            .addCase(cloneContainer.pending, (state, action) => {
+                const serviceName = action.meta.arg.serviceName;
+                state.operationStatus.cloning[serviceName] = true;
                 state.error = null;
             })
-            .addCase(cloneContainer.fulfilled, (state) => {
-                state.operationStatus.cloning = false;
+            .addCase(cloneContainer.fulfilled, (state, action) => {
+                delete state.operationStatus.cloning[action.payload.serviceName];
                 state.error = null;
+                const serviceName = action.payload.serviceName;
+                // Append new container to flat list
+                state.containers.push(action.payload.newContainer);
+                // Rebuild only that project using its containers
+                const projectContainers = state.containers.filter(c => c.Config.Labels?.['container-flow.name'] === serviceName);
+                const updatedProject = buildProjectFromContainers(serviceName, projectContainers);
+                if (updatedProject) {
+                    const projectIndex = state.projects.findIndex(p => p.name === serviceName);
+                    if (projectIndex >= 0) state.projects[projectIndex] = updatedProject; else state.projects.push(updatedProject);
+                }
             })
             .addCase(cloneContainer.rejected, (state, action) => {
-                state.operationStatus.cloning = false;
+                const serviceName = action.meta.arg.serviceName;
+                delete state.operationStatus.cloning[serviceName];
                 state.error = action.payload as string;
             });
 
@@ -241,6 +296,20 @@ const containerSlice = createSlice({
             .addCase(startContainer.fulfilled, (state, action) => {
                 delete state.operationStatus.starting[action.payload.containerId];
                 state.error = null;
+                // Update single container in list
+                const idx = state.containers.findIndex(c => c.Id === action.payload.containerId);
+                if (idx >= 0) {
+                    state.containers[idx] = action.payload.inspectInfo;
+                    const serviceName = action.payload.inspectInfo.Config.Labels?.['container-flow.name'];
+                    if (serviceName) {
+                        const projectContainers = state.containers.filter(c => c.Config.Labels?.['container-flow.name'] === serviceName);
+                        const updatedProject = buildProjectFromContainers(serviceName, projectContainers);
+                        const projectIndex = state.projects.findIndex(p => p.name === serviceName);
+                        if (updatedProject) {
+                            if (projectIndex >= 0) state.projects[projectIndex] = updatedProject; else state.projects.push(updatedProject);
+                        }
+                    }
+                }
             })
             .addCase(startContainer.rejected, (state, action) => {
                 delete state.operationStatus.starting[action.meta.arg.containerId];
@@ -256,6 +325,19 @@ const containerSlice = createSlice({
             .addCase(stopContainer.fulfilled, (state, action) => {
                 delete state.operationStatus.stopping[action.payload.containerId];
                 state.error = null;
+                const idx = state.containers.findIndex(c => c.Id === action.payload.containerId);
+                if (idx >= 0) {
+                    state.containers[idx] = action.payload.inspectInfo;
+                    const serviceName = action.payload.inspectInfo.Config.Labels?.['container-flow.name'];
+                    if (serviceName) {
+                        const projectContainers = state.containers.filter(c => c.Config.Labels?.['container-flow.name'] === serviceName);
+                        const updatedProject = buildProjectFromContainers(serviceName, projectContainers);
+                        const projectIndex = state.projects.findIndex(p => p.name === serviceName);
+                        if (updatedProject) {
+                            if (projectIndex >= 0) state.projects[projectIndex] = updatedProject; else state.projects.push(updatedProject);
+                        }
+                    }
+                }
             })
             .addCase(stopContainer.rejected, (state, action) => {
                 delete state.operationStatus.stopping[action.meta.arg.containerId];
@@ -271,6 +353,22 @@ const containerSlice = createSlice({
             .addCase(removeContainer.fulfilled, (state, action) => {
                 delete state.operationStatus.removing[action.payload.containerId];
                 state.error = null;
+                const removedContainer = state.containers.find(c => c.Id === action.payload.containerId);
+                state.containers = state.containers.filter(c => c.Id !== action.payload.containerId);
+                if (removedContainer) {
+                    const serviceName = removedContainer.Config.Labels?.['container-flow.name'];
+                    if (serviceName) {
+                        const projectContainers = state.containers.filter(c => c.Config.Labels?.['container-flow.name'] === serviceName);
+                        if (projectContainers.length) {
+                            const updatedProject = buildProjectFromContainers(serviceName, projectContainers);
+                            const projectIndex = state.projects.findIndex(p => p.name === serviceName);
+                            if (updatedProject && projectIndex >= 0) state.projects[projectIndex] = updatedProject;
+                        } else {
+                            // Remove empty project
+                            state.projects = state.projects.filter(p => p.name !== serviceName);
+                        }
+                    }
+                }
             })
             .addCase(removeContainer.rejected, (state, action) => {
                 delete state.operationStatus.removing[action.meta.arg.containerId];
@@ -279,5 +377,5 @@ const containerSlice = createSlice({
     },
 });
 
-export const { clearError, resetOperationStatus } = containerSlice.actions;
+export const { clearError, resetOperationStatus, recomputeProjects } = containerSlice.actions;
 export default containerSlice.reducer;

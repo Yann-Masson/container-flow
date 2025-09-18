@@ -36,9 +36,14 @@ export const selectIsCreating = createSelector(
     (operationStatus) => operationStatus.creating
 );
 
-export const selectIsCloning = createSelector(
+export const selectIsRetrievingAll = createSelector(
     [selectOperationStatus],
-    (operationStatus) => operationStatus.cloning
+    (operationStatus) => operationStatus.retrievingAll
+);
+
+export const selectIsCloning = (serviceName: string) => createSelector(
+    [selectOperationStatus],
+    (operationStatus) => operationStatus.cloning[serviceName] || false
 );
 
 export const selectIsContainerStarting = (containerId: string) => createSelector(

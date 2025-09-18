@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,7 +31,7 @@ export default function WordPressList({ onRefresh }: WordPressListProps) {
     
     const isRefreshing = status === State.LOADING;
 
-    const retrieveContainers = async () => {
+    const retrieveContainers = useCallback(async () => {
         try {
             const resultAction = await dispatch(fetchContainers());
             if (fetchContainers.fulfilled.match(resultAction)) {
@@ -47,7 +47,7 @@ export default function WordPressList({ onRefresh }: WordPressListProps) {
                 description: error instanceof Error ? error.message : 'An unknown error occurred',
             });
         }
-    };
+    }, [dispatch]);
 
     useEffect(() => {
         retrieveContainers();
@@ -101,8 +101,6 @@ export default function WordPressList({ onRefresh }: WordPressListProps) {
                 <WordPressProjectCard
                     key={project.name}
                     project={project}
-                    onContainerUpdate={retrieveContainers}
-                    isGloballyDisabled={isRefreshing} // Pass global disabled state
                 />
             ))}
         </div>

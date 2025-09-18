@@ -25,44 +25,33 @@ import {
     cloneContainer, 
     startContainer, 
     stopContainer, 
-    removeContainer,
-    fetchContainers 
+    removeContainer
 } from '@/store/slices/containerSlice';
 import { 
     selectIsCloning,
-    selectIsContainerStarting,
-    selectIsContainerStopping,
-    selectIsContainerRemoving
+    selectIsRetrievingAll,
+    selectOperationStatus
 } from '@/store/selectors/containerSelectors';
 import { WordPressProject } from '@/store/types/container';
 
 interface WordPressProjectCardProps {
     project: WordPressProject;
-    onContainerUpdate: () => void;
-    isGloballyDisabled?: boolean; // New prop for global disabled state
 }
 
-export default function WordPressServiceCard({ project, onContainerUpdate, isGloballyDisabled = false }: WordPressProjectCardProps) {
+export default function WordPressProjectCard({ project }: WordPressProjectCardProps) {
     const dispatch = useAppDispatch();
     
     const [isExpanded, setIsExpanded] = useState(false);
     const [isChangeUrlDialogOpen, setIsChangeUrlDialogOpen] = useState(false);
-    
-    // Redux selectors for operation states
-    const isCloning = useAppSelector(selectIsCloning);
-    
-    // Create selectors for each container's operations
-    const containerOperations = project.containers.reduce((acc, container) => {
-        acc[container.Id] = {
-            isStarting: useAppSelector(selectIsContainerStarting(container.Id)),
-            isStopping: useAppSelector(selectIsContainerStopping(container.Id)),
-            isRemoving: useAppSelector(selectIsContainerRemoving(container.Id)),
-        };
-        return acc;
-    }, {} as Record<string, { isStarting: boolean; isStopping: boolean; isRemoving: boolean }>);
 
-    // Check if any instance operation is in progress
-    const isAnyInstanceRemoving = Object.values(containerOperations).some(op => op.isRemoving);
+    const isRetrievingAll = useAppSelector(selectIsRetrievingAll);
+    
+    // Redux selectors for operation states (per service cloning)
+    const isCloning = useAppSelector(selectIsCloning(project.name));
+    
+    // Single selector for all operation statuses to avoid dynamic hook calls
+    const operationStatus = useAppSelector(selectOperationStatus);
+    const isAnyInstanceRemoving = project.containers.some(c => operationStatus.removing[c.Id]);
 
     const runningCount = project.containers.filter(c => c.State.Status === 'running').length;
     const totalCount = project.containers.length;
@@ -114,9 +103,6 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                     description: `${project.name}-${nextInstanceNumber} is now available`,
                     duration: 5000,
                 });
-                // Refresh containers after successful creation
-                dispatch(fetchContainers());
-                onContainerUpdate();
             } else if (cloneContainer.rejected.match(resultAction)) {
                 toast.error('❌ Error adding instance', {
                     description: resultAction.payload as string || 'An unknown error occurred',
@@ -162,9 +148,6 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                     description: `${containerName} has been removed`,
                     duration: 5000,
                 });
-                // Refresh containers after successful removal
-                dispatch(fetchContainers());
-                onContainerUpdate();
             } else if (removeContainer.rejected.match(resultAction)) {
                 toast.error('❌ Error removing instance', {
                     description: resultAction.payload as string || 'An unknown error occurred',
@@ -190,9 +173,6 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                 
                 if (startContainer.fulfilled.match(resultAction)) {
                     toast.success('✅ Container started!');
-                    // Refresh containers after successful start
-                    dispatch(fetchContainers());
-                    onContainerUpdate();
                 } else if (startContainer.rejected.match(resultAction)) {
                     toast.error('❌ Error starting container', {
                         description: resultAction.payload as string || 'An unknown error occurred',
@@ -206,9 +186,6 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                 
                 if (stopContainer.fulfilled.match(resultAction)) {
                     toast.success('✅ Container stopped!');
-                    // Refresh containers after successful stop
-                    dispatch(fetchContainers());
-                    onContainerUpdate();
                 } else if (stopContainer.rejected.match(resultAction)) {
                     toast.error('❌ Error stopping container', {
                         description: resultAction.payload as string || 'An unknown error occurred',
@@ -225,10 +202,6 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
 
     const handleChangeUrl = () => {
         setIsChangeUrlDialogOpen(true);
-    };
-
-    const handleUrlChanged = () => {
-        onContainerUpdate();
     };
 
     return (
@@ -274,7 +247,7 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                             size="sm"
                                             variant="outline"
                                             onClick={handleRemoveInstance}
-                                            disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isGloballyDisabled}
+                                            disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
                                         >
                                             <Minus className="h-3 w-3"/>
                                         </Button>
@@ -283,7 +256,7 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                             size="sm"
                                             variant="outline"
                                             onClick={handleAddInstance}
-                                            disabled={isCloning || isGloballyDisabled}
+                                            disabled={isCloning || isRetrievingAll}
                                         >
                                             <Plus className="h-3 w-3"/>
                                         </Button>
@@ -296,16 +269,15 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                     <CollapsibleContent>
                         <CardContent className="pb-4">
                             <div className="space-y-3 ml-7">
-                                {/* Service Actions */}
                                 <div className="flex items-center justify-between w-full p-3 bg-black rounded-lg">
-                                    <span className="text-sm font-medium ml-4">Service Actions</span>
+                                    <span className="text-sm font-medium ml-4">Project Actions</span>
                                     <div className="flex items-center gap-2">
                                         <Button
                                             size="sm"
                                             variant="outline"
                                             onClick={() => copyToClipboard(project.dbName, 'Database name')}
                                             className="cursor-pointer"
-                                            disabled={isGloballyDisabled}
+                                            disabled={isRetrievingAll}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
                                             Copy DB
@@ -315,7 +287,7 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                             variant="outline"
                                             onClick={() => copyToClipboard(project.url, 'URL')}
                                             className="cursor-pointer"
-                                            disabled={isGloballyDisabled}
+                                            disabled={isRetrievingAll}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
                                             Copy URL
@@ -325,7 +297,7 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                             variant="outline"
                                             onClick={handleChangeUrl}
                                             className="cursor-pointer"
-                                            disabled={isGloballyDisabled}
+                                            disabled={isRetrievingAll}
                                         >
                                             <Settings className="h-3 w-3 mr-1"/>
                                             Change URL
@@ -336,7 +308,7 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                                 variant="outline"
                                                 onClick={openUrl}
                                                 className="cursor-pointer"
-                                                disabled={isGloballyDisabled}
+                                                disabled={isRetrievingAll}
                                             >
                                                 <ExternalLink className="h-3 w-3 mr-1"/>
                                                 Open
@@ -358,7 +330,10 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-2 h-2 rounded-full ${
-                                                    isRunning ? 'bg-green-500' : 'bg-gray-400'
+                                                    operationStatus.starting[container.Id] ? 'bg-blue-500' :
+                                                        operationStatus.stopping[container.Id] ? 'bg-yellow-500' :
+                                                        operationStatus.removing[container.Id] ? 'bg-red-500' :
+                                                        isRunning ? 'bg-green-500' : 'bg-gray-400'
                                                 }`}/>
                                                 <div>
                                                     <div className="flex items-center gap-2">
@@ -370,7 +345,12 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                                             variant={isRunning ? 'default' : 'secondary'}
                                                             className="text-xs"
                                                         >
-                                                            {container.State.Status}
+                                                            {
+                                                                (operationStatus.starting[container.Id] ? 'starting' :
+                                                                operationStatus.stopping[container.Id] ? 'stopping' :
+                                                                operationStatus.removing[container.Id] ? 'removing' :
+                                                                container.State.Status)
+                                                            }
                                                         </Badge>
                                                     </div>
                                                     <div className="text-sm text-gray-600">
@@ -382,8 +362,8 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                             <div className="flex items-center gap-2">
                                                 <ContainerLogsDialog
                                                     containerName={container.Name.replace('wordpress-', '')}
+                                                    containerId={container.Id}
                                                     onGetLogs={() => window.electronAPI.docker.containers.getLogs(container.Id, { follow: true })}
-                                                    disabled={isGloballyDisabled}
                                                 />
 
                                                 {isRunning ? (
@@ -391,7 +371,7 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={() => handleContainerAction(container, 'stop')}
-                                                        disabled={containerOperations[container.Id]?.isStopping || isGloballyDisabled}
+                                                        disabled={operationStatus.stopping[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
                                                     >
                                                         <Square className="h-3 w-3"/>
                                                     </Button>
@@ -400,7 +380,7 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={() => handleContainerAction(container, 'start')}
-                                                        disabled={containerOperations[container.Id]?.isStarting || isGloballyDisabled}
+                                                        disabled={operationStatus.starting[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
                                                     >
                                                         <Play className="h-3 w-3"/>
                                                     </Button>
@@ -420,7 +400,6 @@ export default function WordPressServiceCard({ project, onContainerUpdate, isGlo
                 project={project}
                 open={isChangeUrlDialogOpen}
                 onOpenChange={setIsChangeUrlDialogOpen}
-                onUrlChanged={handleUrlChanged}
             />
         </>
     );

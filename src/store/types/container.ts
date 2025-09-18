@@ -20,8 +20,9 @@ export interface ContainerState {
     
     // Individual operation states
     operationStatus: {
+        retrievingAll: boolean;
         creating: boolean;
-        cloning: boolean;
+        cloning: Record<string, boolean>; // serviceName -> isCloning
         starting: Record<string, boolean>; // containerID -> isStarting
         stopping: Record<string, boolean>; // containerID -> isStopping
         removing: Record<string, boolean>; // containerID -> isRemoving

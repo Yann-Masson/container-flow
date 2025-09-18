@@ -4,18 +4,23 @@ import { Copy, Download, FileText, RefreshCw, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Input } from "../ui/input";
+import { useAppSelector } from "@/store/hooks";
+import { selectIsRetrievingAll, selectOperationStatus } from "@/store/selectors/containerSelectors";
 
 interface ContainerLogsDialogProps {
     containerName: string;
+    containerId: string;
     onGetLogs: () => Promise<string>;
-    disabled?: boolean; // New prop to disable the dialog
 }
 
-export function ContainerLogsDialog({ containerName, onGetLogs, disabled = false }: ContainerLogsDialogProps) {
+export function ContainerLogsDialog({ containerName, containerId, onGetLogs }: ContainerLogsDialogProps) {
     const [logs, setLogs] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+
+    const isRetrievingAll = useAppSelector(selectIsRetrievingAll);
+    const operationStatus = useAppSelector(selectOperationStatus);
 
     const fetchLogs = async () => {
         setIsLoading(true);
@@ -110,7 +115,7 @@ export function ContainerLogsDialog({ containerName, onGetLogs, disabled = false
                 <Button
                     variant="outline"
                     className="h-8 w-8 p-0"
-                    disabled={disabled}
+                    disabled={isRetrievingAll || operationStatus.removing[containerId]}
                 >
                     <FileText className="h-4 w-4"/>
                 </Button>
@@ -158,7 +163,7 @@ export function ContainerLogsDialog({ containerName, onGetLogs, disabled = false
                         </div>
                     </DialogTitle>
                     <DialogDescription>
-                        Logs en temps réel du conteneur • {logs?.split('\n').length || 0} lignes
+                        Real-time container logs • {logs?.split('\n').length || 0} lines
                     </DialogDescription>
                 </DialogHeader>
 
@@ -168,7 +173,7 @@ export function ContainerLogsDialog({ containerName, onGetLogs, disabled = false
                             <Search
                                 className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"/>
                             <Input
-                                placeholder="Rechercher dans les logs..."
+                                placeholder="Search logs..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-8"
@@ -193,9 +198,8 @@ export function ContainerLogsDialog({ containerName, onGetLogs, disabled = false
                         {isLoading ? (
                             <div className="flex items-center justify-center min-h-[calc(90vh-120px)]">
                                 <div className="flex items-center gap-2">
-                                    <div
-                                        className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
-                                    <span className="text-sm text-gray-600">Chargement des logs...</span>
+                                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                                    <span className="text-sm text-gray-600">Loading logs...</span>
                                 </div>
                             </div>
                         ) : (
@@ -219,7 +223,7 @@ export function ContainerLogsDialog({ containerName, onGetLogs, disabled = false
                                         )
                                     ) : (
                                         <div className="text-gray-500 italic text-center py-8">
-                                            Aucun log disponible
+                                            No logs available
                                         </div>
                                     )}
                                 </div>
