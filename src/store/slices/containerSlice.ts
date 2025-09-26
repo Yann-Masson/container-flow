@@ -172,7 +172,8 @@ const groupContainersIntoServices = (containers: ContainerInspectInfo[]): WordPr
         });
     });
 
-    return groupedServices;
+    // Sort projects alphabetically by name
+    return groupedServices.sort((a, b) => a.name.localeCompare(b.name));
 };
 
 // Utility to recompute a single WordPress project from its containers
@@ -202,6 +203,11 @@ const buildProjectFromContainers = (serviceName: string, containers: ContainerIn
         dbUser,
         url
     };
+};
+
+// Helper function to sort projects alphabetically
+const sortProjectsAlphabetically = (projects: WordPressProject[]): WordPressProject[] => {
+    return [...projects].sort((a, b) => a.name.localeCompare(b.name));
 };
 
 // Container slice
@@ -276,6 +282,8 @@ const containerSlice = createSlice({
                         } else {
                             state.projects.push(updatedProject);
                         }
+                        // Sort projects alphabetically after modification
+                        state.projects = sortProjectsAlphabetically(state.projects);
                     }
                 }
             })
@@ -303,6 +311,8 @@ const containerSlice = createSlice({
                 if (updatedProject) {
                     const projectIndex = state.projects.findIndex(p => p.name === serviceName);
                     if (projectIndex >= 0) state.projects[projectIndex] = updatedProject; else state.projects.push(updatedProject);
+                    // Sort projects alphabetically after modification
+                    state.projects = sortProjectsAlphabetically(state.projects);
                 }
             })
             .addCase(cloneContainer.rejected, (state, action) => {
@@ -331,6 +341,8 @@ const containerSlice = createSlice({
                         const projectIndex = state.projects.findIndex(p => p.name === serviceName);
                         if (updatedProject) {
                             if (projectIndex >= 0) state.projects[projectIndex] = updatedProject; else state.projects.push(updatedProject);
+                            // Sort projects alphabetically after modification
+                            state.projects = sortProjectsAlphabetically(state.projects);
                         }
                     }
                 }
@@ -359,6 +371,8 @@ const containerSlice = createSlice({
                         const projectIndex = state.projects.findIndex(p => p.name === serviceName);
                         if (updatedProject) {
                             if (projectIndex >= 0) state.projects[projectIndex] = updatedProject; else state.projects.push(updatedProject);
+                            // Sort projects alphabetically after modification
+                            state.projects = sortProjectsAlphabetically(state.projects);
                         }
                     }
                 }
@@ -386,7 +400,11 @@ const containerSlice = createSlice({
                         if (projectContainers.length) {
                             const updatedProject = buildProjectFromContainers(serviceName, projectContainers);
                             const projectIndex = state.projects.findIndex(p => p.name === serviceName);
-                            if (updatedProject && projectIndex >= 0) state.projects[projectIndex] = updatedProject;
+                            if (updatedProject && projectIndex >= 0) {
+                                state.projects[projectIndex] = updatedProject;
+                                // Sort projects alphabetically after modification
+                                state.projects = sortProjectsAlphabetically(state.projects);
+                            }
                         } else {
                             // Remove empty project
                             state.projects = state.projects.filter(p => p.name !== serviceName);

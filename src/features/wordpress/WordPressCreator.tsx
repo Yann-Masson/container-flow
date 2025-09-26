@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, ClipboardList, Copy, Globe2, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createWordPressProject } from '@/store/slices/containerSlice';
@@ -25,6 +25,27 @@ export default function WordPressCreator() {
         domain: '',
     });
     const [showPreview, setShowPreview] = useState(false);
+
+    // Computed preview values
+    const computedName = formData.name || 'my-site';
+    const containerName = `wordpress-${computedName}-1`;
+    const dbName = `wp_${(formData.name || 'my-site').replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const domainFallback = `${computedName}.agence-lumia.com`;
+    const computedDomain = formData.domain || domainFallback;
+    const traefikRule = `Host(\"${computedDomain}\")`;
+
+    const copyPreview = () => {
+        const summary = [
+            `Project: ${computedName}`,
+            `Container: ${containerName}`,
+            `Database: ${dbName}`,
+            `Domain: https://${computedDomain}`,
+            `Traefik: ${traefikRule}`,
+        ].join('\n');
+        navigator.clipboard.writeText(summary)
+            .then(() => toast.success('Preview copied to clipboard'))
+            .catch(() => toast.error('Failed to copy preview'));
+    };
 
     const handleInputChange = (field: 'name' | 'domain', value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -179,7 +200,7 @@ export default function WordPressCreator() {
 
                 {/* Preview Toggle */}
                 {!isLoading && (
-                    <div className="flex items-center justify-between border rounded-md p-3 bg-muted/30">
+                    <div className="flex items-center justify-between border rounded-md p-3 bg-muted/30 cursor-pointer" onClick={() => setShowPreview(!showPreview)}>
                         <div className="flex flex-col">
                             <span className="text-sm font-medium">Configuration preview</span>
                             <span className="text-xs text-gray-500">Toggle to show computed project details</span>
@@ -189,20 +210,67 @@ export default function WordPressCreator() {
                             onCheckedChange={(v) => setShowPreview(!!v)}
                             disabled={isCreating}
                             aria-label="Toggle configuration preview"
+                            className="cursor-pointer"
                         />
                     </div>
                 )}
 
                 {/* Preview */}
                 {!isLoading && showPreview && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">📋 Project preview</h4>
-                        <div className="text-sm text-blue-800 space-y-1">
-                            <div><strong>Project name:</strong> {formData.name || 'my-site'}</div>
-                            <div><strong>First container:</strong> wordpress-{formData.name || 'my-site'}-1</div>
-                            <div><strong>Database name:</strong> wp_{formData.name.replace(/[^a-zA-Z0-9]/g, '_') || 'my-site'}</div>
-                            <div><strong>Access URL:</strong> https://{formData.domain || 'my-site'}</div>
-                            <div><strong>Traefik routing:</strong> Host("{formData.domain || 'my-site'}")</div>
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/40">
+                            <div className="flex items-center gap-2">
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                    <ClipboardList className="h-4 w-4" />
+                                </span>
+                                <h4 className="font-medium text-sm">Project configuration preview</h4>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={copyPreview} aria-label="Copy configuration preview" disabled={isCreating}>
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div className="p-4 space-y-5">
+                            <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+                                <div className="space-y-1">
+                                    <dt className="flex items-center gap-2 font-medium text-muted-foreground">
+                                        <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-primary/10 text-primary text-[10px] font-semibold">ID</span>
+                                        Project Name
+                                    </dt>
+                                    <dd className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border">{computedName}</dd>
+                                </div>
+                                <div className="space-y-1">
+                                    <dt className="flex items-center gap-2 font-medium text-muted-foreground">
+                                        <Globe2 className="h-4 w-4" /> Access URL
+                                    </dt>
+                                    <dd className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border break-all">https://{computedDomain}</dd>
+                                </div>
+                                <div className="space-y-1">
+                                    <dt className="flex items-center gap-2 font-medium text-muted-foreground">
+                                        <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-primary/10 text-primary text-[10px] font-semibold">CT</span>
+                                        First Container
+                                    </dt>
+                                    <dd className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border">{containerName}</dd>
+                                </div>
+                                <div className="space-y-1">
+                                    <dt className="flex items-center gap-2 font-medium text-muted-foreground">
+                                        <Database className="h-4 w-4" /> Database Name
+                                    </dt>
+                                    <dd className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border">{dbName}</dd>
+                                </div>
+                                <div className="space-y-1 sm:col-span-2">
+                                    <dt className="flex items-center gap-2 font-medium text-muted-foreground">
+                                        <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-primary/10 text-primary text-[10px] font-semibold">TR</span>
+                                        Traefik Routing Rule
+                                    </dt>
+                                    <dd className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border">{traefikRule}</dd>
+                                </div>
+                            </dl>
+                            <div className="space-y-2">
+                                <p className="text-xs text-muted-foreground">These values are generated automatically based on your inputs and will be used to scaffold the WordPress environment (containers, database & Traefik labels).</p>
+                                {!formData.name && (
+                                    <p className="text-xs text-amber-600 flex items-center gap-1">Fill the project name to see the final resource names.</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
