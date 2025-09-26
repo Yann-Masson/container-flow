@@ -245,23 +245,18 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                         </div>
 
                                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={handleRemoveInstance}
-                                                disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
-                                            >
-                                                <Minus className="h-3 w-3"/>
-                                            </Button>
-
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={handleAddInstance}
-                                                disabled={isCloning || isRetrievingAll}
-                                            >
-                                                <Plus className="h-3 w-3"/>
-                                            </Button>
+                                            {project.url !== 'N/A' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={openUrl}
+                                                    className="cursor-pointer"
+                                                    disabled={isRetrievingAll}
+                                                >
+                                                    <ExternalLink className="h-3 w-3"/>
+                                                    <span className="hidden xs:inline">Open</span>
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -288,23 +283,18 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                         </div>
 
                                         <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={handleRemoveInstance}
-                                                disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
-                                            >
-                                                <Minus className="h-3 w-3"/>
-                                            </Button>
-
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={handleAddInstance}
-                                                disabled={isCloning || isRetrievingAll}
-                                            >
-                                                <Plus className="h-3 w-3"/>
-                                            </Button>
+                                            {project.url !== 'N/A' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={openUrl}
+                                                    className="cursor-pointer"
+                                                    disabled={isRetrievingAll}
+                                                >
+                                                    <ExternalLink className="h-3 w-3"/>
+                                                    <span className="hidden xs:inline">Open</span>
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -338,8 +328,8 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             disabled={isRetrievingAll}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
-                                            <span className="hidden xs:inline">Copy DB</span>
-                                            <span className="xs:hidden">DB</span>
+                                            <span className="hidden md:inline">Copy DB</span>
+                                            <span className="md:hidden">DB</span>
                                         </Button>
                                         <Button
                                             size="sm"
@@ -349,8 +339,8 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             disabled={isRetrievingAll}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
-                                            <span className="hidden xs:inline">Copy URL</span>
-                                            <span className="xs:hidden">URL</span>
+                                            <span className="hidden md:inline">Copy URL</span>
+                                            <span className="md:hidden">URL</span>
                                         </Button>
                                         <Button
                                             size="sm"
@@ -360,21 +350,27 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             disabled={isRetrievingAll}
                                         >
                                             <Settings className="h-3 w-3 mr-1"/>
-                                            <span className="hidden xs:inline">Change URL</span>
-                                            <span className="xs:hidden">URL</span>
+                                            <span className="hidden md:inline">Change URL</span>
+                                            <span className="md:hidden">URL</span>
                                         </Button>
-                                        {project.url !== 'N/A' && (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={openUrl}
-                                                className="cursor-pointer"
-                                                disabled={isRetrievingAll}
-                                            >
-                                                <ExternalLink className="h-3 w-3 mr-1"/>
-                                                <span className="hidden xs:inline">Open</span>
-                                            </Button>
-                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleRemoveInstance}
+                                            disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
+                                        >
+                                            <Minus className="h-3 w-3"/>
+                                            <span className="hidden md:block">Remove</span>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleAddInstance}
+                                            disabled={isCloning || isRetrievingAll}
+                                        >
+                                            <Plus className="h-3 w-3"/>
+                                            <span className="hidden md:inline">Add</span>
+                                        </Button>
                                     </div>
                                 </div>
 
