@@ -45,7 +45,12 @@ export function ContainerCard({
             getStatusColor={getStatusColor}
         >
             <Card
-                className="hover:shadow-md transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-600">
+                variant="glass"
+                accent="glow"
+                interactive={false}
+                withHoverOverlay
+                className="group relative py-4 overflow-hidden"
+            >
                 <CardContent>
                     <div className="flex justify-between items-center">
                         <div className="flex-1 gap-3">
@@ -98,6 +103,7 @@ export function ContainerCard({
 
                                 <div onClick={(e) => e.stopPropagation()}>
                                     <ContainerLogsDialog
+                                        containerId={container.Id}
                                         containerName={containerName}
                                         onGetLogs={() => onGetLogs(container.Id, containerName)}
                                     />

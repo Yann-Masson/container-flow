@@ -11,7 +11,12 @@ interface FormPageProps {
 export default function FormPage(props: FormPageProps) {
     const { setIsConnected } = props;
     return (
-        <Card className="w-full max-w-xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl border-gray-200 dark:border-gray-800">
+        <Card
+            variant="glass"
+            accent="glow"
+            interactive={false}
+            withHoverOverlay
+            className="group relative overflow-hidden w-full max-w-xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl border-gray-200 dark:border-gray-800">
             <CardHeader className="text-center space-y-2 flex flex-col items-center justify-center">
                     <img src={ContainerFlowSvg} alt="Container Flow" className="w-20 h-20"/>
                 <CardTitle

@@ -227,7 +227,13 @@ export default function List() {
             <Separator className="my-2"/>
 
             <section>
-                <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md">
+                <Card
+                    variant="glass"
+                    accent="glow"
+                    interactive={false}
+                    withHoverOverlay
+                    className="group relative overflow-hidden"
+                >
                     <CardHeader>
                         <CardTitle className="text-xl font-bold">Create a new
                             container</CardTitle>

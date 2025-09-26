@@ -9,7 +9,14 @@ export default function WordPressServiceSkeleton({ count = 3 }: WordPressService
     return (
         <>
             {Array.from({ length: count }).map((_, index) => (
-                <Card key={index} className="py-0">
+                <Card
+                    key={index}
+                    variant="glass"
+                    accent="glow"
+                    interactive={false}
+                    withHoverOverlay
+                    className="group relative py-0 overflow-hidden"
+                >
                     <CardHeader className="p-4">
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-3">
@@ -38,8 +45,7 @@ export default function WordPressServiceSkeleton({ count = 3 }: WordPressService
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <Skeleton className="h-8 w-8" /> {/* Minus button */}
-                                    <Skeleton className="h-8 w-8" /> {/* Plus button */}
+                                    <Skeleton className="h-8 w-8" /> {/* Open button */}
                                 </div>
                             </div>
                         </div>

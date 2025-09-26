@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
-    ChevronDown,
     ChevronRight,
     Copy,
     Database,
@@ -204,34 +204,84 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
         setIsChangeUrlDialogOpen(true);
     };
 
+    // Animation variants
+    const contentVariants = {
+        collapsed: { height: 0, opacity: 0, transition: { duration: 0.25, ease: 'easeInOut' } },
+        open: {
+            height: 'auto',
+            opacity: 1,
+            transition: {
+                height: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] },
+                opacity: { duration: 0.25, delay: 0.05 },
+                when: 'beforeChildren',
+                staggerChildren: 0.05
+            }
+        }
+    } as const;
+
+    const listVariants = {
+        hidden: {},
+        show: {
+            transition: {
+                staggerChildren: 0.05,
+                delayChildren: 0.05
+            }
+        }
+    } as const;
+
+    const itemVariants = {
+        hidden: { y: 8, opacity: 0 },
+        show: {
+            y: 0,
+            opacity: 1,
+            transition: { type: 'spring', stiffness: 300, damping: 25 }
+        }
+    } as const;
+
     return (
         <>
-            <Card className="py-0">
+            <Card
+                variant="glass"
+                accent="glow"
+                interactive={false}
+                withHoverOverlay
+                className="group relative py-0 overflow-hidden"
+            >
                 <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
                     <CollapsibleTrigger asChild>
-                        <CardHeader className="cursor-pointer transition-colors p-4 flex">
-                            <div className="w-full">
+                        <CardHeader className="cursor-pointer transition-colors p-4 flex relative overflow-hidden">
+                            <div className="w-full relative z-10">
                                 {/* Desktop Layout */}
                                 <div className="hidden sm:flex items-center justify-between w-full">
                                     <div className="flex items-center gap-3">
-                                        {isExpanded ? (
-                                            <ChevronDown className="h-4 w-4"/>
-                                        ) : (
-                                            <ChevronRight className="h-4 w-4"/>
-                                        )}
+                                        <motion.div
+                                            animate={{ rotate: isExpanded ? 90 : 0 }}
+                                            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                                            className="text-muted-foreground"
+                                        >
+                                            <ChevronRight className="h-4 w-4" />
+                                        </motion.div>
                                         <div>
                                             <CardTitle className="flex items-center gap-2">
                                                 <Globe className="h-5 w-5"/>
-                                                {project.name}
+                                                <motion.span layoutId={`wp-title-${project.name}`}>{project.name}</motion.span>
                                             </CardTitle>
-                                            <CardDescription>
-                                                {totalCount} container{totalCount !== 1 ? 's' : ''} • {runningCount} running
+                                            <CardDescription className="flex items-center gap-2 text-xs">
+                                                <span className="inline-flex items-center gap-1">
+                                                    <span className="font-semibold text-foreground/90">{totalCount}</span>
+                                                    container{totalCount !== 1 ? 's' : ''}
+                                                </span>
+                                                <span className="text-muted-foreground">•</span>
+                                                <span className="inline-flex items-center gap-1">
+                                                    <span className="font-semibold text-foreground/90">{runningCount}</span>
+                                                    running
+                                                </span>
                                             </CardDescription>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <div className="text-right text-sm text-gray-600 mr-4">
+                                        <div className="text-right text-sm text-gray-400 mr-4">
                                             <div className="flex items-center gap-4">
                                                 <span className="flex items-center flex-nowrap gap-1">
                                                     <Database className="h-3 w-3"/>
@@ -250,7 +300,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                     size="sm"
                                                     variant="outline"
                                                     onClick={openUrl}
-                                                    className="cursor-pointer"
+                                                    className="cursor-pointer hover:shadow-md hover:shadow-primary/20 transition"
                                                     disabled={isRetrievingAll}
                                                 >
                                                     <ExternalLink className="h-3 w-3"/>
@@ -265,19 +315,20 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                 <div className="sm:hidden space-y-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
-                                            {isExpanded ? (
-                                                <ChevronDown className="h-4 w-4 shrink-0"/>
-                                            ) : (
-                                                <ChevronRight className="h-4 w-4 shrink-0"/>
-                                            )}
+                                            <motion.div
+                                                animate={{ rotate: isExpanded ? 90 : 0 }}
+                                                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                                                className="text-muted-foreground shrink-0"
+                                            >
+                                                <ChevronRight className="h-4 w-4" />
+                                            </motion.div>
                                             <div className="min-w-0 flex-1">
                                                 <CardTitle className="flex items-center gap-2 truncate">
                                                     <Globe className="h-5 w-5 shrink-0"/>
                                                     <span className="truncate">{project.name}</span>
                                                 </CardTitle>
-                                                <CardDescription className="hidden min-[301px]:block">
-                                                    <p>{totalCount} container{totalCount !== 1 ? 's' : ''} • </p>
-                                                    <p>{runningCount} running</p>
+                                                <CardDescription className="hidden min-[301px]:block text-xs">
+                                                    <p>{totalCount} container{totalCount !== 1 ? 's' : ''} • {runningCount} running</p>
                                                 </CardDescription>
                                             </div>
                                         </div>
@@ -298,7 +349,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                         </div>
                                     </div>
 
-                                    <div className="flex-row w-full items-center justify-around gap-2 text-sm text-gray-600 pl-7 hidden min-[301px]:flex">
+                                    <div className="flex-row w-full items-center justify-around gap-2 text-sm text-gray-400 pl-7 hidden min-[301px]:flex">
                                         <span className="flex items-center gap-1 max-w-[200px] min-w-0">
                                             <Database className="h-3 w-3 shrink-0"/>
                                             <span className="truncate">{project.dbName}</span>
@@ -313,142 +364,182 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                         </CardHeader>
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent>
-                        <CardContent className="pb-4">
-                            <div className="space-y-3 ml-3 sm:ml-7">
-                                {/* Service Actions */}
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-3 bg-black rounded-lg gap-3 sm:gap-0">
-                                    <span className="text-sm font-medium sm:ml-4">Actions</span>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => copyToClipboard(project.dbName, 'Database name')}
-                                            className="cursor-pointer"
-                                            disabled={isRetrievingAll}
+                    {/* Animated Content */}
+                    <AnimatePresence initial={false}>
+                        {isExpanded && (
+                            <CollapsibleContent asChild forceMount>
+                                <motion.div
+                                    key="content"
+                                    initial="collapsed"
+                                    animate="open"
+                                    exit="collapsed"
+                                    variants={contentVariants}
+                                    style={{ overflow: 'hidden' }}
+                                >
+                                    <CardContent className="pb-4">
+                                        <motion.div
+                                            className="space-y-3 ml-3 sm:ml-7"
+                                            variants={listVariants}
+                                            initial="hidden"
+                                            animate="show"
+                                            exit="hidden"
                                         >
-                                            <Copy className="h-3 w-3 mr-1"/>
-                                            <span className="hidden md:inline">Copy DB</span>
-                                            <span className="md:hidden">DB</span>
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => copyToClipboard(project.url, 'URL')}
-                                            className="cursor-pointer"
-                                            disabled={isRetrievingAll}
-                                        >
-                                            <Copy className="h-3 w-3 mr-1"/>
-                                            <span className="hidden md:inline">Copy URL</span>
-                                            <span className="md:hidden">URL</span>
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={handleChangeUrl}
-                                            className="cursor-pointer"
-                                            disabled={isRetrievingAll}
-                                        >
-                                            <Settings className="h-3 w-3 mr-1"/>
-                                            <span className="hidden md:inline">Change URL</span>
-                                            <span className="md:hidden">URL</span>
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={handleRemoveInstance}
-                                            disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
-                                        >
-                                            <Minus className="h-3 w-3"/>
-                                            <span className="hidden md:block">Remove</span>
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={handleAddInstance}
-                                            disabled={isCloning || isRetrievingAll}
-                                        >
-                                            <Plus className="h-3 w-3"/>
-                                            <span className="hidden md:inline">Add</span>
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* Individual Containers */}
-                                {project.containers.map((container) => {
-                                    const instanceMatch = container.Name.match(/-(\d+)$/);
-                                    const instanceNumber = instanceMatch ? instanceMatch[1] : '1';
-                                    const isRunning = container.State.Status === 'running';
-
-                                    return (
-                                        <div
-                                            key={container.Id}
-                                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg gap-3 sm:gap-0"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                <div className={`w-2 h-2 rounded-full shrink-0 ${
-                                                    operationStatus.starting[container.Id] ? 'bg-blue-500' :
-                                                        operationStatus.stopping[container.Id] ? 'bg-yellow-500' :
-                                                        operationStatus.removing[container.Id] ? 'bg-red-500' :
-                                                        isRunning ? 'bg-green-500' : 'bg-gray-400'
-                                                }`}/>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2">
-                                                        <span className="font-medium truncate">
-                                                            {project.name}
-                                                            <span className="text-gray-500">-{instanceNumber}</span>
-                                                        </span>
-                                                        <Badge
-                                                            variant={isRunning ? 'default' : 'secondary'}
-                                                            className="text-xs w-fit"
-                                                        >
-                                                            {
-                                                                (operationStatus.starting[container.Id] ? 'starting' :
-                                                                operationStatus.stopping[container.Id] ? 'stopping' :
-                                                                operationStatus.removing[container.Id] ? 'removing' :
-                                                                container.State.Status)
-                                                            }
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">
-                                                        Created {new Date(container.Created).toLocaleDateString('en-US')}
-                                                    </div>
+                                            {/* Service Actions */}
+                                            <motion.div
+                                                variants={itemVariants}
+                                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-3 bg-gradient-to-r from-black/70 to-black/40 rounded-lg gap-3 sm:gap-0"
+                                            >
+                                                <span className="text-sm font-medium sm:ml-4 tracking-wide text-foreground/90 flex items-center gap-2">
+                                                    <motion.span
+                                                        className="inline-block w-1.5 h-1.5 rounded-full bg-primary"
+                                                        animate={{ scale: isExpanded ? [1,1.4,1] : 1 }}
+                                                        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                                                    />
+                                                    Actions
+                                                </span>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => copyToClipboard(project.dbName, 'Database name')}
+                                                        className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
+                                                        disabled={isRetrievingAll}
+                                                    >
+                                                        <Copy className="h-3 w-3 mr-1"/>
+                                                        <span className="hidden md:inline">Copy DB</span>
+                                                        <span className="md:hidden">DB</span>
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => copyToClipboard(project.url, 'URL')}
+                                                        className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
+                                                        disabled={isRetrievingAll}
+                                                    >
+                                                        <Copy className="h-3 w-3 mr-1"/>
+                                                        <span className="hidden md:inline">Copy URL</span>
+                                                        <span className="md:hidden">URL</span>
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={handleChangeUrl}
+                                                        className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
+                                                        disabled={isRetrievingAll}
+                                                    >
+                                                        <Settings className="h-3 w-3 mr-1"/>
+                                                        <span className="hidden md:inline">Change URL</span>
+                                                        <span className="md:hidden">URL</span>
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={handleRemoveInstance}
+                                                        disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
+                                                        className="hover:shadow hover:shadow-primary/20 transition"
+                                                    >
+                                                        <Minus className="h-3 w-3"/>
+                                                        <span className="hidden md:block">Remove</span>
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={handleAddInstance}
+                                                        disabled={isCloning || isRetrievingAll}
+                                                        className="hover:shadow hover:shadow-primary/20 transition"
+                                                    >
+                                                        <Plus className="h-3 w-3"/>
+                                                        <span className="hidden md:inline">Add</span>
+                                                    </Button>
                                                 </div>
-                                            </div>
+                                            </motion.div>
 
-                                            <div className="flex items-center gap-2 justify-end sm:justify-start">
-                                                <ContainerLogsDialog
-                                                    containerName={container.Name.replace('wordpress-', '')}
-                                                    containerId={container.Id}
-                                                    onGetLogs={() => window.electronAPI.docker.containers.getLogs(container.Id, { follow: true })}
-                                                />
+                                            {/* Individual Containers */}
+                                            {project.containers.map((container) => {
+                                                const instanceMatch = container.Name.match(/-(\d+)$/);
+                                                const instanceNumber = instanceMatch ? instanceMatch[1] : '1';
+                                                const isRunning = container.State.Status === 'running';
 
-                                                {isRunning ? (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => handleContainerAction(container, 'stop')}
-                                                        disabled={operationStatus.stopping[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
+                                                return (
+                                                    <motion.div
+                                                        key={container.Id}
+                                                        variants={itemVariants}
+                                                        layout
+                                                        className="group/row relative flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg gap-3 sm:gap-0 bg-black/30 hover:bg-black/50 transition-colors ring-1 ring-white/5 overflow-hidden"
                                                     >
-                                                        <Square className="h-3 w-3"/>
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => handleContainerAction(container, 'start')}
-                                                        disabled={operationStatus.starting[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
-                                                    >
-                                                        <Play className="h-3 w-3"/>
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </CardContent>
-                    </CollapsibleContent>
+                                                        <div className="pointer-events-none absolute inset-0 opacity-0 group-hover/row:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_90%_20%,rgba(59,130,246,0.15),transparent_70%)]" />
+                                                        <div className="flex items-center gap-3 min-w-0 flex-1 relative z-10">
+                                                            <motion.div
+                                                                className={`w-2 h-2 rounded-full shrink-0 ${
+                                                                    operationStatus.starting[container.Id] ? 'bg-blue-500' :
+                                                                    operationStatus.stopping[container.Id] ? 'bg-yellow-500' :
+                                                                    operationStatus.removing[container.Id] ? 'bg-red-500' :
+                                                                    isRunning ? 'bg-green-500' : 'bg-gray-400'
+                                                                }`}
+                                                                layoutId={`status-dot-${container.Id}`}
+                                                            />
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2">
+                                                                    <span className="font-medium truncate">
+                                                                        {project.name}
+                                                                        <span className="text-gray-500">-{instanceNumber}</span>
+                                                                    </span>
+                                                                    <Badge
+                                                                        variant={isRunning ? 'default' : 'secondary'}
+                                                                        className="text-xs w-fit capitalize"
+                                                                    >
+                                                                        {
+                                                                            (operationStatus.starting[container.Id] ? 'starting' :
+                                                                            operationStatus.stopping[container.Id] ? 'stopping' :
+                                                                            operationStatus.removing[container.Id] ? 'removing' :
+                                                                            container.State.Status)
+                                                                        }
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="text-xs text-gray-400">
+                                                                    Created {new Date(container.Created).toLocaleDateString('en-US')}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2 justify-end sm:justify-start relative z-10">
+                                                            <ContainerLogsDialog
+                                                                containerName={container.Name.replace('wordpress-', '')}
+                                                                containerId={container.Id}
+                                                                onGetLogs={() => window.electronAPI.docker.containers.getLogs(container.Id, { follow: true })}
+                                                            />
+
+                                                            {isRunning ? (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => handleContainerAction(container, 'stop')}
+                                                                    disabled={operationStatus.stopping[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
+                                                                    className="hover:shadow hover:shadow-primary/20 transition"
+                                                                >
+                                                                    <Square className="h-3 w-3"/>
+                                                                </Button>
+                                                            ) : (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => handleContainerAction(container, 'start')}
+                                                                    disabled={operationStatus.starting[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
+                                                                    className="hover:shadow hover:shadow-primary/20 transition"
+                                                                >
+                                                                    <Play className="h-3 w-3"/>
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </motion.div>
+                                    </CardContent>
+                                </motion.div>
+                            </CollapsibleContent>
+                        )}
+                    </AnimatePresence>
                 </Collapsible>
             </Card>
 
