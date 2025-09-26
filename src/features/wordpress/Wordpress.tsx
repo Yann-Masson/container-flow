@@ -2,20 +2,12 @@ import { useEffect, useState } from 'react';
 import WordPressSetupCard from './setup/WordPressSetupCard';
 import WordPressCreator from './WordPressCreator';
 import WordPressList from './WordPressList';
-import { useAppSelector } from '@/store/hooks';
-import { selectContainerStatus } from '@/store/selectors/containerSelectors';
-import { State } from '@/types/state';
 
 type TransitionState = 'setup' | 'transitioning' | 'creator';
 
 export default function WordPress() {
     const [setupCompleted, setSetupCompleted] = useState(false);
     const [transitionState, setTransitionState] = useState<TransitionState>('setup');
-    const [refreshKey, setRefreshKey] = useState(0);
-    
-    // Redux state
-    const containerStatus = useAppSelector(selectContainerStatus);
-    const isLoading = containerStatus === State.LOADING;
 
     useEffect(() => {
         if (setupCompleted && transitionState === 'setup') {
@@ -47,27 +39,12 @@ export default function WordPress() {
         setTransitionState('setup');
     };
 
-    const handleProjectCreated = () => {
-        setRefreshKey(prev => prev + 1);
-    };
-
-    const handleRefresh = () => {
-        // This will be called by WordPressList when it refreshes
-        // We can use this to update any parent state if needed
-    };
-
     // Render based on transition state
     if (transitionState === 'creator') {
         return (
             <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 space-y-6">
-                <WordPressList
-                    key={refreshKey} 
-                    onRefresh={handleRefresh} 
-                />
-                <WordPressCreator 
-                    onProjectCreated={handleProjectCreated}
-                    disabled={isLoading} // Disable when container list is loading
-                />
+                <WordPressList />
+                <WordPressCreator />
             </div>
         );
     }

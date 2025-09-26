@@ -15,11 +15,7 @@ import {
 } from '@/store/selectors/containerSelectors';
 import { State } from '@/types/state';
 
-interface WordPressListProps {
-    onRefresh?: () => void;
-}
-
-export default function WordPressList({ onRefresh }: WordPressListProps) {
+export default function WordPressList() {
     const dispatch = useAppDispatch();
     
     // Redux state
@@ -34,9 +30,7 @@ export default function WordPressList({ onRefresh }: WordPressListProps) {
     const retrieveContainers = useCallback(async () => {
         try {
             const resultAction = await dispatch(fetchContainers());
-            if (fetchContainers.fulfilled.match(resultAction)) {
-                onRefresh?.();
-            } else if (fetchContainers.rejected.match(resultAction)) {
+            if (fetchContainers.rejected.match(resultAction)) {
                 toast.error('❌ Error retrieving containers', {
                     description: resultAction.payload as string || 'An unknown error occurred',
                 });
@@ -64,12 +58,14 @@ export default function WordPressList({ onRefresh }: WordPressListProps) {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold">WordPress Projects ({projectCount})</h2>
-                    <p className="text-sm text-gray-600">
-                        {totalContainerCount} total containers
-                    </p>
+                    <h2 className="text-lg font-semibold">{status === State.SUCCESS && projectCount} WordPress Projects</h2>
+                    {status === State.SUCCESS && (
+                        <p className="text-sm text-gray-600 hidden sm:block">
+                            {totalContainerCount} total containers
+                        </p>
+                    )}
                 </div>
                 <Button
                     variant="outline"

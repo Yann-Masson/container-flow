@@ -53,8 +53,11 @@ export const createWordPressProject = createAsyncThunk(
     'containers/createWordPressProject',
     async (payload: CreateWordPressProjectPayload, { rejectWithValue }) => {
         try {
-            await window.electronAPI.docker.wordpress.create(payload);
-            return payload;
+            const createdContainer = await window.electronAPI.docker.wordpress.create(payload);
+            // Fetch the full container details
+            const inspectInfo = await window.electronAPI.docker.containers.get(createdContainer.id);
+            inspectInfo.Name = inspectInfo.Name.replace(/^\/+/, '');
+            return { payload, container: inspectInfo };
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to create WordPress project';
             return rejectWithValue(message);
@@ -251,9 +254,30 @@ const containerSlice = createSlice({
                 state.operationStatus.creating = true;
                 state.error = null;
             })
-            .addCase(createWordPressProject.fulfilled, (state) => {
+            .addCase(createWordPressProject.fulfilled, (state, action) => {
                 state.operationStatus.creating = false;
                 state.error = null;
+                
+                // Add the new container to the containers array
+                const newContainer = action.payload.container;
+                state.containers.push(newContainer);
+                
+                // Create or update the project with this new container
+                const serviceName = newContainer.Config.Labels?.['container-flow.name'];
+                if (serviceName) {
+                    const projectContainers = state.containers.filter(c => 
+                        c.Config.Labels?.['container-flow.name'] === serviceName
+                    );
+                    const updatedProject = buildProjectFromContainers(serviceName, projectContainers);
+                    if (updatedProject) {
+                        const projectIndex = state.projects.findIndex(p => p.name === serviceName);
+                        if (projectIndex >= 0) {
+                            state.projects[projectIndex] = updatedProject;
+                        } else {
+                            state.projects.push(updatedProject);
+                        }
+                    }
+                }
             })
             .addCase(createWordPressProject.rejected, (state, action) => {
                 state.operationStatus.creating = false;

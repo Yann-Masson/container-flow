@@ -210,56 +210,113 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                 <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
                     <CollapsibleTrigger asChild>
                         <CardHeader className="cursor-pointer transition-colors p-4 flex">
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-3">
-                                    {isExpanded ? (
-                                        <ChevronDown className="h-4 w-4"/>
-                                    ) : (
-                                        <ChevronRight className="h-4 w-4"/>
-                                    )}
-                                    <div>
-                                        <CardTitle className="flex items-center gap-2">
-                                            <Globe className="h-5 w-5"/>
-                                            {project.name}
-                                        </CardTitle>
-                                        <CardDescription>
-                                            {totalCount} container{totalCount !== 1 ? 's' : ''} • {runningCount} running
-                                        </CardDescription>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <div className="text-right text-sm text-gray-600 mr-4">
-                                        <div className="flex items-center gap-4">
-                                            <span className="flex items-center gap-1">
-                                                <Database className="h-3 w-3"/>
-                                                {project.dbName}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Globe className="h-3 w-3"/>
-                                                {project.url}
-                                            </span>
+                            <div className="w-full">
+                                {/* Desktop Layout */}
+                                <div className="hidden sm:flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-3">
+                                        {isExpanded ? (
+                                            <ChevronDown className="h-4 w-4"/>
+                                        ) : (
+                                            <ChevronRight className="h-4 w-4"/>
+                                        )}
+                                        <div>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Globe className="h-5 w-5"/>
+                                                {project.name}
+                                            </CardTitle>
+                                            <CardDescription>
+                                                {totalCount} container{totalCount !== 1 ? 's' : ''} • {runningCount} running
+                                            </CardDescription>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={handleRemoveInstance}
-                                            disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
-                                        >
-                                            <Minus className="h-3 w-3"/>
-                                        </Button>
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-right text-sm text-gray-600 mr-4">
+                                            <div className="flex items-center gap-4">
+                                                <span className="flex items-center flex-nowrap gap-1">
+                                                    <Database className="h-3 w-3"/>
+                                                    {project.dbName}
+                                                </span>
+                                                <span className="flex items-center gap-1 max-w-[200px] min-w-0">
+                                                    <Globe className="h-3 w-3 shrink-0" />
+                                                    <span className="truncate">{project.url}</span>
+                                                </span>
+                                            </div>
+                                        </div>
 
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={handleAddInstance}
-                                            disabled={isCloning || isRetrievingAll}
-                                        >
-                                            <Plus className="h-3 w-3"/>
-                                        </Button>
+                                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={handleRemoveInstance}
+                                                disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
+                                            >
+                                                <Minus className="h-3 w-3"/>
+                                            </Button>
+
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={handleAddInstance}
+                                                disabled={isCloning || isRetrievingAll}
+                                            >
+                                                <Plus className="h-3 w-3"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Mobile/Tablet Layout */}
+                                <div className="sm:hidden space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                                            {isExpanded ? (
+                                                <ChevronDown className="h-4 w-4 shrink-0"/>
+                                            ) : (
+                                                <ChevronRight className="h-4 w-4 shrink-0"/>
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <CardTitle className="flex items-center gap-2 truncate">
+                                                    <Globe className="h-5 w-5 shrink-0"/>
+                                                    <span className="truncate">{project.name}</span>
+                                                </CardTitle>
+                                                <CardDescription className="hidden min-[301px]:block">
+                                                    <p>{totalCount} container{totalCount !== 1 ? 's' : ''} • </p>
+                                                    <p>{runningCount} running</p>
+                                                </CardDescription>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={handleRemoveInstance}
+                                                disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
+                                            >
+                                                <Minus className="h-3 w-3"/>
+                                            </Button>
+
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={handleAddInstance}
+                                                disabled={isCloning || isRetrievingAll}
+                                            >
+                                                <Plus className="h-3 w-3"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-row w-full items-center justify-around gap-2 text-sm text-gray-600 pl-7 hidden min-[301px]:flex">
+                                        <span className="flex items-center gap-1 max-w-[200px] min-w-0">
+                                            <Database className="h-3 w-3 shrink-0"/>
+                                            <span className="truncate">{project.dbName}</span>
+                                        </span>
+                                        <span className="flex items-center gap-1 max-w-[200px] min-w-0">
+                                            <Globe className="h-3 w-3 shrink-0" />
+                                            <span className="truncate">{project.url}</span>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -268,10 +325,11 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
 
                     <CollapsibleContent>
                         <CardContent className="pb-4">
-                            <div className="space-y-3 ml-7">
-                                <div className="flex items-center justify-between w-full p-3 bg-black rounded-lg">
-                                    <span className="text-sm font-medium ml-4">Project Actions</span>
-                                    <div className="flex items-center gap-2">
+                            <div className="space-y-3 ml-3 sm:ml-7">
+                                {/* Service Actions */}
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-3 bg-black rounded-lg gap-3 sm:gap-0">
+                                    <span className="text-sm font-medium sm:ml-4">Actions</span>
+                                    <div className="flex flex-wrap items-center gap-2">
                                         <Button
                                             size="sm"
                                             variant="outline"
@@ -280,7 +338,8 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             disabled={isRetrievingAll}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
-                                            Copy DB
+                                            <span className="hidden xs:inline">Copy DB</span>
+                                            <span className="xs:hidden">DB</span>
                                         </Button>
                                         <Button
                                             size="sm"
@@ -290,7 +349,8 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             disabled={isRetrievingAll}
                                         >
                                             <Copy className="h-3 w-3 mr-1"/>
-                                            Copy URL
+                                            <span className="hidden xs:inline">Copy URL</span>
+                                            <span className="xs:hidden">URL</span>
                                         </Button>
                                         <Button
                                             size="sm"
@@ -300,7 +360,8 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             disabled={isRetrievingAll}
                                         >
                                             <Settings className="h-3 w-3 mr-1"/>
-                                            Change URL
+                                            <span className="hidden xs:inline">Change URL</span>
+                                            <span className="xs:hidden">URL</span>
                                         </Button>
                                         {project.url !== 'N/A' && (
                                             <Button
@@ -311,7 +372,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                 disabled={isRetrievingAll}
                                             >
                                                 <ExternalLink className="h-3 w-3 mr-1"/>
-                                                Open
+                                                <span className="hidden xs:inline">Open</span>
                                             </Button>
                                         )}
                                     </div>
@@ -326,24 +387,24 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                     return (
                                         <div
                                             key={container.Id}
-                                            className="flex items-center justify-between p-3 border rounded-lg"
+                                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg gap-3 sm:gap-0"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-2 h-2 rounded-full ${
+                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                <div className={`w-2 h-2 rounded-full shrink-0 ${
                                                     operationStatus.starting[container.Id] ? 'bg-blue-500' :
                                                         operationStatus.stopping[container.Id] ? 'bg-yellow-500' :
                                                         operationStatus.removing[container.Id] ? 'bg-red-500' :
                                                         isRunning ? 'bg-green-500' : 'bg-gray-400'
                                                 }`}/>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium">
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2">
+                                                        <span className="font-medium truncate">
                                                             {project.name}
                                                             <span className="text-gray-500">-{instanceNumber}</span>
                                                         </span>
                                                         <Badge
                                                             variant={isRunning ? 'default' : 'secondary'}
-                                                            className="text-xs"
+                                                            className="text-xs w-fit"
                                                         >
                                                             {
                                                                 (operationStatus.starting[container.Id] ? 'starting' :
@@ -359,7 +420,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 justify-end sm:justify-start">
                                                 <ContainerLogsDialog
                                                     containerName={container.Name.replace('wordpress-', '')}
                                                     containerId={container.Id}
