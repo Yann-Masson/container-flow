@@ -17,19 +17,6 @@ export default function containerConfig(containerInfo: ContainerInspectInfo, exp
         return false;
     }
 
-    // For MySQL, check if root password env is set
-    if (expectedConfig.name === 'mysql') {
-        return containerInfo.Config?.Env?.some((env: string) =>
-            env.startsWith('MYSQL_ROOT_PASSWORD=')
-        ) ?? false;
-    }
-
-    // For Traefik, check if it has the required labels
-    if (expectedConfig.name === 'traefik') {
-        const labels = containerInfo.Config?.Labels || {};
-        return labels['traefik.enable'] === 'true';
-    }
-
     // Labels in the expected config should match those in the container
     const expectedLabels = expectedConfig.Labels || {};
     const actualLabels = containerInfo.Config?.Labels || {};
@@ -37,6 +24,17 @@ export default function containerConfig(containerInfo: ContainerInspectInfo, exp
     for (const [key, value] of Object.entries(expectedLabels)) {
         if (actualLabels[key] !== value) {
             console.warn(`Container label mismatch for ${key}: expected ${value}, got ${actualLabels[key]}`);
+            return false;
+        }
+    }
+
+    // Environment variables in the expected config should match those in the container
+    const expectedEnv = expectedConfig.Env || [];
+    const actualEnv = containerInfo.Config?.Env || [];
+
+    for (let i = 0; i < expectedEnv.length; i++) {
+        if (!actualEnv.includes(expectedEnv[i])) {
+            console.warn(`Container environment variable mismatch: expected ${expectedEnv[i]} not found in actual env`);
             return false;
         }
     }

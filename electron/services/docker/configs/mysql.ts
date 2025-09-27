@@ -16,7 +16,11 @@ const mysql: ContainerCreateOptions = {
             MaximumRetryCount: 0,
         },
     },
-    Env: ['MYSQL_ROOT_PASSWORD=rootpassword'],
+    Env: [
+        'MYSQL_ROOT_PASSWORD=lumiarootpassword',
+        // Allow root access from other containers (needed for mysqld-exporter DSN root@mysql)
+        'MYSQL_ROOT_HOST=%'
+    ],
 };
 
 export default mysql;

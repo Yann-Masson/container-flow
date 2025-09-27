@@ -17,8 +17,16 @@ import mysqldExporterConfig from '../configs/mysqld-exporter';
 import nodeExporterConfig from '../configs/node-exporter';
 import validate from "./validate";
 import utils from "./utils";
+import ensureMetricsUser from './utils/ensure-metrics-user';
 import provisionGrafana from '../../docker/monitoring/provision-grafana';
-import containerOverviewDashboard from '../../docker/monitoring/dashboards/container-overview';
+import { 
+    vpsHealthDashboard,
+    containersDashboard,
+    networkDashboard,
+    databaseDashboard,
+    traefikDashboard,
+    highLevelOverviewDashboard
+} from '../../docker/monitoring/dashboards';
 
 // Event emitter for setup progress
 type ProgressCallback = (step: string, status: 'starting' | 'success' | 'error', message?: string) => void;
@@ -204,6 +212,16 @@ export default async function setup(
         await utils.waitMysql();
         progressCallback?.('mysql-ready', 'success', 'MySQL is ready');
 
+        // Ensure metrics user exists before (re)creating mysqld-exporter so we don't rely on root
+        progressCallback?.('mysql-metrics-user', 'starting', 'Ensuring MySQL metrics user exists...');
+        let metricsDsn: string | null = null;
+        try {
+            metricsDsn = await ensureMetricsUser();
+            progressCallback?.('mysql-metrics-user', 'success', 'Metrics user ensured');
+        } catch (e) {
+            console.warn('Failed to ensure metrics user, will fallback to root credentials if available', e);
+        }
+
         // 4. Monitoring stack (always enabled)
         // cAdvisor
         progressCallback?.('cadvisor', 'starting', 'Checking cAdvisor container...');
@@ -244,15 +262,26 @@ export default async function setup(
         progressCallback?.('mysqld-exporter', 'starting', 'Checking MySQL exporter container...');
         console.log('Checking MySQL exporter container...');
         const existingMysqlExporter = await getContainerByName('mysqld-exporter');
+
+        // Clone config to inject DSN
+        const exporterConfig = { ...mysqldExporterConfig };
+        exporterConfig.Env = exporterConfig.Env ? [...exporterConfig.Env] : [];
+        const dsn = metricsDsn || 'root:lumiarootpassword@(mysql:3306)/';
+        exporterConfig.Env.push(`DATA_SOURCE_NAME=${dsn}`);
+
+        exporterConfig.Cmd = exporterConfig.Cmd ? [...exporterConfig.Cmd] : [];
+        exporterConfig.Cmd.push(`--mysqld.username=${metricsDsn ? metricsDsn.split('@')[0] : 'root'}`);
+
         if (existingMysqlExporter) {
             const container = client.getContainer(existingMysqlExporter.id);
             const containerInfo = await container.inspect();
-            if (!validate.containerConfig(containerInfo, mysqldExporterConfig)) {
+            if (!validate.containerConfig(containerInfo, exporterConfig)) {
                 if (force) {
                     console.log('Invalid mysqld-exporter configuration, removing and recreating...');
                     progressCallback?.('mysqld-exporter', 'starting', 'Recreating invalid mysqld-exporter container...');
                     await removeContainer(existingMysqlExporter.id, { force: true, volume: true });
-                    mysqldExporterContainer = await createContainer(mysqldExporterConfig);
+
+                    mysqldExporterContainer = await createContainer(exporterConfig);
                     await connectToNetwork('CF-WP', { Container: mysqldExporterContainer.id });
                     await startContainer(mysqldExporterContainer.id);
                 } else {
@@ -268,7 +297,8 @@ export default async function setup(
             }
         } else {
             console.log('Creating mysqld-exporter container...');
-            mysqldExporterContainer = await createContainer(mysqldExporterConfig);
+            
+            mysqldExporterContainer = await createContainer(exporterConfig);
             await connectToNetwork('CF-WP', { Container: mysqldExporterContainer.id });
             await startContainer(mysqldExporterContainer.id);
         }
@@ -399,11 +429,12 @@ export default async function setup(
                             baseUrl: base,
                             prometheusUrl: 'http://prometheus:9090',
                             dashboards: [
-                                {
-                                    title: 'Container Flow Overview',
-                                    uid: 'cf-overview',
-                                    json: containerOverviewDashboard,
-                                }
+                                { title: 'VPS Health', uid: 'cf-vps', json: vpsHealthDashboard },
+                                { title: 'Containers', uid: 'cf-cont', json: containersDashboard },
+                                { title: 'Network', uid: 'cf-net', json: networkDashboard },
+                                { title: 'Database (MySQL)', uid: 'cf-db', json: databaseDashboard },
+                                { title: 'Traefik', uid: 'cf-traefik', json: traefikDashboard },
+                                { title: 'System Overview', uid: 'cf-high', json: highLevelOverviewDashboard },
                             ],
                             retry: { attempts: 40, intervalMs: 2000 },
                             logger: (m) => console.log(m),

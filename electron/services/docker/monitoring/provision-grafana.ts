@@ -148,6 +148,12 @@ export async function provisionGrafana(opts: ProvisionGrafanaOptions = {}): Prom
         folderId: dash.folderId ?? 0,
         message: 'Automated provisioning',
       };
+
+      const alreadyExistsResp = await fetch(`${baseUrl}/api/dashboards/uid/${encodeURIComponent(dash.uid || dashboardPatched.uid)}`, { headers });
+      if (alreadyExistsResp.ok) {
+        continue;
+      }
+
       const r = await fetch(`${baseUrl}/api/dashboards/db`, {
         method: 'POST',
         headers,

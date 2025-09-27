@@ -94,7 +94,7 @@ export const getMySQLConnectionOptions = () => {
         host: '127.0.0.1',
         port: MYSQL_LOCAL_PORT,
         user: 'root',
-        password: 'rootpassword',
+        password: 'lumiarootpassword',
     };
 };
 

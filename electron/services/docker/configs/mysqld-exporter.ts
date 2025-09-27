@@ -6,17 +6,21 @@ import { ContainerCreateOptions } from 'dockerode';
  */
 const mysqldExporter: ContainerCreateOptions = {
   name: 'mysqld-exporter',
-  Image: 'prom/mysqld-exporter:v0.15.1',
+  Image: 'prom/mysqld-exporter:v0.17.2',
   ExposedPorts: {
     '9104/tcp': {},
   },
   HostConfig: {
     RestartPolicy: { Name: 'always', MaximumRetryCount: 0 },
   },
-  Env: [
-    // root password must match mysql container configuration
-    'DATA_SOURCE_NAME=root:rootpassword@(mysql:3306)/'
+  Cmd: [
+    "--collect.global_status",
+    "--collect.info_schema.tables",
+    "--collect.info_schema.innodb_metrics",
+    "--collect.info_schema.processlist",
+    "--mysqld.address=mysql:3306"
   ],
+  Env: [],
   Labels: {
     'com.containerflow.monitoring': 'true',
   },
