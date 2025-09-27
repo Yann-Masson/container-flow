@@ -1,39 +1,26 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import {
-    ChevronRight,
-    Copy,
-    Database,
-    ExternalLink,
-    Globe,
-    Minus,
-    Play,
-    Plus,
-    Settings,
-    Square
-} from 'lucide-react';
+// Icons now handled inside subcomponents
 import { ContainerInspectInfo } from "dockerode";
 import { toast } from 'sonner';
-import { ContainerLogsDialog } from "@/components/container/ContainerLogsDialog.tsx";
+// Logs dialog handled inside WordPressContainerRow component
 import WordPressChangeUrlDialog from './WordPressChangeUrlDialog';
+import { WordPressDeleteDialog } from './WordPressDeleteDialog';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { 
-    cloneContainer, 
-    startContainer, 
-    stopContainer, 
-    removeContainer,
-    deleteWordPressProject
-} from '@/store/slices/containerSlice';
+import { cloneContainer, startContainer, stopContainer, removeContainer } from '@/store/slices/containerSlice';
 import { 
     selectIsCloning,
     selectIsRetrievingAll,
-    selectOperationStatus
+    selectOperationStatus,
+    selectIsProjectDeleting
 } from '@/store/selectors/containerSelectors';
 import { WordPressProject } from '@/store/types/container';
+import { WordPressProjectHeader } from './components/WordPressProjectHeader';
+import { WordPressProjectActions } from './components/WordPressProjectActions';
+import { WordPressContainerRow } from './components/WordPressContainerRow';
+import { contentVariants, listVariants } from './components/variants';
 
 interface WordPressProjectCardProps {
     project: WordPressProject;
@@ -44,8 +31,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
     
     const [isExpanded, setIsExpanded] = useState(false);
     const [isChangeUrlDialogOpen, setIsChangeUrlDialogOpen] = useState(false);
-    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-    const [deleteConfirmationValue, setDeleteConfirmationValue] = useState("");
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const isRetrievingAll = useAppSelector(selectIsRetrievingAll);
     
@@ -55,7 +41,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
     // Single selector for all operation statuses to avoid dynamic hook calls
     const operationStatus = useAppSelector(selectOperationStatus);
     const isAnyInstanceRemoving = project.containers.some(c => operationStatus.removing[c.Id]);
-    const isDeletingProject = (operationStatus as any).deleting?.[project.name];
+    const isDeletingProject = useAppSelector(selectIsProjectDeleting(project.name));
 
     const runningCount = project.containers.filter(c => c.State.Status === 'running').length;
     const totalCount = project.containers.length;
@@ -208,57 +194,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
         setIsChangeUrlDialogOpen(true);
     };
 
-    const handleDeleteProject = async () => {
-        if (isDeletingProject) return;
-        try {
-            toast.info('🧨 Deleting project...', { description: project.name });
-            const result = await dispatch(deleteWordPressProject(project.name));
-            if (deleteWordPressProject.fulfilled.match(result)) {
-                toast.success('✅ Project deleted', { description: project.name });
-            } else if (deleteWordPressProject.rejected.match(result)) {
-                toast.error('❌ Error deleting project', { description: result.payload as string || 'Unknown error' });
-            }
-        } catch (e) {
-            toast.error('❌ Error deleting project', { description: e instanceof Error ? e.message : 'Unknown error' });
-        } finally {
-            setIsDeleteConfirmOpen(false);
-            setDeleteConfirmationValue("");
-        }
-    };
-
-    // Animation variants
-    const contentVariants = {
-        collapsed: { height: 0, opacity: 0, transition: { duration: 0.25, ease: 'easeInOut' } },
-        open: {
-            height: 'auto',
-            opacity: 1,
-            transition: {
-                height: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] },
-                opacity: { duration: 0.25, delay: 0.05 },
-                when: 'beforeChildren',
-                staggerChildren: 0.05
-            }
-        }
-    } as const;
-
-    const listVariants = {
-        hidden: {},
-        show: {
-            transition: {
-                staggerChildren: 0.05,
-                delayChildren: 0.05
-            }
-        }
-    } as const;
-
-    const itemVariants = {
-        hidden: { y: 8, opacity: 0 },
-        show: {
-            y: 0,
-            opacity: 1,
-            transition: { type: 'spring', stiffness: 300, damping: 25 }
-        }
-    } as const;
+    // Variants extracted to external module
 
     return (
         <>
@@ -272,117 +208,14 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                 <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
                     <CollapsibleTrigger asChild>
                         <CardHeader className="cursor-pointer transition-colors p-4 flex relative overflow-hidden">
-                            <div className="w-full relative z-10">
-                                {/* Desktop Layout */}
-                                <div className="hidden sm:flex items-center justify-between w-full">
-                                    <div className="flex items-center gap-3">
-                                        <motion.div
-                                            animate={{ rotate: isExpanded ? 90 : 0 }}
-                                            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                                            className="text-muted-foreground"
-                                        >
-                                            <ChevronRight className="h-4 w-4" />
-                                        </motion.div>
-                                        <div>
-                                            <CardTitle className="flex items-center gap-2">
-                                                <Globe className="h-5 w-5"/>
-                                                <motion.span layoutId={`wp-title-${project.name}`}>{project.name}</motion.span>
-                                            </CardTitle>
-                                            <CardDescription className="flex items-center gap-2 text-xs">
-                                                <span className="inline-flex items-center gap-1">
-                                                    <span className="font-semibold text-foreground/90">{totalCount}</span>
-                                                    container{totalCount !== 1 ? 's' : ''}
-                                                </span>
-                                                <span className="text-muted-foreground">•</span>
-                                                <span className="inline-flex items-center gap-1">
-                                                    <span className="font-semibold text-foreground/90">{runningCount}</span>
-                                                    running
-                                                </span>
-                                            </CardDescription>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <div className="text-right text-sm text-gray-400 mr-4">
-                                            <div className="flex items-center gap-4">
-                                                <span className="flex items-center flex-nowrap gap-1">
-                                                    <Database className="h-3 w-3"/>
-                                                    {project.dbName}
-                                                </span>
-                                                <span className="flex items-center gap-1 max-w-[200px] min-w-0">
-                                                    <Globe className="h-3 w-3 shrink-0" />
-                                                    <span className="truncate">{project.url}</span>
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                            {project.url !== 'N/A' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={openUrl}
-                                                    className="cursor-pointer hover:shadow-md hover:shadow-primary/20 transition"
-                                                    disabled={isRetrievingAll || isDeletingProject}
-                                                >
-                                                    <ExternalLink className="h-3 w-3"/>
-                                                    <span className="hidden xs:inline">Open</span>
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Mobile/Tablet Layout */}
-                                <div className="sm:hidden space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
-                                            <motion.div
-                                                animate={{ rotate: isExpanded ? 90 : 0 }}
-                                                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                                                className="text-muted-foreground shrink-0"
-                                            >
-                                                <ChevronRight className="h-4 w-4" />
-                                            </motion.div>
-                                            <div className="min-w-0 flex-1">
-                                                <CardTitle className="flex items-center gap-2 truncate">
-                                                    <Globe className="h-5 w-5 shrink-0"/>
-                                                    <span className="truncate">{project.name}</span>
-                                                </CardTitle>
-                                                <CardDescription className="hidden min-[301px]:block text-xs">
-                                                    <p>{totalCount} container{totalCount !== 1 ? 's' : ''} • {runningCount} running</p>
-                                                </CardDescription>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            {project.url !== 'N/A' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={openUrl}
-                                                    className="cursor-pointer"
-                                                    disabled={isRetrievingAll || isDeletingProject}
-                                                >
-                                                    <ExternalLink className="h-3 w-3"/>
-                                                    <span className="hidden xs:inline">Open</span>
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-row w-full items-center justify-around gap-2 text-sm text-gray-400 pl-7 hidden min-[301px]:flex">
-                                        <span className="flex items-center gap-1 max-w-[200px] min-w-0">
-                                            <Database className="h-3 w-3 shrink-0"/>
-                                            <span className="truncate">{project.dbName}</span>
-                                        </span>
-                                        <span className="flex items-center gap-1 max-w-[200px] min-w-0">
-                                            <Globe className="h-3 w-3 shrink-0" />
-                                            <span className="truncate">{project.url}</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                            <WordPressProjectHeader
+                                project={project}
+                                isExpanded={isExpanded}
+                                runningCount={runningCount}
+                                totalCount={totalCount}
+                                onOpenUrl={openUrl}
+                                disabled={isRetrievingAll || isDeletingProject}
+                            />
                         </CardHeader>
                     </CollapsibleTrigger>
 
@@ -406,169 +239,34 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             animate="show"
                                             exit="hidden"
                                         >
-                                            {/* Service Actions */}
-                                            <motion.div
-                                                variants={itemVariants}
-                                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-3 bg-gradient-to-r from-black/70 to-black/40 rounded-lg gap-3 sm:gap-0"
-                                            >
-                                                <span className="text-sm font-medium sm:ml-4 tracking-wide text-foreground/90 flex items-center gap-2">
-                                                    <motion.span
-                                                        className="inline-block w-1.5 h-1.5 rounded-full bg-primary"
-                                                        animate={{ scale: isExpanded ? [1,1.4,1] : 1 }}
-                                                        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                                                    />
-                                                    Actions
-                                                </span>
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => copyToClipboard(project.dbName, 'Database name')}
-                                                        className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
-                                                        disabled={isRetrievingAll || isDeletingProject}
-                                                    >
-                                                        <Copy className="h-3 w-3 mr-1"/>
-                                                        <span className="hidden md:inline">Copy DB</span>
-                                                        <span className="md:hidden">DB</span>
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => copyToClipboard(project.url, 'URL')}
-                                                        className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
-                                                        disabled={isRetrievingAll || isDeletingProject}
-                                                    >
-                                                        <Copy className="h-3 w-3 mr-1"/>
-                                                        <span className="hidden md:inline">Copy URL</span>
-                                                        <span className="md:hidden">URL</span>
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={handleChangeUrl}
-                                                        className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
-                                                        disabled={isRetrievingAll || isDeletingProject}
-                                                    >
-                                                        <Settings className="h-3 w-3 mr-1"/>
-                                                        <span className="hidden md:inline">Change URL</span>
-                                                        <span className="md:hidden">URL</span>
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={handleRemoveInstance}
-                                                        disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll || isDeletingProject}
-                                                        className="hover:shadow hover:shadow-primary/20 transition"
-                                                    >
-                                                        <Minus className="h-3 w-3"/>
-                                                        <span className="hidden md:block">Remove</span>
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={handleAddInstance}
-                                                        disabled={isCloning || isRetrievingAll || isDeletingProject}
-                                                        className="hover:shadow hover:shadow-primary/20 transition"
-                                                    >
-                                                        <Plus className="h-3 w-3"/>
-                                                        <span className="hidden md:inline">Add</span>
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={(e) => { e.stopPropagation(); setIsDeleteConfirmOpen(true); }}
-                                                        disabled={isDeletingProject || isRetrievingAll}
-                                                        className="hover:shadow hover:shadow-red-500/30 transition"
-                                                    >
-                                                        {isDeletingProject ? (
-                                                            <span className="flex items-center gap-2"><span className="h-2 w-2 animate-ping rounded-full bg-red-500"/>Deleting</span>
-                                                        ) : (
-                                                            <span>Delete</span>
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            </motion.div>
+                                            <WordPressProjectActions
+                                                dbName={project.dbName}
+                                                url={project.url}
+                                                disabled={isRetrievingAll || isDeletingProject}
+                                                isCloning={isCloning}
+                                                canRemoveInstance={project.containers.length > 1 && !isAnyInstanceRemoving}
+                                                onCopy={copyToClipboard}
+                                                onChangeUrl={handleChangeUrl}
+                                                onRemoveInstance={handleRemoveInstance}
+                                                onAddInstance={handleAddInstance}
+                                                onDeleteProject={() => { setIsDeleteDialogOpen(true); }}
+                                                isDeleting={isDeletingProject}
+                                            />
 
                                             {/* Individual Containers */}
-                                            {project.containers.map((container) => {
-                                                const instanceMatch = container.Name.match(/-(\d+)$/);
-                                                const instanceNumber = instanceMatch ? instanceMatch[1] : '1';
-                                                const isRunning = container.State.Status === 'running';
-
-                                                return (
-                                                    <motion.div
-                                                        key={container.Id}
-                                                        variants={itemVariants}
-                                                        layout
-                                                        className="group/row relative flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg gap-3 sm:gap-0 bg-black/30 hover:bg-black/50 transition-colors ring-1 ring-white/5 overflow-hidden"
-                                                    >
-                                                        <div className="pointer-events-none absolute inset-0 opacity-0 group-hover/row:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_90%_20%,rgba(59,130,246,0.15),transparent_70%)]" />
-                                                        <div className="flex items-center gap-3 min-w-0 flex-1 relative z-10">
-                                                            <motion.div
-                                                                className={`w-2 h-2 rounded-full shrink-0 ${
-                                                                    operationStatus.starting[container.Id] ? 'bg-blue-500' :
-                                                                    operationStatus.stopping[container.Id] ? 'bg-yellow-500' :
-                                                                    operationStatus.removing[container.Id] ? 'bg-red-500' :
-                                                                    isRunning ? 'bg-green-500' : 'bg-gray-400'
-                                                                }`}
-                                                                layoutId={`status-dot-${container.Id}`}
-                                                            />
-                                                            <div className="min-w-0 flex-1">
-                                                                <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2">
-                                                                    <span className="font-medium truncate">
-                                                                        {project.name}
-                                                                        <span className="text-gray-500">-{instanceNumber}</span>
-                                                                    </span>
-                                                                    <Badge
-                                                                        variant={isRunning ? 'default' : 'secondary'}
-                                                                        className="text-xs w-fit capitalize"
-                                                                    >
-                                                                        {
-                                                                            (operationStatus.starting[container.Id] ? 'starting' :
-                                                                            operationStatus.stopping[container.Id] ? 'stopping' :
-                                                                            operationStatus.removing[container.Id] ? 'removing' :
-                                                                            container.State.Status)
-                                                                        }
-                                                                    </Badge>
-                                                                </div>
-                                                                <div className="text-xs text-gray-400">
-                                                                    Created {new Date(container.Created).toLocaleDateString('en-US')}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="flex items-center gap-2 justify-end sm:justify-start relative z-10">
-                                                            <ContainerLogsDialog
-                                                                containerName={container.Name.replace('wordpress-', '')}
-                                                                containerId={container.Id}
-                                                                onGetLogs={() => window.electronAPI.docker.containers.getLogs(container.Id, { follow: true })}
-                                                            />
-
-                                                            {isRunning ? (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() => handleContainerAction(container, 'stop')}
-                                                                    disabled={operationStatus.stopping[container.Id] || isRetrievingAll || operationStatus.removing[container.Id] || isDeletingProject}
-                                                                    className="hover:shadow hover:shadow-primary/20 transition"
-                                                                >
-                                                                    <Square className="h-3 w-3"/>
-                                                                </Button>
-                                                            ) : (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() => handleContainerAction(container, 'start')}
-                                                                    disabled={operationStatus.starting[container.Id] || isRetrievingAll || operationStatus.removing[container.Id] || isDeletingProject}
-                                                                    className="hover:shadow hover:shadow-primary/20 transition"
-                                                                >
-                                                                    <Play className="h-3 w-3"/>
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </motion.div>
-                                                );
-                                            })}
+                                            {project.containers.map((container) => (
+                                                <WordPressContainerRow
+                                                    key={container.Id}
+                                                    container={container}
+                                                    projectName={project.name}
+                                                    isRunning={container.State.Status === 'running'}
+                                                    starting={!!operationStatus.starting[container.Id]}
+                                                    stopping={!!operationStatus.stopping[container.Id]}
+                                                    removing={!!operationStatus.removing[container.Id]}
+                                                    disabled={isRetrievingAll || isDeletingProject}
+                                                    onAction={handleContainerAction}
+                                                />
+                                            ))}
                                         </motion.div>
                                     </CardContent>
                                 </motion.div>
@@ -584,34 +282,11 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                 open={isChangeUrlDialogOpen}
                 onOpenChange={setIsChangeUrlDialogOpen}
             />
-            {isDeleteConfirmOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setIsDeleteConfirmOpen(false); setDeleteConfirmationValue(""); }} />
-                    <div className="relative z-10 w-full max-w-sm rounded-xl border border-red-500/20 bg-black/70 p-6 shadow-2xl">
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">Delete Project <Badge variant="destructive" className="text-[10px]">Danger</Badge></h3>
-                        <p className="text-sm text-gray-300 mb-4 leading-relaxed">This will permanently remove all containers, volumes and its database for <span className="font-medium text-white">{project.name}</span>. This action cannot be undone.</p>
-                        <p className="text-xs text-red-300 mb-3">Type <span className="font-semibold">{project.name}</span> to confirm.</p>
-                        <input
-                            autoFocus
-                            value={deleteConfirmationValue}
-                            onChange={(e) => setDeleteConfirmationValue(e.target.value)}
-                            placeholder={project.name}
-                            className="w-full mb-4 rounded-md bg-black/50 border border-red-500/30 focus:border-red-500/60 focus:ring-0 px-3 py-2 text-sm outline-none placeholder:text-red-400/40"
-                        />
-                        <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="sm" onClick={() => { setIsDeleteConfirmOpen(false); setDeleteConfirmationValue(""); }} disabled={isDeletingProject}>Cancel</Button>
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={handleDeleteProject}
-                                disabled={isDeletingProject || deleteConfirmationValue !== project.name}
-                            >
-                                {isDeletingProject ? 'Deleting...' : 'Confirm'}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <WordPressDeleteDialog
+                projectName={project.name}
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+            />
         </>
     );
 }

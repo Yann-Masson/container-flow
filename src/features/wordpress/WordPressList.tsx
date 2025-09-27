@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import WordPressProjectCard from './WordPressProjectCard';
+import { AnimatePresence, motion } from 'framer-motion';
 import WordPressProjectSkeleton from './WordPressProjectSkeleton';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchContainers } from '@/store/slices/containerSlice';
@@ -93,12 +94,22 @@ export default function WordPressList() {
             )}
 
             {/* Show actual projects */}
-            {projects.map((project) => (
-                <WordPressProjectCard
-                    key={project.name}
-                    project={project}
-                />
-            ))}
+            <AnimatePresence mode="popLayout">
+                {projects.map((project) => (
+                    <motion.div
+                        key={project.name}
+                        layout
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.92, filter: 'blur(4px)' }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                    >
+                        <WordPressProjectCard
+                            project={project}
+                        />
+                    </motion.div>
+                ))}
+            </AnimatePresence>
         </div>
     );
 }
