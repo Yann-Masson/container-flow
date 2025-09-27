@@ -25,7 +25,8 @@ import {
     cloneContainer, 
     startContainer, 
     stopContainer, 
-    removeContainer
+    removeContainer,
+    deleteWordPressProject
 } from '@/store/slices/containerSlice';
 import { 
     selectIsCloning,
@@ -43,6 +44,8 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
     
     const [isExpanded, setIsExpanded] = useState(false);
     const [isChangeUrlDialogOpen, setIsChangeUrlDialogOpen] = useState(false);
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [deleteConfirmationValue, setDeleteConfirmationValue] = useState("");
 
     const isRetrievingAll = useAppSelector(selectIsRetrievingAll);
     
@@ -52,6 +55,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
     // Single selector for all operation statuses to avoid dynamic hook calls
     const operationStatus = useAppSelector(selectOperationStatus);
     const isAnyInstanceRemoving = project.containers.some(c => operationStatus.removing[c.Id]);
+    const isDeletingProject = (operationStatus as any).deleting?.[project.name];
 
     const runningCount = project.containers.filter(c => c.State.Status === 'running').length;
     const totalCount = project.containers.length;
@@ -204,6 +208,24 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
         setIsChangeUrlDialogOpen(true);
     };
 
+    const handleDeleteProject = async () => {
+        if (isDeletingProject) return;
+        try {
+            toast.info('🧨 Deleting project...', { description: project.name });
+            const result = await dispatch(deleteWordPressProject(project.name));
+            if (deleteWordPressProject.fulfilled.match(result)) {
+                toast.success('✅ Project deleted', { description: project.name });
+            } else if (deleteWordPressProject.rejected.match(result)) {
+                toast.error('❌ Error deleting project', { description: result.payload as string || 'Unknown error' });
+            }
+        } catch (e) {
+            toast.error('❌ Error deleting project', { description: e instanceof Error ? e.message : 'Unknown error' });
+        } finally {
+            setIsDeleteConfirmOpen(false);
+            setDeleteConfirmationValue("");
+        }
+    };
+
     // Animation variants
     const contentVariants = {
         collapsed: { height: 0, opacity: 0, transition: { duration: 0.25, ease: 'easeInOut' } },
@@ -301,7 +323,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                     variant="outline"
                                                     onClick={openUrl}
                                                     className="cursor-pointer hover:shadow-md hover:shadow-primary/20 transition"
-                                                    disabled={isRetrievingAll}
+                                                    disabled={isRetrievingAll || isDeletingProject}
                                                 >
                                                     <ExternalLink className="h-3 w-3"/>
                                                     <span className="hidden xs:inline">Open</span>
@@ -340,7 +362,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                     variant="outline"
                                                     onClick={openUrl}
                                                     className="cursor-pointer"
-                                                    disabled={isRetrievingAll}
+                                                    disabled={isRetrievingAll || isDeletingProject}
                                                 >
                                                     <ExternalLink className="h-3 w-3"/>
                                                     <span className="hidden xs:inline">Open</span>
@@ -403,7 +425,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                         variant="outline"
                                                         onClick={() => copyToClipboard(project.dbName, 'Database name')}
                                                         className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
-                                                        disabled={isRetrievingAll}
+                                                        disabled={isRetrievingAll || isDeletingProject}
                                                     >
                                                         <Copy className="h-3 w-3 mr-1"/>
                                                         <span className="hidden md:inline">Copy DB</span>
@@ -414,7 +436,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                         variant="outline"
                                                         onClick={() => copyToClipboard(project.url, 'URL')}
                                                         className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
-                                                        disabled={isRetrievingAll}
+                                                        disabled={isRetrievingAll || isDeletingProject}
                                                     >
                                                         <Copy className="h-3 w-3 mr-1"/>
                                                         <span className="hidden md:inline">Copy URL</span>
@@ -425,7 +447,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                         variant="outline"
                                                         onClick={handleChangeUrl}
                                                         className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
-                                                        disabled={isRetrievingAll}
+                                                        disabled={isRetrievingAll || isDeletingProject}
                                                     >
                                                         <Settings className="h-3 w-3 mr-1"/>
                                                         <span className="hidden md:inline">Change URL</span>
@@ -435,7 +457,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={handleRemoveInstance}
-                                                        disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll}
+                                                        disabled={project.containers.length <= 1 || isAnyInstanceRemoving || isRetrievingAll || isDeletingProject}
                                                         className="hover:shadow hover:shadow-primary/20 transition"
                                                     >
                                                         <Minus className="h-3 w-3"/>
@@ -445,11 +467,24 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={handleAddInstance}
-                                                        disabled={isCloning || isRetrievingAll}
+                                                        disabled={isCloning || isRetrievingAll || isDeletingProject}
                                                         className="hover:shadow hover:shadow-primary/20 transition"
                                                     >
                                                         <Plus className="h-3 w-3"/>
                                                         <span className="hidden md:inline">Add</span>
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={(e) => { e.stopPropagation(); setIsDeleteConfirmOpen(true); }}
+                                                        disabled={isDeletingProject || isRetrievingAll}
+                                                        className="hover:shadow hover:shadow-red-500/30 transition"
+                                                    >
+                                                        {isDeletingProject ? (
+                                                            <span className="flex items-center gap-2"><span className="h-2 w-2 animate-ping rounded-full bg-red-500"/>Deleting</span>
+                                                        ) : (
+                                                            <span>Delete</span>
+                                                        )}
                                                     </Button>
                                                 </div>
                                             </motion.div>
@@ -514,7 +549,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                                     size="sm"
                                                                     variant="outline"
                                                                     onClick={() => handleContainerAction(container, 'stop')}
-                                                                    disabled={operationStatus.stopping[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
+                                                                    disabled={operationStatus.stopping[container.Id] || isRetrievingAll || operationStatus.removing[container.Id] || isDeletingProject}
                                                                     className="hover:shadow hover:shadow-primary/20 transition"
                                                                 >
                                                                     <Square className="h-3 w-3"/>
@@ -524,7 +559,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                                     size="sm"
                                                                     variant="outline"
                                                                     onClick={() => handleContainerAction(container, 'start')}
-                                                                    disabled={operationStatus.starting[container.Id] || isRetrievingAll || operationStatus.removing[container.Id]}
+                                                                    disabled={operationStatus.starting[container.Id] || isRetrievingAll || operationStatus.removing[container.Id] || isDeletingProject}
                                                                     className="hover:shadow hover:shadow-primary/20 transition"
                                                                 >
                                                                     <Play className="h-3 w-3"/>
@@ -549,6 +584,34 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                 open={isChangeUrlDialogOpen}
                 onOpenChange={setIsChangeUrlDialogOpen}
             />
+            {isDeleteConfirmOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setIsDeleteConfirmOpen(false); setDeleteConfirmationValue(""); }} />
+                    <div className="relative z-10 w-full max-w-sm rounded-xl border border-red-500/20 bg-black/70 p-6 shadow-2xl">
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">Delete Project <Badge variant="destructive" className="text-[10px]">Danger</Badge></h3>
+                        <p className="text-sm text-gray-300 mb-4 leading-relaxed">This will permanently remove all containers, volumes and its database for <span className="font-medium text-white">{project.name}</span>. This action cannot be undone.</p>
+                        <p className="text-xs text-red-300 mb-3">Type <span className="font-semibold">{project.name}</span> to confirm.</p>
+                        <input
+                            autoFocus
+                            value={deleteConfirmationValue}
+                            onChange={(e) => setDeleteConfirmationValue(e.target.value)}
+                            placeholder={project.name}
+                            className="w-full mb-4 rounded-md bg-black/50 border border-red-500/30 focus:border-red-500/60 focus:ring-0 px-3 py-2 text-sm outline-none placeholder:text-red-400/40"
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={() => { setIsDeleteConfirmOpen(false); setDeleteConfirmationValue(""); }} disabled={isDeletingProject}>Cancel</Button>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleDeleteProject}
+                                disabled={isDeletingProject || deleteConfirmationValue !== project.name}
+                            >
+                                {isDeletingProject ? 'Deleting...' : 'Confirm'}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

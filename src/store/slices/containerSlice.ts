@@ -22,6 +22,7 @@ const initialState: ContainerState = {
         starting: {},
         stopping: {},
         removing: {},
+        deleting: {}, // per project name
     },
 };
 
@@ -127,6 +128,19 @@ export const removeContainer = createAsyncThunk(
     }
 );
 
+export const deleteWordPressProject = createAsyncThunk(
+    'containers/deleteWordPressProject',
+    async (serviceName: string, { rejectWithValue }) => {
+        try {
+            await window.electronAPI.docker.wordpress.delete({ name: serviceName });
+            return { serviceName };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to delete WordPress project';
+            return rejectWithValue(message);
+        }
+    }
+);
+
 // Helper function to group containers into services
 const groupContainersIntoServices = (containers: ContainerInspectInfo[]): WordPressProject[] => {
     const serviceMap = new Map<string, ContainerInspectInfo[]>();
@@ -226,6 +240,7 @@ const containerSlice = createSlice({
                 starting: {},
                 stopping: {},
                 removing: {},
+                deleting: {}, // per project name
             };
         },
         // Optional reducer to force recompute all projects from current containers
@@ -414,6 +429,24 @@ const containerSlice = createSlice({
             })
             .addCase(removeContainer.rejected, (state, action) => {
                 delete state.operationStatus.removing[action.meta.arg.containerId];
+                state.error = action.payload as string;
+            })
+            // Delete WordPress project
+            .addCase(deleteWordPressProject.pending, (state, action) => {
+                state.operationStatus.deleting[action.meta.arg] = true;
+                state.error = null;
+            })
+            .addCase(deleteWordPressProject.fulfilled, (state, action) => {
+                delete state.operationStatus.deleting[action.payload.serviceName];
+                state.error = null;
+                const serviceName = action.payload.serviceName;
+                // Remove all containers belonging to this project
+                state.containers = state.containers.filter(c => c.Config.Labels?.['container-flow.name'] !== serviceName);
+                // Remove the project
+                state.projects = state.projects.filter(p => p.name !== serviceName);
+            })
+            .addCase(deleteWordPressProject.rejected, (state, action) => {
+                delete state.operationStatus.deleting[action.meta.arg];
                 state.error = action.payload as string;
             });
     },

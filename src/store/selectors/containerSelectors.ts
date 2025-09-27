@@ -61,6 +61,11 @@ export const selectIsContainerRemoving = (containerId: string) => createSelector
     (operationStatus) => operationStatus.removing[containerId] || false
 );
 
+export const selectIsProjectDeleting = (projectName: string) => createSelector(
+    [selectOperationStatus],
+    (operationStatus) => operationStatus.deleting?.[projectName] || false
+);
+
 // Service-specific selectors
 export const selectProjectByName = (serviceName: string) => createSelector(
     [selectProjects],

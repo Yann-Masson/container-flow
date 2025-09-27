@@ -26,6 +26,7 @@ export interface ContainerState {
         starting: Record<string, boolean>; // containerID -> isStarting
         stopping: Record<string, boolean>; // containerID -> isStopping
         removing: Record<string, boolean>; // containerID -> isRemoving
+        deleting: Record<string, boolean>; // projectName -> isDeleting
     };
 }
 
