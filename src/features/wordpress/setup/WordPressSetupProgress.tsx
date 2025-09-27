@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from "@/components/ui/progress.tsx";
-import { ChevronDown, ChevronUp, Database, Globe, Server } from 'lucide-react';
+import { ChevronDown, ChevronUp, Database, Globe, Server, Activity, BarChart2, HardDrive, Gauge } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StatusIndicator } from '@/components/StatusIndicator';
 
@@ -38,36 +38,74 @@ export default function WordPressSetupProgress({
                                                }: WordPressSetupProgressProps) {
     const [isSetupRunning, setIsSetupRunning] = useState(false);
     const [showDetailsState, setShowDetailsState] = useState(showDetails);
-    const [steps, setSteps] = useState<SetupStep[]>([
+    const initialSteps: SetupStep[] = [
         {
             id: 'network',
             label: 'Creating CF-WP network',
-            icon: <Globe className="h-4 w-4"/>,
+            icon: <Globe className="h-4 w-4" />,
             status: 'pending',
-            description: 'The CF-WP network will enable communication between containers',
+            description: 'The CF-WP network enables communication between infrastructure containers.'
         },
         {
             id: 'traefik',
             label: 'Deploying Traefik',
-            icon: <Server className="h-4 w-4"/>,
+            icon: <Server className="h-4 w-4" />,
             status: 'pending',
-            description: 'Traefik will serve as a reverse proxy to route traffic',
+            description: 'Traefik reverse proxy handles routing and TLS certificates.'
         },
         {
             id: 'mysql',
             label: 'Deploying MySQL',
-            icon: <Database className="h-4 w-4"/>,
+            icon: <Database className="h-4 w-4" />,
             status: 'pending',
-            description: 'MySQL will store data for your WordPress sites',
+            description: 'MySQL stores WordPress data.'
         },
         {
             id: 'mysql-ready',
             label: 'Waiting for MySQL',
-            icon: <Database className="h-4 w-4"/>,
+            icon: <Database className="h-4 w-4" />,
             status: 'pending',
-            description: 'Once configured, you can create as many WordPress sites as you want',
+            description: 'Ensuring MySQL is accepting connections.'
         },
-    ]);
+        // Monitoring stack steps (added to UI so order is predictable)
+        {
+            id: 'cadvisor',
+            label: 'Deploying cAdvisor',
+            icon: <Activity className="h-4 w-4" />,
+            status: 'pending',
+            description: 'cAdvisor collects container CPU, Memory, IO metrics.'
+        },
+        {
+            id: 'mysqld-exporter',
+            label: 'Deploying MySQL Exporter',
+            icon: <BarChart2 className="h-4 w-4" />,
+            status: 'pending',
+            description: 'Exports MySQL performance metrics for Prometheus.'
+        },
+        {
+            id: 'prometheus',
+            label: 'Deploying Prometheus',
+            icon: <Gauge className="h-4 w-4" />,
+            status: 'pending',
+            description: 'Prometheus stores and queries time-series metrics.'
+        },
+        {
+            id: 'grafana',
+            label: 'Deploying Grafana',
+            icon: <Server className="h-4 w-4" />,
+            status: 'pending',
+            description: 'Grafana provides dashboards for visualization.'
+        },
+        {
+            id: 'grafana-provision',
+            label: 'Provisioning Grafana',
+            icon: <HardDrive className="h-4 w-4" />,
+            status: 'pending',
+            description: 'Configuring Prometheus datasource and default dashboards.'
+        }
+    ];
+
+    const [steps, setSteps] = useState<SetupStep[]>(initialSteps);
 
     useEffect(() => {
         const removeListener = window.electronAPI.docker.wordpress.onSetupProgress((event: ProgressEvent) => {
@@ -80,35 +118,39 @@ export default function WordPressSetupProgress({
         };
     }, []);
 
+    const idToFallback = (id: string): SetupStep => ({
+        id,
+        label: id.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        icon: <Server className="h-4 w-4" />,
+        status: 'pending',
+        description: 'Automatically added step.'
+    });
+
     const updateStepStatus = (stepId: string, status: 'starting' | 'success' | 'error', message?: string) => {
-        setSteps(prevSteps =>
-            prevSteps.map(step => {
+        setSteps(prevSteps => {
+            // If step not found, inject it (dynamic unknown backend step)
+            let found = prevSteps.find(s => s.id === stepId);
+            if (!found) {
+                prevSteps = [...prevSteps, idToFallback(stepId)];
+            }
+            return prevSteps.map(step => {
                 if (step.id === stepId) {
                     let newStatus: SetupStep['status'];
                     switch (status) {
-                        case 'starting':
-                            newStatus = 'running';
-                            break;
-                        case 'success':
-                            newStatus = 'success';
-                            break;
-                        case 'error':
-                            newStatus = 'error';
-                            break;
-                        default:
-                            newStatus = step.status;
+                        case 'starting': newStatus = 'running'; break;
+                        case 'success': newStatus = 'success'; break;
+                        case 'error': newStatus = 'error'; break;
+                        default: newStatus = step.status;
                     }
                     return { ...step, status: newStatus, statusMessage: message };
                 }
                 return step;
-            })
-        );
+            });
+        });
     };
 
     const resetSteps = () => {
-        setSteps(prevSteps =>
-            prevSteps.map(step => ({ ...step, status: 'pending', message: undefined }))
-        );
+        setSteps(initialSteps.map(s => ({ ...s, status: 'pending', statusMessage: undefined })));
     };
 
     const handleSetup = useCallback(async () => {

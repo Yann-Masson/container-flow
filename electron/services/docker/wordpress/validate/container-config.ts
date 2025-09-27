@@ -30,5 +30,34 @@ export default function containerConfig(containerInfo: ContainerInspectInfo, exp
         return labels['traefik.enable'] === 'true';
     }
 
+    // Labels in the expected config should match those in the container
+    const expectedLabels = expectedConfig.Labels || {};
+    const actualLabels = containerInfo.Config?.Labels || {};
+
+    for (const [key, value] of Object.entries(expectedLabels)) {
+        if (actualLabels[key] !== value) {
+            console.warn(`Container label mismatch for ${key}: expected ${value}, got ${actualLabels[key]}`);
+            return false;
+        }
+    }
+
+    // If cmd is specified in expected config, check it matches
+    if (expectedConfig.Cmd) {
+        const expectedCmd = Array.isArray(expectedConfig.Cmd) ? expectedConfig.Cmd : [expectedConfig.Cmd];
+        const actualCmd = containerInfo.Config?.Cmd || [];
+
+        if (expectedCmd.length !== actualCmd.length) {
+            console.warn(`Container command length mismatch: expected ${expectedCmd.length}, got ${actualCmd.length}`);
+            return false;
+        }
+
+        for (let i = 0; i < expectedCmd.length; i++) {
+            if (expectedCmd[i] !== actualCmd[i]) {
+                console.warn(`Container command mismatch at index ${i}: expected ${expectedCmd[i]}, got ${actualCmd[i]}`);
+                return false;
+            }
+        }
+    }
+
     return true;
 }

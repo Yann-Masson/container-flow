@@ -14,6 +14,10 @@ const traefik: ContainerCreateOptions = {
         '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory',
         '--certificatesresolvers.letsencrypt.acme.tlschallenge=true',
         '--accesslog=true',
+        // Prometheus metrics
+        '--metrics.prometheus=true',
+        '--metrics.prometheus.addEntryPointsLabels=true',
+        '--metrics.prometheus.addServicesLabels=true',
         '--global.checknewversion=false',
         '--global.sendanonymoususage=false',
         '--entrypoints.websecure.http.tls.certResolver=letsencrypt',

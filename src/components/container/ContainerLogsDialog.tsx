@@ -115,7 +115,7 @@ export function ContainerLogsDialog({ containerName, containerId, onGetLogs }: C
                 <Button
                     variant="outline"
                     className="h-8 w-8 p-0 hidden sm:inline-flex"
-                    disabled={isRetrievingAll || operationStatus.removing[containerId]}
+                    disabled={operationStatus.removing[containerId]}
                 >
                     <FileText className="h-4 w-4"/>
                 </Button>

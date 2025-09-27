@@ -43,7 +43,6 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
     const handleRetrySetup = () => {
         setIsRunning(true);
         setFailed(false);
-        setForceSetup(false);
         onRetrySetup();
     };
 
@@ -67,7 +66,7 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {failed && (
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-3 py-4">
                             <div className="flex items-center space-x-2 p-3 border-red-700 border-1 rounded-lg">
                                 <Switch
                                     id="force-setup-dialog"

@@ -57,6 +57,12 @@ interface ElectronAPI {
                 network: { id: string; name: string };
                 traefik: { id: string; name: string };
                 mysql: { id: string; name: string };
+                monitoring: {
+                    cadvisor: { id: string; name: string };
+                    mysqldExporter: { id: string; name: string };
+                    prometheus: { id: string; name: string };
+                    grafana: { id: string; name: string };
+                };
             }>;
             create: (options: import('../services/docker/wordpress/create.ts').WordPressCreateOptions) => Promise<{
                 id: string;
