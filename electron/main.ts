@@ -93,7 +93,7 @@ function createWindow() {
         console.log('Loading URL:', VITE_DEV_SERVER_URL);
         win.loadURL(VITE_DEV_SERVER_URL);
     } else {
-        win.loadFile(path.join(RENDERER_DIST, 'public/index.html'));
+        win.loadFile(path.join(RENDERER_DIST, 'index.html'));
         setTimeout(() => {
             log('Starting auto-updater...');
             setupAutoUpdater();

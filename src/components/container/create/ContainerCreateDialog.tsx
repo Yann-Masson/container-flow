@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
 import { ContainerCreateOptions } from 'dockerode';
 import {
     Dialog,
@@ -275,9 +276,18 @@ export function ContainerCreateDialog({
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] h-[85vh] p-0 flex flex-col">
+            <DialogContent className="sm:max-w-[880px] h-[85vh] p-0 flex flex-col overflow-hidden border border-white/10 bg-[#0b111b]/85 supports-[backdrop-filter]:bg-[#0b111b]/55 backdrop-blur-md supports-[backdrop-filter]:backdrop-blur-xl backdrop-saturate-150 shadow-xl shadow-black/40">
+                {/* Decorative glass overlays (non-interactive) */}
+                <div className='pointer-events-none absolute inset-0'>
+                    {/* Soft radial highlight */}
+                    <div className='absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.12),transparent_65%)]' />
+                    {/* Grain / noise */}
+                    <div className='absolute inset-0 opacity-[0.03] mix-blend-overlay bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.6)_0px,rgba(255,255,255,0.6)_1px,transparent_1px,transparent_3px)]' />
+                    {/* Subtle top gradient edge */}
+                    <div className='absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-white/10 to-transparent' />
+                </div>
                 <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
-                    <DialogTitle className="flex items-center gap-2">
+                    <DialogTitle className="flex items-center gap-2 text-xl font-semibold tracking-tight bg-clip-text text-transparent bg-[linear-gradient(90deg,#1d4ed8,#3b82f6,#60a5fa)] drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">
                         {previousContainerId ? (
                             <>
                                 <Copy className="h-5 w-5 text-orange-600"/>
@@ -296,26 +306,35 @@ export function ContainerCreateDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex-1 flex flex-col min-h-0 px-6">
+                <div className="flex-1 flex flex-col min-h-0 px-6 relative">
                     <Tabs defaultValue="basic" className="flex flex-col h-full">
-                        <TabsList className="grid w-full grid-cols-5 flex-shrink-0 mb-4">
-                            <TabsTrigger value="basic">Basic</TabsTrigger>
-                            <TabsTrigger value="env">Environment</TabsTrigger>
-                            <TabsTrigger value="ports">Ports</TabsTrigger>
-                            <TabsTrigger value="volumes">Volumes</TabsTrigger>
-                            <TabsTrigger value="other">Other</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-5 flex-shrink-0 mb-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 overflow-hidden">
+                            {['basic','env','ports','volumes','other'].map((tab) => (
+                                <TabsTrigger
+                                    key={tab}
+                                    value={tab}
+                                    className="data-[state=active]:bg-gradient-to-br data-[state=active]:from-white/15 data-[state=active]:to-white/5 data-[state=active]:text-white/90 data-[state=active]:shadow-inner transition-all duration-300 text-sm tracking-wide uppercase data-[state=active]:backdrop-blur-sm hover:bg-white/5 rounded-xl">
+                                    {tab}
+                                </TabsTrigger>
+                            ))}
                         </TabsList>
 
                         <div className="flex-1 min-h-0">
                             <ScrollArea className="h-full">
-                                <div className="pr-4">
+                                <div className="pr-4 pb-6 space-y-6">
                                     {/* Basic Tab */}
-                                    <TabsContent value="basic" className="mt-0 space-y-4">
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>Basic Configuration</CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="space-y-4">
+                                    <TabsContent value="basic" className="mt-0 space-y-4 focus-visible:outline-none">
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.35 }}
+                                            className="group relative"
+                                        >
+                                            <Card className="relative border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/[0.07]">
+                                                <CardHeader>
+                                                    <CardTitle className="text-[13px] tracking-wide uppercase text-white/70">Basic Configuration</CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="space-y-4">
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
                                                         <Label htmlFor="name">Container Name*</Label>
@@ -337,8 +356,15 @@ export function ContainerCreateDialog({
                                                     </div>
                                                 </div>
 
+                                                <AnimatePresence initial={false}>
                                                 {advancedConfiguration && (
-                                                    <>
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        transition={{ duration: 0.35, ease: 'easeInOut' }}
+                                                        className="mt-6 pt-5 border-t border-white/10 space-y-5"
+                                                    >
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="space-y-2">
                                                                 <Label htmlFor="hostname">Hostname</Label>
@@ -402,22 +428,26 @@ export function ContainerCreateDialog({
                                                                 placeholder="/docker-entrypoint.sh"
                                                             />
                                                         </div>
-                                                    </>
+                                                    </motion.div>
                                                 )}
-                                            </CardContent>
-                                        </Card>
+                                                </AnimatePresence>
+                                                </CardContent>
+                                            </Card>
+                                        </motion.div>
                                     </TabsContent>
 
                                     {/* Environment Tab */}
-                                    <TabsContent value="env" className="mt-4 space-y-4">
-                                        <Card>
+                                    <TabsContent value="env" className="mt-4 space-y-6">
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y:0 }} transition={{ duration: 0.35 }} className='space-y-6'>
+                                        <Card className="relative border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07]">
                                             <CardHeader className="flex flex-row items-center justify-between">
-                                                <CardTitle>Environment Variables</CardTitle>
+                                                <CardTitle className='text-[13px] tracking-wide uppercase text-white/70'>Environment Variables</CardTitle>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => setEnvVars([...envVars, { key: "", value: "" }])}
+                                                    className='hover:scale-[1.03] active:scale-[0.97] transition mb-3'
                                                 >
                                                     <Plus className="h-4 w-4 mr-1"/>
                                                     Add Variable
@@ -426,7 +456,7 @@ export function ContainerCreateDialog({
                                             <CardContent>
                                                 <div className="space-y-2">
                                                     {envVars.map((env, index) => (
-                                                        <div key={index} className="flex gap-2 items-center">
+                                                        <motion.div key={index} layout className="flex gap-2 items-center group/env">
                                                             <Input
                                                                 placeholder="KEY"
                                                                 value={env.key}
@@ -453,10 +483,11 @@ export function ContainerCreateDialog({
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => setEnvVars(envVars.filter((_, i) => i !== index))}
+                                                                className='opacity-60 group-hover/env:opacity-100 transition'
                                                             >
                                                                 <Trash2 className="h-4 w-4"/>
                                                             </Button>
-                                                        </div>
+                                                        </motion.div>
                                                     ))}
                                                     {envVars.length === 0 && (
                                                         <p className="text-sm text-muted-foreground text-center py-4">
@@ -467,15 +498,15 @@ export function ContainerCreateDialog({
                                                 </div>
                                             </CardContent>
                                         </Card>
-
-                                        <Card>
+                                        <Card className="relative border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07]">
                                             <CardHeader className="flex flex-row items-center justify-between">
-                                                <CardTitle>Labels</CardTitle>
+                                                <CardTitle className='text-[13px] tracking-wide uppercase text-white/70'>Labels</CardTitle>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => setLabels([...labels, { key: "", value: "" }])}
+                                                    className='hover:scale-[1.03] active:scale-[0.97] transition mb-3'
                                                 >
                                                     <Plus className="h-4 w-4 mr-1"/>
                                                     Add Label
@@ -484,7 +515,7 @@ export function ContainerCreateDialog({
                                             <CardContent>
                                                 <div className="space-y-2">
                                                     {labels.map((label, index) => (
-                                                        <div key={index} className="flex gap-2 items-center">
+                                                        <motion.div key={index} layout className="flex gap-2 items-center group/label">
                                                             <Input
                                                                 placeholder="label.key"
                                                                 value={label.key}
@@ -511,10 +542,11 @@ export function ContainerCreateDialog({
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => setLabels(labels.filter((_, i) => i !== index))}
+                                                                className='opacity-60 group-hover/label:opacity-100 transition'
                                                             >
                                                                 <Trash2 className="h-4 w-4"/>
                                                             </Button>
-                                                        </div>
+                                                        </motion.div>
                                                     ))}
                                                     {labels.length === 0 && (
                                                         <p className="text-sm text-muted-foreground text-center py-4">
@@ -524,22 +556,21 @@ export function ContainerCreateDialog({
                                                 </div>
                                             </CardContent>
                                         </Card>
+                                        </motion.div>
                                     </TabsContent>
 
                                     {/* Ports Tab */}
                                     <TabsContent value="ports" className="mt-4 space-y-4">
-                                        <Card>
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y:0 }} transition={{ duration: 0.35 }}>
+                                        <Card className="relative border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07]">
                                             <CardHeader className="flex flex-row items-center justify-between">
-                                                <CardTitle>Port Mappings</CardTitle>
+                                                <CardTitle className='text-[13px] tracking-wide uppercase text-white/70'>Port Mappings</CardTitle>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => setPorts([...ports, {
-                                                        containerPort: "",
-                                                        hostPort: "",
-                                                        protocol: "tcp"
-                                                    }])}
+                                                    onClick={() => setPorts([...ports, { containerPort: "", hostPort: "", protocol: "tcp" }])}
+                                                    className='hover:scale-[1.03] active:scale-[0.97] transition mb-3'
                                                 >
                                                     <Plus className="h-4 w-4 mr-1"/>
                                                     Add Port
@@ -548,7 +579,7 @@ export function ContainerCreateDialog({
                                             <CardContent>
                                                 <div className="space-y-2">
                                                     {ports.map((port, index) => (
-                                                        <div key={index} className="flex gap-2 items-center">
+                                                        <motion.div key={index} layout className="flex gap-2 items-center group/port">
                                                             <Input
                                                                 placeholder="Host Port"
                                                                 value={port.hostPort}
@@ -591,10 +622,11 @@ export function ContainerCreateDialog({
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => setPorts(ports.filter((_, i) => i !== index))}
+                                                                className='opacity-60 group-hover/port:opacity-100 transition'
                                                             >
                                                                 <Trash2 className="h-4 w-4"/>
                                                             </Button>
-                                                        </div>
+                                                        </motion.div>
                                                     ))}
                                                     {ports.length === 0 && (
                                                         <p className="text-sm text-muted-foreground text-center py-4">
@@ -604,23 +636,22 @@ export function ContainerCreateDialog({
                                                 </div>
                                             </CardContent>
                                         </Card>
+                                        </motion.div>
                                     </TabsContent>
 
 
                                     {/* Volumes Tab */}
                                     <TabsContent value="volumes" className="mt-4 space-y-4">
-                                        <Card>
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y:0 }} transition={{ duration: 0.35 }}>
+                                        <Card className="relative border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07]">
                                             <CardHeader className="flex flex-row items-center justify-between">
-                                                <CardTitle>Volume Mappings</CardTitle>
+                                                <CardTitle className='text-[13px] tracking-wide uppercase text-white/70'>Volume Mappings</CardTitle>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => setVolumes([...volumes, {
-                                                        hostPath: "",
-                                                        containerPath: "",
-                                                        readOnly: false
-                                                    }])}
+                                                    onClick={() => setVolumes([...volumes, { hostPath: "", containerPath: "", readOnly: false }])}
+                                                    className='hover:scale-[1.03] active:scale-[0.97] transition mb-3'
                                                 >
                                                     <Plus className="h-4 w-4 mr-1"/>
                                                     Add Volume
@@ -629,7 +660,7 @@ export function ContainerCreateDialog({
                                             <CardContent>
                                                 <div className="space-y-3">
                                                     {volumes.map((volume, index) => (
-                                                        <div key={index} className="flex gap-2 items-center">
+                                                        <motion.div key={index} layout className="flex gap-2 items-center group/volume">
                                                             <Input
                                                                 placeholder="Host Path"
                                                                 value={volume.hostPath}
@@ -669,10 +700,11 @@ export function ContainerCreateDialog({
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => setVolumes(volumes.filter((_, i) => i !== index))}
+                                                                className='opacity-60 group-hover/volume:opacity-100 transition'
                                                             >
                                                                 <Trash2 className="h-4 w-4"/>
                                                             </Button>
-                                                        </div>
+                                                        </motion.div>
                                                     ))}
                                                     {volumes.length === 0 && (
                                                         <p className="text-sm text-muted-foreground text-center py-4">
@@ -682,13 +714,15 @@ export function ContainerCreateDialog({
                                                 </div>
                                             </CardContent>
                                         </Card>
+                                        </motion.div>
                                     </TabsContent>
 
                                     {/* Other Tab */}
                                     <TabsContent value="other" className="mt-4 space-y-4">
-                                        <Card>
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y:0 }} transition={{ duration: 0.35 }}>
+                                        <Card className="relative border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07]">
                                             <CardHeader>
-                                                <CardTitle>Network & Security</CardTitle>
+                                                <CardTitle className='text-[13px] tracking-wide uppercase text-white/70'>Network & Security</CardTitle>
                                             </CardHeader>
                                             <CardContent className="space-y-4">
                                                 <div className="grid grid-cols-2 gap-4">
@@ -730,8 +764,15 @@ export function ContainerCreateDialog({
                                                     </div>
                                                 </div>
 
+                                                <AnimatePresence initial={false}>
                                                 {advancedConfiguration && (
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        transition={{ duration: 0.35 }}
+                                                        className="grid grid-cols-2 gap-4 mt-6 pt-5 border-t border-white/10"
+                                                    >
                                                         <div className="space-y-2">
                                                             <Label htmlFor="max-retry">Max Retry Count</Label>
                                                             <Input
@@ -751,8 +792,9 @@ export function ContainerCreateDialog({
                                                                 placeholder="host"
                                                             />
                                                         </div>
-                                                    </div>
+                                                    </motion.div>
                                                 )}
+                                                </AnimatePresence>
 
                                                 <Separator/>
 
@@ -802,8 +844,15 @@ export function ContainerCreateDialog({
                                                     )}
                                                 </div>
 
+                                                <AnimatePresence initial={false}>
                                                 {advancedConfiguration && (
-                                                    <>
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        transition={{ duration: 0.35 }}
+                                                        className="mt-8 space-y-6 pt-6 border-t border-white/10"
+                                                    >
 
                                                         <Separator/>
 
@@ -853,11 +902,13 @@ export function ContainerCreateDialog({
                                                                 placeholder="somehost:162.242.195.82&#10;otherhost:50.31.209.229"
                                                             />
                                                         </div>
-                                                    </>
+                                                    </motion.div>
                                                 )}
+                                                </AnimatePresence>
 
                                             </CardContent>
                                         </Card>
+                                        </motion.div>
                                     </TabsContent>
 
 
@@ -867,7 +918,7 @@ export function ContainerCreateDialog({
                     </Tabs>
                 </div>
 
-                <DialogFooter className="px-6 py-4 border-t bg-background flex justify-between items-center w-full">
+                <DialogFooter className="px-6 py-4 border-t border-white/10 bg-white/5 backdrop-blur-sm flex justify-between items-center w-full">
                     <div className="flex items-center space-x-2 w-full">
                         <Switch checked={advancedConfiguration} onCheckedChange={setAdvancedConfiguration}/>
                         <Label>Advanced Configuration</Label>
