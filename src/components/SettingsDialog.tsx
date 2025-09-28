@@ -16,6 +16,8 @@ import { LogOut, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppPreference } from '../../electron/services/storage/app/app.type';
 import WordPressSetupDialog from '@/features/wordpress/setup/WordPressSetupDialog';
+import { useAppDispatch } from '@/store/hooks';
+import { resetWordPressSetup } from '@/store/slices/wordpressSetupSlice';
 
 interface SettingsDialogProps {
     currentMode: AppPreference;
@@ -24,6 +26,7 @@ interface SettingsDialogProps {
 }
 
 export default function SettingsDialog({ currentMode, onModeChange, onDisconnect }: SettingsDialogProps) {
+    const dispatch = useAppDispatch();
     const [open, setOpen] = useState(false);
     const [showModeConfirmation, setShowModeConfirmation] = useState(false);
     const [selectedMode, setSelectedMode] = useState<AppPreference>(currentMode);
@@ -33,6 +36,7 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
         if (mode !== currentMode) {
             setSelectedMode(mode);
             setShowModeConfirmation(true);
+            dispatch(resetWordPressSetup());
         }
     };
 
@@ -120,24 +124,6 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
                                         Configure WordPress Infrastructure
                                     </Button>
                                 </WordPressSetupDialog>
-                                {/*<Button*/}
-                                {/*    onClick={checkInfrastructure}*/}
-                                {/*    disabled={isCheckingInfrastructure}*/}
-                                {/*    variant="outline"*/}
-                                {/*    className="w-full"*/}
-                                {/*>*/}
-                                {/*    {isCheckingInfrastructure ? (*/}
-                                {/*        <>*/}
-                                {/*            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>*/}
-                                {/*            Checking...*/}
-                                {/*        </>*/}
-                                {/*    ) : (*/}
-                                {/*        <>*/}
-                                {/*            <CheckCircle className="mr-2 h-4 w-4"/>*/}
-                                {/*            Check infrastructure*/}
-                                {/*        </>*/}
-                                {/*    )}*/}
-                                {/*</Button>*/}
                                 <p className="text-xs text-muted-foreground">
                                     Checks that Traefik, MySQL, and the network are operational
                                 </p>

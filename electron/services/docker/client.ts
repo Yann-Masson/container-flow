@@ -1,6 +1,7 @@
 import Docker from 'dockerode';
 import { Client } from 'ssh2';
 import net from 'net';
+import passwordManager from '../runtime/passwords/password-manager';
 
 // Variables to store active instances
 export const state = {
@@ -90,11 +91,13 @@ export const getMySQLConnectionOptions = () => {
         throw new Error('MySQL tunnel not established');
     }
 
+    const password = passwordManager.getState().root?.password;
+
     return {
         host: '127.0.0.1',
         port: MYSQL_LOCAL_PORT,
         user: 'root',
-        password: 'lumiarootpassword',
+        password: password || 'lumiarootpassword',
     };
 };
 

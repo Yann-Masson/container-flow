@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import WordPressSetupCard from './setup/WordPressSetupCard';
+import PasswordSetupCard from './setup/PasswordSetupCard';
 import WordPressCreator from './WordPressCreator';
 import WordPressList from './WordPressList';
 
@@ -7,6 +8,7 @@ type TransitionState = 'setup' | 'transitioning' | 'creator';
 
 export default function WordPress() {
     const [setupCompleted, setSetupCompleted] = useState(false);
+    const [credentialsReady, setCredentialsReady] = useState(false);
     const [transitionState, setTransitionState] = useState<TransitionState>('setup');
 
     useEffect(() => {
@@ -34,6 +36,10 @@ export default function WordPress() {
         setSetupCompleted(true);
     };
 
+    const handleCredentialsComplete = () => {
+        setCredentialsReady(true);
+    };
+
     const handleRetrySetup = () => {
         setSetupCompleted(false);
         setTransitionState('setup');
@@ -45,6 +51,15 @@ export default function WordPress() {
             <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 space-y-6">
                 <WordPressList />
                 <WordPressCreator />
+            </div>
+        );
+    }
+
+    // If credentials not ready, show password setup card first
+    if (!credentialsReady) {
+        return (
+            <div className="flex flex-col flex-grow justify-center items-center">
+                <PasswordSetupCard onComplete={handleCredentialsComplete} />
             </div>
         );
     }

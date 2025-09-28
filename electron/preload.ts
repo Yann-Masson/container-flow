@@ -99,4 +99,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
                 ipcRenderer.invoke('storage:ssh:save', sshConfig),
         },
     },
+    passwords: {
+        discover: () => ipcRenderer.invoke('runtime:passwords:discover'),
+        getState: () => ipcRenderer.invoke('runtime:passwords:getState'),
+        status: () => ipcRenderer.invoke('runtime:passwords:status'),
+        setRootAndMetrics: (opts: { rootPassword?: string; metricsUser?: string; metricsPassword?: string; metricsDsn?: string }) =>
+            ipcRenderer.invoke('runtime:passwords:setRootAndMetrics', opts),
+        registerProject: (projectName: string, creds: { dbUser: string; dbPassword: string; dbName: string }) =>
+            ipcRenderer.invoke('runtime:passwords:registerProject', { projectName, creds }),
+    }
 });

@@ -5,6 +5,7 @@ import { start as startContainer } from '../containers/start';
 import connectToNetwork from '../network/connect';
 import wordpress from '../configs/wordpress';
 import utils from "./utils";
+import passwordManager from '../../runtime/passwords';
 
 export interface WordPressCreateOptions {
     name: string;
@@ -88,9 +89,12 @@ export default async function create(options: WordPressCreateOptions): Promise<{
         await connectToNetwork('CF-WP', { Container: container.id });
         await startContainer(container.id);
 
-        console.log(`WordPress container '${name}' created successfully!`);
-        console.log(`Database: ${dbName}`);
-        console.log(`Database User: ${dbUser}`);
+    // Register credentials in runtime password manager
+    passwordManager.registerProject(name, { dbUser, dbPassword, dbName });
+
+    console.log(`WordPress container '${name}' created successfully!`);
+    console.log(`Database: ${dbName}`);
+    console.log(`Database User: ${dbUser}`);
         console.log(`Access URL: http://${domain || name + '.agence-lumia.com'}`);
 
         // Return serializable object only

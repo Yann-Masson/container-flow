@@ -57,6 +57,10 @@ export default function App() {
         checkConnection().then();
     }, []);
 
+    // Password discovery moved to WordPress feature entry.
+
+    // Dialog removed; gating now handled inside WordPress feature flow.
+
     return (
     <>
         <ScrollArea className="h-screen w-screen select-none">
@@ -86,6 +90,7 @@ export default function App() {
                     )
                 }
                 </div>
+
 
                 <footer className="mt-8 mb-4 text-center text-sm text-gray-500">
                     <p>© 2025 Container Flow - Docker Management Platform</p>

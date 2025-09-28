@@ -4,7 +4,8 @@ import { start as startContainer } from '../../../containers/start';
 import { remove as removeContainer } from '../../../containers/remove';
 import { getByName as getContainerByName } from '../../../containers/get-by-name';
 import connectToNetwork from '../../../network/connect';
-import mysqlConfig from '../../../configs/mysql';
+import mysqlConfigModule from '../../../configs/mysql';
+import passwordManager from '../../../../runtime/passwords';
 import validate from '../../validate';
 import { EnsureContext } from './types';
 
@@ -16,18 +17,24 @@ export async function ensureMySQL(ctx: EnsureContext): Promise<void> {
   if (!client) throw new Error('Docker client not initialized');
 
   const existing = await getContainerByName('mysql');
+  const rootPassword = passwordManager.getState().root?.password;
   if (existing) {
     const container = client.getContainer(existing.id);
     const info = await container.inspect();
-    if (!validate.containerConfig(info, mysqlConfig)) {
+    // Build expected config only if we have a root password; otherwise skip strict validation (user will be prompted)
+    const expected = rootPassword ? mysqlConfigModule.buildMySqlConfig(rootPassword) : undefined;
+    if (expected && !validate.containerConfig(info, expected)) {
       if (!force) {
         const msg = 'MySQL container exists but has invalid configuration. Use force=true to recreate.';
         progress?.('mysql', 'error', msg);
         throw new Error(msg);
       }
       progress?.('mysql', 'starting', 'Removing invalid MySQL configuration...');
+      if (!rootPassword) {
+        throw new Error('Root password missing; cannot recreate MySQL. Provide credentials first.');
+      }
       await removeContainer(existing.id, { force: true, volume: true });
-      const created = await createContainer(mysqlConfig);
+      const created = await createContainer(expected);
       await connectToNetwork('CF-WP', { Container: created.id });
       await startContainer(created.id);
       progress?.('mysql', 'success', 'MySQL container recreated');
@@ -39,7 +46,12 @@ export async function ensureMySQL(ctx: EnsureContext): Promise<void> {
     return;
   }
 
-  const created = await createContainer(mysqlConfig);
+  if (!rootPassword) {
+    const msg = 'Root password not set; cannot create MySQL container.';
+    progress?.('mysql', 'error', msg);
+    throw new Error(msg);
+  }
+  const created = await createContainer(mysqlConfigModule.buildMySqlConfig(rootPassword));
   await connectToNetwork('CF-WP', { Container: created.id });
   await startContainer(created.id);
   progress?.('mysql', 'success', 'MySQL container created');
