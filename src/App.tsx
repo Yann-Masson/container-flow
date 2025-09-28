@@ -6,7 +6,7 @@ import { AppScreens } from './screens';
 export default function App() {
   return (
     <AppStateProvider>
-      <ScrollArea className="h-screen w-screen select-none">
+      <ScrollArea className="h-screen w-screen select-none overflow-hidden">
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 font-[family-name:var(--font-geist-sans)]">
           <div className="flex-grow w-full h-full flex flex-col justify-center items-center">
             <AppScreens />

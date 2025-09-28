@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Loader2 } from 'lucide-react';
 
 interface PasswordSetupCardProps {
   onComplete: () => void;
@@ -76,24 +77,7 @@ export default function PasswordSetupCard({ onComplete }: PasswordSetupCardProps
 
   if (loading) {
     return (
-      <Card
-        variant="glass"
-        accent="glow"
-        interactive={false}
-        withHoverOverlay
-        className="w-full max-w-xl"
-      >
-        <CardHeader>
-          <CardTitle>Checking credentials...</CardTitle>
-          <CardDescription>Detecting existing MySQL and metrics credentials.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-muted rounded" />
-            <div className="h-4 bg-muted rounded w-5/6" />
-          </div>
-        </CardContent>
-      </Card>
+      <Loader2 className="animate-spin h-6 w-6 text-gray-500" />
     );
   }
 

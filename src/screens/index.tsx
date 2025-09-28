@@ -48,7 +48,7 @@ export const AppScreens: React.FC = () => {
 
   return (
     <AnimatePresence mode="popLayout" initial={false}>
-      <motion.div key={lifecycle} variants={variants} initial="initial" animate="enter" exit="exit" className="flex-grow w-full h-full flex flex-col justify-center items-center">
+      <motion.div key={lifecycle} variants={variants} initial="initial" animate="enter" exit="exit" className="flex-grow w-full h-full flex flex-col justify-center items-center overflow-hidden">
         {render()}
       </motion.div>
     </AnimatePresence>
