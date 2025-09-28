@@ -1,5 +1,5 @@
 import { ContainerInspectInfo } from 'dockerode';
-import { State } from '@/types/state';
+import { State } from '@/utils/state/basic-state';
 
 export interface WordPressProject {
     name: string;

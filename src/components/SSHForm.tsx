@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { State } from "../types/state.ts";
+import { State } from "../utils/state/basic-state.ts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";

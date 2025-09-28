@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-interface FirstSetupPageProps {
+interface FirstSetupScreenProps {
     setAppMode: (mode: AppPreference) => void;
 }
 
-export default function FirstSetupPage(props: FirstSetupPageProps) {
+export default function FirstSetupScreen(props: FirstSetupScreenProps) {
     const { setAppMode } = props;
     const [selectedMode, setSelectedMode] = useState<AppPreference | undefined>(undefined);
     const [isSaving, setIsSaving] = useState(false);

@@ -28,7 +28,6 @@ export default function PasswordSetupCard({ onComplete }: PasswordSetupCardProps
   const [metricsUser, setMetricsUser] = useState('metrics');
   const [metricsPassword, setMetricsPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [status, setStatus] = useState<{ rootPresent: boolean; metricsPresent: boolean; initialized: boolean } | null>(null);
 
   const rootValidation = validatePassword(rootPassword);
   const metricsValidation = validatePassword(metricsPassword);
@@ -42,7 +41,6 @@ export default function PasswordSetupCard({ onComplete }: PasswordSetupCardProps
           await (window as any).electronAPI.passwords.discover();
         }
         const refreshed = await (window as any).electronAPI.passwords.status();
-        setStatus(refreshed);
         if (refreshed.rootPresent && refreshed.metricsPresent) {
           onComplete();
         } else {
@@ -66,7 +64,6 @@ export default function PasswordSetupCard({ onComplete }: PasswordSetupCardProps
       });
       await (window as any).electronAPI.passwords.discover();
       const refreshed = await (window as any).electronAPI.passwords.status();
-      setStatus(refreshed);
       if (refreshed.rootPresent && refreshed.metricsPresent) {
         onComplete();
       }
@@ -79,7 +76,13 @@ export default function PasswordSetupCard({ onComplete }: PasswordSetupCardProps
 
   if (loading) {
     return (
-      <Card className="w-full max-w-xl">
+      <Card
+        variant="glass"
+        accent="glow"
+        interactive={false}
+        withHoverOverlay
+        className="w-full max-w-xl"
+      >
         <CardHeader>
           <CardTitle>Checking credentials...</CardTitle>
           <CardDescription>Detecting existing MySQL and metrics credentials.</CardDescription>
@@ -95,7 +98,13 @@ export default function PasswordSetupCard({ onComplete }: PasswordSetupCardProps
   }
 
   return (
-    <Card className="w-full max-w-xl">
+    <Card
+        variant="glass"
+        accent="glow"
+        interactive={false}
+        withHoverOverlay
+        className="w-full max-w-xl"
+    >
       <CardHeader>
         <CardTitle>Initial Credentials Required</CardTitle>
         <CardDescription>

@@ -10,7 +10,7 @@ import { createWordPressProject } from '@/store/slices/containerSlice';
 import { selectContainerStatus, selectIsCreating, selectProjects } from '@/store/selectors/containerSelectors';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { State } from '@/types/state';
+import { State } from '@/utils/state/basic-state';
 
 export default function WordPressCreator() {
     const dispatch = useAppDispatch();

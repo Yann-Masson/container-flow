@@ -1,8 +1,8 @@
 import SSHForm from "@/components/SSHForm.tsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
-import { State } from "@/types/state.ts";
-import ContainerFlowSvg from '../../assets/icons/container-flow.svg';
+import { State } from "@/utils/state/basic-state";
+import ContainerFlowSvg from '../../public/assets/icons/container-flow.svg';
 
 interface FormPageProps {
     setIsConnected: (state: State) => void;

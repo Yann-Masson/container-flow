@@ -15,7 +15,7 @@ import {
 import { LogOut, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppPreference } from '../../electron/services/storage/app/app.type';
-import WordPressSetupDialog from '@/features/wordpress/setup/WordPressSetupDialog';
+import WordPressSetupDialog from '@/components/wordpress/setup/WordPressSetupDialog';
 import { useAppDispatch } from '@/store/hooks';
 import { resetWordPressSetup } from '@/store/slices/wordpressSetupSlice';
 

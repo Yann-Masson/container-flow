@@ -10,7 +10,6 @@ import native from 'vite-plugin-native';
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// https://vitejs.dev/config/
 export default defineConfig({
     define: {
         'import.meta.env.PACKAGE_VERSION': JSON.stringify(packageJson.version),

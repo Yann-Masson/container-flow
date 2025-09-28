@@ -14,7 +14,7 @@ import {
     selectProjectCount,
     selectTotalContainerCount
 } from '@/store/selectors/containerSelectors';
-import { State } from '@/types/state';
+import { State } from '@/utils/state/basic-state';
 
 export default function WordPressList() {
     const dispatch = useAppDispatch();

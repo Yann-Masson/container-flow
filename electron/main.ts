@@ -47,7 +47,7 @@ function log(message: string) {
 
 function createWindow() {
     win = new BrowserWindow({
-        icon: path.join(process.env.APP_ROOT, 'assets/icons/container-flow-1024.png'),
+        icon: path.join(process.env.APP_ROOT, 'public/assets/icons/container-flow-1024.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.mjs'),
             contextIsolation: true,
@@ -90,9 +90,10 @@ function createWindow() {
     });
 
     if (VITE_DEV_SERVER_URL) {
+        console.log('Loading URL:', VITE_DEV_SERVER_URL);
         win.loadURL(VITE_DEV_SERVER_URL);
     } else {
-        win.loadFile(path.join(RENDERER_DIST, 'index.html'));
+        win.loadFile(path.join(RENDERER_DIST, 'public/index.html'));
         setTimeout(() => {
             log('Starting auto-updater...');
             setupAutoUpdater();

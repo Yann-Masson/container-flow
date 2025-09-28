@@ -18,6 +18,7 @@ export async function ensureMySQL(ctx: EnsureContext): Promise<void> {
 
   const existing = await getContainerByName('mysql');
   const rootPassword = passwordManager.getState().root?.password;
+  
   if (existing) {
     const container = client.getContainer(existing.id);
     const info = await container.inspect();
@@ -51,7 +52,9 @@ export async function ensureMySQL(ctx: EnsureContext): Promise<void> {
     progress?.('mysql', 'error', msg);
     throw new Error(msg);
   }
-  const created = await createContainer(mysqlConfigModule.buildMySqlConfig(rootPassword));
+
+  const mysqlConfig = mysqlConfigModule.buildMySqlConfig(rootPassword);
+  const created = await createContainer(mysqlConfig);
   await connectToNetwork('CF-WP', { Container: created.id });
   await startContainer(created.id);
   progress?.('mysql', 'success', 'MySQL container created');

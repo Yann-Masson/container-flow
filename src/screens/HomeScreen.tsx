@@ -2,24 +2,24 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import SettingsDialog from "@/components/SettingsDialog.tsx";
 import { AppPreference } from "../../electron/services/storage/app/app.type";
-import List from "@/features/list/List";
-import WordPress from "@/features/wordpress/WordPress";
-import ContainerFlowSvg from '../../assets/icons/container-flow.svg';
+import ContainerList from "@/components/container/ContainerList";
+import WordPress from "@/components/wordpress/WordPress";
+import ContainerFlowSvg from '../../public/assets/icons/container-flow.svg';
 
-interface HomePageProps {
+interface HomeScreenProps {
     appMode: AppPreference;
     onModeChange: (mode: AppPreference) => void;
     onDisconnect: () => void;
 }
 
-export default function HomePage({ appMode, onModeChange, onDisconnect }: HomePageProps) {
+export default function HomeScreen({ appMode, onModeChange, onDisconnect }: HomeScreenProps) {
 
     const getModeComponent = (mode: AppPreference) => {
         switch (mode) {
             case AppPreference.WORDPRESS:
                 return <WordPress />;
             case AppPreference.LIST:
-                return <List />;
+                return <ContainerList />;
             default:
                 return <div className="text-center text-gray-500 mt-20">Select a mode to get started</div>;
         }

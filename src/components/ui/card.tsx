@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils/tailwind"
 
 const cardVariants = cva(
   "relative flex flex-col gap-6 rounded-xl border py-6 transition-colors duration-300",

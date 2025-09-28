@@ -1,6 +1,6 @@
 import { Card, CardContent, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { State } from "@/types/state.ts";
+import { State } from "@/utils/state/basic-state";
 import { Button } from "@/components/ui/button.tsx";
 import { RefreshCw } from "lucide-react";
 
