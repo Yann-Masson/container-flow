@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Plus, ClipboardList, Copy, Globe2, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { createWordPressProject } from '@/store/slices/containerSlice';
+import { createWordPressProject } from '@/store/slices/wordpressSlice';
 import { selectContainerStatus, selectIsCreating, selectProjects } from '@/store/selectors/containerSelectors';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';

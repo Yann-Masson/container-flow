@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import containerReducer from './slices/containerSlice';
+import containerReducer from './slices/wordpressSlice';
+import genericContainerReducer from './slices/containerSlice';
 import wordpressSetupReducer from './slices/wordpressSetupSlice';
 
 export const store = configureStore({
     reducer: {
-        containers: containerReducer,
+    containers: containerReducer,
+    genericContainers: genericContainerReducer,
         wordpressSetup: wordpressSetupReducer,
     },
     middleware: (getDefaultMiddleware) =>

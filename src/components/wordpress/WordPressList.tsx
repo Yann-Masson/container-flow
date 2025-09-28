@@ -6,7 +6,7 @@ import WordPressProjectCard from './WordPressProjectCard';
 import { AnimatePresence, motion } from 'framer-motion';
 import WordPressProjectSkeleton from './WordPressProjectSkeleton';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchContainers } from '@/store/slices/containerSlice';
+import { fetchContainers } from '@/store/slices/wordpressSlice';
 import { 
     selectProjects, 
     selectContainerStatus, 

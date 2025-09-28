@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import WordPressChangeUrlDialog from './WordPressChangeUrlDialog';
 import { WordPressDeleteDialog } from './WordPressDeleteDialog';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { cloneContainer, startContainer, stopContainer, removeContainer } from '@/store/slices/containerSlice';
+import { cloneContainer, startContainer, stopContainer, removeContainer } from '@/store/slices/wordpressSlice';
 import { 
     selectIsCloning,
     selectIsRetrievingAll,

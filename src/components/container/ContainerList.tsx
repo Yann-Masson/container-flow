@@ -1,90 +1,65 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ContainerCreateOptions, ContainerInfo } from 'dockerode';
+import { useEffect, useMemo } from 'react';
+import { ContainerCreateOptions } from 'dockerode';
 import { State } from "../../utils/state/basic-state.ts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card.tsx";
 import { toast } from "sonner";
 import { ContainerHeader } from "./ContainerHeader.tsx";
 import { ContainerCard } from "./ContainerCard.tsx";
-import { LoadingSkeleton } from "./LoadingSkeleton.tsx";
+import { ContainerSkeleton } from "./ContainerSkeleton.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import traefik from "../../../electron/services/docker/configs/traefik.ts";
 import { ContainerCreateDialog } from "@/components/container/create/ContainerCreateDialog.tsx";
 import { dockerClientService } from "@/docker/docker-client.ts";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { listContainers, startGenericContainer, stopGenericContainer, removeGenericContainer, duplicateGenericContainer } from '@/store/slices/containerSlice';
+
+// Selectors (inline to avoid creating separate file now)
+const useGenericContainers = () => useAppSelector(s => s.genericContainers.containers);
+const useGenericStatus = () => useAppSelector(s => s.genericContainers.status);
+const useGenericOps = () => useAppSelector(s => s.genericContainers.operationStatus);
+// const useGenericError = () => useAppSelector(s => s.genericContainers.error); // currently unused
 
 export default function ContainerList() {
-    const [state, setState] = useState(State.LOADING);
-    const [containers, setContainers] = useState<ContainerInfo[]>([]);
-    const [message, setMessage] = useState('');
-    const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({});
+    const dispatch = useAppDispatch();
+    const containers = useGenericContainers();
+    const status = useGenericStatus();
+    const ops = useGenericOps();
+    // const error = useGenericError(); // reserved for future error banner usage
 
     // List containers
     const handleListContainers = async () => {
-        setState(State.LOADING);
-        setMessage('loading containers...');
-
-        try {
-            const containers = await dockerClientService.containers.list();
-
-            if (containers !== null) {
-                setContainers(containers);
-                setMessage(`${containers.length} container${containers.length > 0 ? 's' : ''} found`);
-                setState(State.SUCCESS);
-            } else {
-                setState(State.ERROR);
-                setMessage('No containers found');
-            }
-        } catch (error) {
-            console.error('Failed to list containers:', error);
-            setState(State.ERROR);
-        }
+        await dispatch(listContainers());
     };
 
     // Start container
     const handleStartContainer = async (containerId: string, containerName: string) => {
-        setActionLoading(prev => ({ ...prev, [containerId]: true }));
         try {
-            await dockerClientService.containers.start(containerId);
+            await dispatch(startGenericContainer({ id: containerId })).unwrap();
             toast.success(`Container "${containerName}" started successfully`);
-            setContainers(prev => prev.map(container =>
-                container.Id === containerId ? { ...container, State: 'running' } : container
-            ));
         } catch (error) {
             toast.error(`Failed to start container "${containerName}": ${error}`);
-        } finally {
-            setActionLoading(prev => ({ ...prev, [containerId]: false }));
         }
     };
 
     // Stop container
     const handleStopContainer = async (containerId: string, containerName: string) => {
-        setActionLoading(prev => ({ ...prev, [containerId]: true }));
         try {
-            await dockerClientService.containers.stop(containerId, { t: 10 });
+            await dispatch(stopGenericContainer({ id: containerId })).unwrap();
             toast.success(`Container "${containerName}" stopped successfully`);
-            setContainers(prev => prev.map(container =>
-                container.Id === containerId ? { ...container, State: 'stopped' } : container
-            ));
         } catch (error) {
             toast.error(`Failed to stop container "${containerName}": ${error}`);
-            console.error(error);
-        } finally {
-            setActionLoading(prev => ({ ...prev, [containerId]: false }));
         }
     };
 
     // Delete container
     const handleDeleteContainer = async (containerId: string, containerName: string) => {
-        setActionLoading(prev => ({ ...prev, [containerId]: true }));
         try {
-            await dockerClientService.containers.remove(containerId, { force: true });
+            await dispatch(removeGenericContainer({ id: containerId })).unwrap();
             toast.success(`Container "${containerName}" deleted successfully`);
-            setContainers(prev => prev.filter(container => container.Id !== containerId));
         } catch (error) {
             toast.error(`Failed to delete container "${containerName}": ${error}`);
-        } finally {
-            setActionLoading(prev => ({ ...prev, [containerId]: false }));
         }
     };
 
@@ -93,36 +68,14 @@ export default function ContainerList() {
         try {
             if (!previousContainerId) {
                 await dockerClientService.containers.create(containerConfig);
-
                 toast.success(`Container "${containerConfig.name}" created successfully`);
-                await handleListContainers();
+                dispatch(listContainers());
                 return;
             }
-
-            setActionLoading(prev => ({ ...prev, [previousContainerId]: true }));
-
-            const containerInfo = await dockerClientService.containers.get(previousContainerId);
-
-            if (removePreviousContainer) {
-                await dockerClientService.containers.remove(previousContainerId, { force: true });
-            }
-
-            const newContainer = await dockerClientService.containers.create(containerConfig);
-
-            if (containerInfo.State.Running) {
-                await dockerClientService.containers.start(newContainer.Id);
-            }
-
-            toast.success(`Container "${containerInfo.Name}" duplicated successfully`);
-            setContainers(prev => prev.map(container =>
-                container.Id === previousContainerId ? newContainer : container
-            ));
+            await dispatch(duplicateGenericContainer({ previousId: previousContainerId, config: containerConfig, removePrevious: removePreviousContainer })).unwrap();
+            toast.success(`Container duplicated successfully`);
         } catch (error) {
             toast.error(`Failed to update container "${containerConfig.Image}": ${error}`);
-        } finally {
-            if (previousContainerId) {
-                setActionLoading(prev => ({ ...prev, [previousContainerId]: false }));
-            }
         }
     };
 
@@ -140,9 +93,8 @@ export default function ContainerList() {
     };
 
     useEffect(() => {
-        // Automatically list containers when component mounts
-        handleListContainers();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        dispatch(listContainers());
+    }, [dispatch]);
 
     // Function to get status color
     const getStatusColor = (status: string) => {
@@ -178,23 +130,29 @@ export default function ContainerList() {
         return 'Unknown';
     };
 
+    const running = useMemo(() => containers.filter(c => c.Status?.includes('Up')).length, [containers]);
+    const stopped = useMemo(() => containers.filter(c => c.Status?.includes('Exited') || c.Status?.includes('Created')).length, [containers]);
+
     return (
         <main className="grid grid-cols-1 gap-8">
 
             <section className='p-4 w-full'>
-                <ContainerHeader state={state} message={message} refreshFunction={handleListContainers}/>
+                <ContainerHeader
+                    state={status}
+                    refreshFunction={handleListContainers}
+                    running={running}
+                    stopped={stopped}
+                />
 
+                <div className="space-y-4">
                 {/* Container list */}
-                {state === State.LOADING ? (
-                    <LoadingSkeleton/>
-                ) : state === State.SUCCESS && containers.length > 0 ? (
-                    <div className="space-y-4">
-                        <h2 className='text-xl font-bold mb-3'>Container List</h2>
-                        <div className="grid grid-cols-1 gap-4">
-                            {containers.map((container) => {
+                {status === State.LOADING ? (
+                    <ContainerSkeleton count={5}/>
+                ) : status === State.SUCCESS && containers.length > 0 ? (
+                            containers.map((container) => {
                                 const containerName = formatContainerName(container.Names[0]);
-                                const isRunning = container.Status.includes('Up');
-                                const isLoading = actionLoading[container.Id];
+                                const isRunning = container.Status?.includes('Up');
+                                const isLoading = !!(ops.starting[container.Id] || ops.stopping[container.Id] || ops.removing[container.Id] || ops.duplicating[container.Id]);
 
                                 return (
                                     <ContainerCard
@@ -213,15 +171,14 @@ export default function ContainerList() {
                                         onCreate={handleCreateContainer}
                                     />
                                 );
-                            })}
-                        </div>
-                    </div>
-                ) : state === State.SUCCESS && containers.length === 0 ? (
+                            })
+                ) : status === State.SUCCESS && containers.length === 0 ? (
                     <Card className="w-full p-6 text-center bg-gray-50 dark:bg-gray-800">
                         <p className="text-lg text-gray-600 dark:text-gray-400">No containers found</p>
                         <p className="text-sm text-gray-500 mt-2">Create a new container to get started</p>
                     </Card>
                 ) : null}
+                </div>
             </section>
 
             <Separator className="my-2"/>

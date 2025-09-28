@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { deleteWordPressProject } from '@/store/slices/containerSlice';
+import { deleteWordPressProject } from '@/store/slices/wordpressSlice';
 import { selectOperationStatus } from '@/store/selectors/containerSelectors';
 
 interface WordPressDeleteDialogProps {
