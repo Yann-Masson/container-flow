@@ -53,27 +53,15 @@ interface ElectronAPI {
             };
         };
         wordpress: {
-            setup: (options?: { force?: boolean }) => Promise<{
-                network: { id: string; name: string };
-                traefik: { id: string; name: string };
-                mysql: { id: string; name: string };
-                monitoring: {
-                    cadvisor: { id: string; name: string };
-                    mysqldExporter: { id: string; name: string };
-                    prometheus: { id: string; name: string };
-                    grafana: { id: string; name: string };
-                };
-            }>;
+            setup: (
+                progress: (event: { step: string; status: 'starting' | 'success' | 'error'; message?: string }) => void,
+                options?: { force?: boolean }
+            ) => Promise<void>;
             create: (options: import('../services/docker/wordpress/create.ts').WordPressCreateOptions) => Promise<{
                 id: string;
                 name: string
             }>;
             clone: (sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo) => Promise<ContainerInspectInfo>;
-            onSetupProgress: (callback: (event: {
-                step: string;
-                status: 'starting' | 'success' | 'error';
-                message?: string
-            }) => void) => () => void;
             changeUrl: (container: ContainerInspectInfo, newUrl: string) => Promise<ContainerInspectInfo>;
             delete: (options: import('../services/docker/wordpress/delete.ts').WordPressDeleteOptions) => Promise<void>;
         };

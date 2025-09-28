@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { Switch } from '@/components/ui/switch';
@@ -8,6 +8,8 @@ import WordPressSetupProgress from './WordPressSetupProgress';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button.tsx";
 import { StatusIndicator } from '@/components/StatusIndicator';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { runWordPressSetup, selectWordPressSetupStatus } from '@/store/slices/wordpressSetupSlice';
 
 interface WordPressSetupCardProps {
     onSetupComplete: () => void;
@@ -15,35 +17,40 @@ interface WordPressSetupCardProps {
 }
 
 export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: WordPressSetupCardProps) {
-    const [failed, setFailed] = useState(false);
-    const [start, setIsRunning] = useState(true);
+    const dispatch = useAppDispatch();
+    const status = useAppSelector(selectWordPressSetupStatus);
+    const isRunning = status === 'running';
+    const failed = status === 'error';
     const [forceSetup, setForceSetup] = useState(false);
+    const prevStatus = useRef(status);
 
+    // Auto-start if idle on mount
     useEffect(() => {
-        console.log("Starting WordPress setup...");
-    }, []);
+        if (status === 'idle') {
+            dispatch(runWordPressSetup({ force: forceSetup }));
+        }
+    }, [status, dispatch, forceSetup]);
 
-    const handleSetupComplete = () => {
-        setIsRunning(false);
-        toast.success('🎉 WordPress infrastructure configured successfully!', {
-            description: 'You can now create WordPress sites.',
-        });
-        onSetupComplete();
-    };
-
-    const handleSetupError = (error: Error) => {
-        toast.error('❌ Setup error', {
-            description: error.message,
-        });
-
-        setFailed(true);
-        setIsRunning(false);
-    };
+    // Toasts & callbacks
+    useEffect(() => {
+        if (prevStatus.current !== status) {
+            if (status === 'success') {
+                toast.success('🎉 WordPress infrastructure configured successfully!', {
+                    description: 'You can now create WordPress sites.'
+                });
+                onSetupComplete();
+            } else if (status === 'error') {
+                toast.error('❌ Setup error', { description: 'An error occurred during setup.' });
+            }
+            prevStatus.current = status;
+        }
+    }, [status, onSetupComplete]);
 
     const handleRetrySetup = () => {
-        setIsRunning(true);
-        setFailed(false);
-        onRetrySetup();
+        if (!isRunning) {
+            dispatch(runWordPressSetup({ force: forceSetup }));
+            onRetrySetup();
+        }
     };
 
     return (
@@ -60,7 +67,7 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
                         <Server className="h-5 w-5"/>
                         WordPress Infrastructure Setup
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className='mb-3'>
                         Setting up the infrastructure for your WordPress sites...
                     </CardDescription>
                 </CardHeader>
@@ -81,36 +88,24 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
                                 </Label>
                             </div>
 
-                            <Button
-                                onClick={handleRetrySetup}
-                                disabled={start}
-                                size="lg"
-                                className="w-full"
-                            >
-                                {start ? (
+                            <Button onClick={handleRetrySetup} disabled={isRunning} size="lg" className="w-full">
+                                {isRunning ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Setup in progress...
                                     </>
                                 ) : (
                                     <>
-                                        <Play className="mr-2 h-4 w-4"/>
+                                        <Play className="mr-2 h-4 w-4" />
                                         Re-Launch WordPress Setup{forceSetup ? ' (Force)' : ''}
                                     </>
                                 )}
                             </Button>
                         </div>
                     )}
+                    <WordPressSetupProgress showDetailsInitial={false} />
 
-                    <WordPressSetupProgress
-                        onComplete={handleSetupComplete}
-                        onError={handleSetupError}
-                        showDetails={false}
-                        autoStart={start}
-                        force={forceSetup}
-                    />
-
-                    <StatusIndicator status={start ? "running" : "success"} size="lg"/>
+                    <StatusIndicator status={isRunning ? 'running' : failed ? 'error' : status === 'success' ? 'success' : 'pending'} size="lg" />
 
                 </CardContent>
             </Card>

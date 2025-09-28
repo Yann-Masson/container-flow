@@ -27,17 +27,18 @@ export const vpsHealthDashboard = {
             ]
         },
 
-        // Memory Breakdown
+        // Memory usage time series
         {
-            type: 'stat',
-            title: 'Memory Used %',
+            type: 'timeseries',
+            title: 'Memory Usage',
             id: 2,
             gridPos: { x: 12, y: 0, w: 12, h: 8 },
             datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
             targets: [
                 {
                     expr: '100 * ( (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes )',
-                    refId: 'A'
+                    refId: 'A',
+                    legendFormat: 'Used'
                 }
             ],
             fieldConfig: {
@@ -58,9 +59,9 @@ export const vpsHealthDashboard = {
         // Disk usage (root filesystem only)
         {
             type: 'stat',
-            title: 'Root FS Usage %',
+            title: 'Storage Used % (root)',
             id: 3,
-            gridPos: { x: 0, y: 8, w: 1, h: 8 },
+            gridPos: { x: 0, y: 8, w: 2, h: 8 },
             datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
             targets: [
             {
@@ -92,7 +93,7 @@ export const vpsHealthDashboard = {
             type: 'timeseries',
             title: 'Disk IO Read/Write Ops/s',
             id: 4,
-            gridPos: { x: 8, y: 8, w: 8, h: 8 },
+            gridPos: { x: 2, y: 8, w: 9, h: 8 },
             datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
             targets: [
                 { expr: 'rate(node_disk_reads_completed_total[5m])', legendFormat: 'reads', refId: 'A' },
@@ -105,7 +106,7 @@ export const vpsHealthDashboard = {
             type: 'timeseries',
             title: 'Network In/Out bits/s',
             id: 5,
-            gridPos: { x: 16, y: 8, w: 8, h: 8 },
+            gridPos: { x: 11, y: 8, w: 9, h: 8 },
             datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
             targets: [
                 {
@@ -120,7 +121,35 @@ export const vpsHealthDashboard = {
                 }
             ],
             fieldConfig: { defaults: { unit: 'bps' } }
-        }
+        },
+
+        // Memory Breakdown
+        {
+            type: 'stat',
+            title: 'Memory Used %',
+            id: 6,
+            gridPos: { x: 20, y: 8, w: 4, h: 8 },
+            datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
+            targets: [
+                {
+                    expr: '100 * ( (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes )',
+                    refId: 'A'
+                }
+            ],
+            fieldConfig: {
+                defaults: {
+                    unit: 'percent',
+                    thresholds: {
+                        mode: 'percentage',
+                        steps: [
+                            { color: 'green', value: 0 },
+                            { color: 'yellow', value: 70 },
+                            { color: 'red', value: 85 }
+                        ]
+                    }
+                }
+            }
+        },
     ]
 };
 

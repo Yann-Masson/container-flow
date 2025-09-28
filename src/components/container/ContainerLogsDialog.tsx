@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Input } from "../ui/input";
 import { useAppSelector } from "@/store/hooks";
-import { selectIsRetrievingAll, selectOperationStatus } from "@/store/selectors/containerSelectors";
+import { selectOperationStatus } from "@/store/selectors/containerSelectors";
 
 interface ContainerLogsDialogProps {
     containerName: string;
@@ -19,7 +19,6 @@ export function ContainerLogsDialog({ containerName, containerId, onGetLogs }: C
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
-    const isRetrievingAll = useAppSelector(selectIsRetrievingAll);
     const operationStatus = useAppSelector(selectOperationStatus);
 
     const fetchLogs = async () => {

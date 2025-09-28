@@ -64,18 +64,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
             },
         },
         wordpress: {
-            setup: (options?: { force?: boolean }) => ipcRenderer.invoke('docker:wordpress:setup', options),
+            setup: (
+                progress: (event: { step: string; status: string; message?: string }) => void,
+                options?: { force?: boolean }
+            ) => {
+                // temporary listener scoped to this invocation
+                const handler = (_: any, event: { step: string; status: string; message?: string }) => {
+                    progress(event);
+                };
+                ipcRenderer.on('wordpress:setup:progress', handler);
+                return ipcRenderer.invoke('docker:wordpress:setup', options)
+                    .finally(() => {
+                        ipcRenderer.removeListener('wordpress:setup:progress', handler);
+                    });
+            },
             create: (options: WordPressCreateOptions) =>
                 ipcRenderer.invoke('docker:wordpress:create', options),
             clone: (sourceContainer: ContainerInspectInfo) =>
                 ipcRenderer.invoke('docker:wordpress:clone', sourceContainer),
-            onSetupProgress: (callback: (event: { step: string; status: string; message?: string }) => void) => {
-                const handleProgress = (_: any, event: { step: string; status: string; message?: string }) => {
-                    callback(event);
-                };
-                ipcRenderer.on('wordpress:setup:progress', handleProgress);
-                return () => ipcRenderer.removeListener('wordpress:setup:progress', handleProgress);
-            },
             changeUrl: (container: ContainerInspectInfo, newUrl: string) =>
                 ipcRenderer.invoke('docker:wordpress:changeUrl', container, newUrl),
             'delete': (options: WordPressDeleteOptions) => ipcRenderer.invoke('docker:wordpress:delete', options),

@@ -15,7 +15,7 @@ import {
 import { LogOut, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppPreference } from '../../electron/services/storage/app/app.type';
-import WordPressSetup from '@/features/wordpress/setup/WordPressSetup';
+import WordPressSetupDialog from '@/features/wordpress/setup/WordPressSetupDialog';
 
 interface SettingsDialogProps {
     currentMode: AppPreference;
@@ -114,12 +114,12 @@ export default function SettingsDialog({ currentMode, onModeChange, onDisconnect
                         {currentMode === AppPreference.WORDPRESS && (
                             <div className="space-y-3">
                                 <h3 className="text-sm font-medium">WordPress Infrastructure</h3>
-                                <WordPressSetup>
+                                <WordPressSetupDialog>
                                     <Button variant="outline" className="w-full">
                                         <Settings className="mr-2 h-4 w-4"/>
                                         Configure WordPress Infrastructure
                                     </Button>
-                                </WordPressSetup>
+                                </WordPressSetupDialog>
                                 {/*<Button*/}
                                 {/*    onClick={checkInfrastructure}*/}
                                 {/*    disabled={isCheckingInfrastructure}*/}

@@ -1,187 +1,53 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from "@/components/ui/progress.tsx";
-import { ChevronDown, ChevronUp, Database, Globe, Server, Activity, BarChart2, HardDrive, Gauge } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ChevronDown, ChevronUp, Globe, Server, Database, Activity, BarChart2, Cpu, Gauge, HardDrive } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StatusIndicator } from '@/components/StatusIndicator';
-
-interface SetupStep {
-    id: string;
-    label: string;
-    icon: React.ReactNode;
-    status: 'pending' | 'running' | 'success' | 'error';
-    description: string;
-    statusMessage?: string;
-}
-
-interface ProgressEvent {
-    step: string;
-    status: 'starting' | 'success' | 'error';
-    message?: string;
-}
+import { useAppSelector } from '@/store/hooks';
+import { selectWordPressSetupIsRunning, selectWordPressSetupSteps } from '@/store/slices/wordpressSetupSlice';
 
 interface WordPressSetupProgressProps {
-    onComplete?: () => void;
-    onError?: (error: Error) => void;
-    showDetails?: boolean;
-    autoStart?: boolean;
-    force?: boolean;
+    showDetailsInitial?: boolean;
+    onDetailsVisibilityChange?: (visible: boolean) => void;
 }
 
 export default function WordPressSetupProgress({
-                                                   onComplete,
-                                                   onError,
-                                                   showDetails = false,
-                                                   autoStart = false,
-                                                   force = false
-                                               }: WordPressSetupProgressProps) {
-    const [isSetupRunning, setIsSetupRunning] = useState(false);
-    const [showDetailsState, setShowDetailsState] = useState(showDetails);
-    const initialSteps: SetupStep[] = [
-        {
-            id: 'network',
-            label: 'Creating CF-WP network',
-            icon: <Globe className="h-4 w-4" />,
-            status: 'pending',
-            description: 'The CF-WP network enables communication between infrastructure containers.'
-        },
-        {
-            id: 'traefik',
-            label: 'Deploying Traefik',
-            icon: <Server className="h-4 w-4" />,
-            status: 'pending',
-            description: 'Traefik reverse proxy handles routing and TLS certificates.'
-        },
-        {
-            id: 'mysql',
-            label: 'Deploying MySQL',
-            icon: <Database className="h-4 w-4" />,
-            status: 'pending',
-            description: 'MySQL stores WordPress data.'
-        },
-        {
-            id: 'mysql-ready',
-            label: 'Waiting for MySQL',
-            icon: <Database className="h-4 w-4" />,
-            status: 'pending',
-            description: 'Ensuring MySQL is accepting connections.'
-        },
-        // Monitoring stack steps (added to UI so order is predictable)
-        {
-            id: 'cadvisor',
-            label: 'Deploying cAdvisor',
-            icon: <Activity className="h-4 w-4" />,
-            status: 'pending',
-            description: 'cAdvisor collects container CPU, Memory, IO metrics.'
-        },
-        {
-            id: 'mysqld-exporter',
-            label: 'Deploying MySQL Exporter',
-            icon: <BarChart2 className="h-4 w-4" />,
-            status: 'pending',
-            description: 'Exports MySQL performance metrics for Prometheus.'
-        },
-        {
-            id: 'prometheus',
-            label: 'Deploying Prometheus',
-            icon: <Gauge className="h-4 w-4" />,
-            status: 'pending',
-            description: 'Prometheus stores and queries time-series metrics.'
-        },
-        {
-            id: 'grafana',
-            label: 'Deploying Grafana',
-            icon: <Server className="h-4 w-4" />,
-            status: 'pending',
-            description: 'Grafana provides dashboards for visualization.'
-        },
-        {
-            id: 'grafana-provision',
-            label: 'Provisioning Grafana',
-            icon: <HardDrive className="h-4 w-4" />,
-            status: 'pending',
-            description: 'Configuring Prometheus datasource and default dashboards.'
-        }
-    ];
+    showDetailsInitial = false,
+    onDetailsVisibilityChange
+}: WordPressSetupProgressProps) {
+    const isSetupRunning = useAppSelector(selectWordPressSetupIsRunning);
+    const steps = useAppSelector(selectWordPressSetupSteps);
+    const [showDetailsState, setShowDetailsState] = useState(showDetailsInitial);
 
-    const [steps, setSteps] = useState<SetupStep[]>(initialSteps);
+  // Parent width coordination (unchanged logic)
+  useEffect(() => {
+    if (!onDetailsVisibilityChange) return;
+    if (showDetailsState) {
+      onDetailsVisibilityChange(true);
+    } else {
+      const timeout = setTimeout(() => onDetailsVisibilityChange(false), 350);
+      return () => clearTimeout(timeout);
+    }
+  }, [showDetailsState, onDetailsVisibilityChange]);
 
-    useEffect(() => {
-        const removeListener = window.electronAPI.docker.wordpress.onSetupProgress((event: ProgressEvent) => {
-            console.log('Setup progress:', event);
-            updateStepStatus(event.step, event.status, event.message);
-        });
+  const renderIcon = (icon: string) => {
+    switch (icon) {
+      case 'globe': return <Globe className="h-4 w-4" />;
+      case 'server': return <Server className="h-4 w-4" />;
+      case 'database': return <Database className="h-4 w-4" />;
+      case 'activity': return <Activity className="h-4 w-4" />;
+      case 'barchart2': return <BarChart2 className="h-4 w-4" />;
+      case 'cpu': return <Cpu className="h-4 w-4" />;
+      case 'gauge': return <Gauge className="h-4 w-4" />;
+      case 'harddrive': return <HardDrive className="h-4 w-4" />;
+      default: return <Server className="h-4 w-4" />;
+    }
+  };
 
-        return () => {
-            removeListener();
-        };
-    }, []);
-
-    const idToFallback = (id: string): SetupStep => ({
-        id,
-        label: id.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        icon: <Server className="h-4 w-4" />,
-        status: 'pending',
-        description: 'Automatically added step.'
-    });
-
-    const updateStepStatus = (stepId: string, status: 'starting' | 'success' | 'error', message?: string) => {
-        setSteps(prevSteps => {
-            // If step not found, inject it (dynamic unknown backend step)
-            let found = prevSteps.find(s => s.id === stepId);
-            if (!found) {
-                prevSteps = [...prevSteps, idToFallback(stepId)];
-            }
-            return prevSteps.map(step => {
-                if (step.id === stepId) {
-                    let newStatus: SetupStep['status'];
-                    switch (status) {
-                        case 'starting': newStatus = 'running'; break;
-                        case 'success': newStatus = 'success'; break;
-                        case 'error': newStatus = 'error'; break;
-                        default: newStatus = step.status;
-                    }
-                    return { ...step, status: newStatus, statusMessage: message };
-                }
-                return step;
-            });
-        });
-    };
-
-    const resetSteps = () => {
-        setSteps(initialSteps.map(s => ({ ...s, status: 'pending', statusMessage: undefined })));
-    };
-
-    const handleSetup = useCallback(async () => {
-        if (isSetupRunning) return;
-
-        try {
-            setIsSetupRunning(true);
-            resetSteps();
-
-            const result = await window.electronAPI.docker.wordpress.setup({
-                force
-            });
-
-            console.log('Setup completed:', result);
-            onComplete?.();
-        } catch (error) {
-            console.error('Setup failed:', error);
-            const setupError = error instanceof Error ? error : new Error('Unknown error occurred');
-            onError?.(setupError);
-        } finally {
-            setIsSetupRunning(false);
-        }
-    }, [isSetupRunning, onComplete, onError]);
-
-    useEffect(() => {
-        if (autoStart && !isSetupRunning) {
-            handleSetup().then();
-        }
-    }, [autoStart]);
-
-    const getStepBadgeVariant = (status: SetupStep['status']) => {
+    const getStepBadgeVariant = (status: any) => {
         switch (status) {
             case 'running':
                 return 'default';
@@ -194,7 +60,7 @@ export default function WordPressSetupProgress({
         }
     };
 
-    const getStepBadgeText = (status: SetupStep['status']) => {
+    const getStepBadgeText = (status: any) => {
         switch (status) {
             case 'running':
                 return 'Running...';
@@ -228,7 +94,7 @@ export default function WordPressSetupProgress({
             <Button
                 variant="outline"
                 onClick={() => setShowDetailsState(!showDetailsState)}
-                className="w-full"
+                className="w-full m-0"
             >
                 {showDetailsState ? (
                     <>
@@ -245,62 +111,81 @@ export default function WordPressSetupProgress({
                 )}
             </Button>
 
-            {/* Collapsible details section */}
-            {showDetailsState && (
-                <div className="space-y-3">
+            {/* Collapsible details section (kept mounted for smooth height animation) */}
+            <motion.div
+                key="details-wrapper"
+                initial={false}
+                animate={showDetailsState ? 'open' : 'closed'}
+                variants={{
+                    open: { height: 'auto', opacity: 1, marginTop: 0 },
+                    closed: { height: 0, opacity: 0, marginTop: 0 }
+                }}
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                className="overflow-hidden"
+            >
+                <div className="space-y-3 mt-2">
                     <h3 className="text-lg font-semibold">Setup Steps</h3>
-                    <div className="space-y-2">
+                    <motion.div
+                        className="space-y-2"
+                        initial={false}
+                        animate={showDetailsState ? 'visible' : 'hidden'}
+                        variants={{
+                            hidden: {},
+                            visible: { transition: { staggerChildren: 0.05 } }
+                        }}
+                    >
                         {steps.map((step, index) => (
                             <Tooltip key={step.id}>
                                 <TooltipTrigger asChild>
-                                    <div
-                                        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+                                    <motion.div
+                                        layout
+                                        variants={{
+                                            hidden: { opacity: 0, y: 8 },
+                                            visible: { opacity: 1, y: 0 }
+                                        }}
+                                        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+                                        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border shadow-sm transition-colors duration-300 ${
                                             step.status === 'running'
-                                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
+                                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-400'
                                                 : step.status === 'success'
-                                                    ? 'border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-400'
+                                                    ? 'border-green-500 bg-green-50 dark:bg-green-950/40 dark:border-green-400'
                                                     : step.status === 'error'
-                                                        ? 'border-red-500 bg-red-50 dark:bg-red-950 dark:border-red-400'
-                                                        : 'border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600'
+                                                        ? 'border-red-500 bg-red-50 dark:bg-red-950/40 dark:border-red-400'
+                                                        : 'border-gray-300 bg-gray-50 dark:bg-gray-800/40 dark:border-gray-600'
                                         }`}
                                     >
                                         <div className="flex flex-row items-center gap-3 w-full">
                                             <div className="flex-shrink-0">
                                                 <div className="flex items-center gap-2">
-                                                    <StatusIndicator 
-                                                        status={step.status} 
-                                                        size="md"
-                                                    />
-                                                    {step.icon}
+                                                    <StatusIndicator status={step.status} size="md" />
+                                                    {renderIcon(step.icon)}
                                                 </div>
                                             </div>
                                             <div className="flex-grow min-w-0">
                                                 <div className="flex flex-col xs:flex-row xs:items-center gap-2">
-                                                    <span
-                                                        className="font-medium text-gray-900 dark:text-gray-100 truncate">{step.label}</span>
-                                                    <Badge variant={getStepBadgeVariant(step.status)}
-                                                        className="text-xs whitespace-nowrap">
+                                                    <span className="font-medium text-gray-900 dark:text-gray-100 truncate">{step.label}</span>
+                                                    <Badge variant={getStepBadgeVariant(step.status)} className="text-xs whitespace-nowrap">
                                                         {getStepBadgeText(step.status)}
                                                     </Badge>
                                                 </div>
                                                 {step.statusMessage && (
-                                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 break-words">{step.statusMessage}</p>
+                                                    <div className="mt-1 text-xs text-muted-foreground break-all whitespace-pre-wrap">{step.statusMessage}</div>
                                                 )}
                                             </div>
                                         </div>
                                         <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 sm:mt-0 sm:ml-4">
                                             {index + 1}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     {step.description}
                                 </TooltipContent>
                             </Tooltip>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
-            )}
+            </motion.div>
         </div>
     );
 }
