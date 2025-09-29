@@ -8,9 +8,10 @@
   },
   "files": [
     "dist",
-    "dist-electron"
+    "dist-electron",
+    "assets/icons/**"
   ],
-  "icon": "assets/icons/container-flow-1024.png",
+  "icon": "assets/icons/container-flow-512.icns",
   "mac": {
     "target": [
       "dmg",
