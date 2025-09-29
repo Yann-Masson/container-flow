@@ -4,7 +4,7 @@ import electron from 'vite-plugin-electron/simple';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { readFileSync } from 'fs';
-import { fileURLToPath } from "node:url";
+import { fileURLToPath } from 'node:url';
 import native from 'vite-plugin-native';
 
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
@@ -26,8 +26,8 @@ export default defineConfig({
                     plugins: [
                         native({
                             forceCopyIfUnbuilt: true,
-                            webpack: {}
-                        })
+                            webpack: {},
+                        }),
                     ],
                     build: {
                         rollupOptions: {
@@ -36,16 +36,16 @@ export default defineConfig({
                                 'cpu-features',
                                 'bcrypt',
                                 'kerberos',
-                                'libsodium-wrappers'
-                            ]
+                                'libsodium-wrappers',
+                            ],
                         },
-                        minify: false
+                        minify: false,
                     },
                     define: {
-                        '__dirname': 'import.meta.dirname',
-                        '__filename': 'import.meta.filename'
-                    }
-                }
+                        __dirname: 'import.meta.dirname',
+                        __filename: 'import.meta.filename',
+                    },
+                },
             },
             preload: {
                 // Shortcut of `build.rollupOptions.input`.
@@ -55,8 +55,8 @@ export default defineConfig({
                     plugins: [
                         native({
                             forceCopyIfUnbuilt: true,
-                            webpack: {}
-                        })
+                            webpack: {},
+                        }),
                     ],
                     build: {
                         rollupOptions: {
@@ -65,31 +65,70 @@ export default defineConfig({
                                 'cpu-features',
                                 'bcrypt',
                                 'kerberos',
-                                'libsodium-wrappers'
-                            ]
+                                'libsodium-wrappers',
+                            ],
                         },
-                        minify: false
-                    }
-                }
+                        minify: false,
+                    },
+                },
             },
-            renderer: process.env.NODE_ENV === 'test'
-                ? undefined
-                : {},
+            renderer: process.env.NODE_ENV === 'test' ? undefined : {},
         }),
     ],
     build: {
+        chunkSizeWarningLimit: 1000,
         rollupOptions: {
             external: [
                 'cpu-features',
                 'bcrypt',
                 'kerberos',
                 'libsodium-wrappers',
-            ]
-        }
+                'dockerode',
+                'node-ssh',
+                'ssh2',
+            ],
+            output: {
+                manualChunks: {
+                    'react-vendor': ['react', 'react-dom', 'react-redux'],
+
+                    'ui-vendor': [
+                        '@radix-ui/react-accordion',
+                        '@radix-ui/react-alert-dialog',
+                        '@radix-ui/react-avatar',
+                        '@radix-ui/react-checkbox',
+                        '@radix-ui/react-collapsible',
+                        '@radix-ui/react-dialog',
+                        '@radix-ui/react-dropdown-menu',
+                        '@radix-ui/react-hover-card',
+                        '@radix-ui/react-label',
+                        '@radix-ui/react-progress',
+                        '@radix-ui/react-scroll-area',
+                        '@radix-ui/react-select',
+                        '@radix-ui/react-separator',
+                        '@radix-ui/react-slot',
+                        '@radix-ui/react-switch',
+                        '@radix-ui/react-tabs',
+                        '@radix-ui/react-tooltip',
+                    ],
+
+                    'animation-vendor': ['framer-motion', 'gsap'],
+
+                    'state-vendor': ['@reduxjs/toolkit'],
+
+                    'utils-vendor': [
+                        'clsx',
+                        'class-variance-authority',
+                        'tailwind-merge',
+                        'zod',
+                        'lucide-react',
+                    ],
+                },
+            },
+        },
     },
     resolve: {
         alias: {
-            "@": path.resolve(__dirname, "./src"),
+            '@': path.resolve(__dirname, './src'),
         },
-    }
+    },
 });
