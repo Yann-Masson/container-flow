@@ -5,6 +5,7 @@ import path from "path";
 
 const defaultAppConfig: AppSavedConfig = {
     preference: AppPreference.NONE,
+    grafanaCredentials: undefined,
 };
 
 export default function get(): AppSavedConfig {
@@ -20,8 +21,12 @@ export default function get(): AppSavedConfig {
         const encryptedData = fs.readFileSync(configPath);
         const decryptedBuffer = safeStorage.decryptString(encryptedData);
         const config = JSON.parse(decryptedBuffer);
-
-        return config.app || defaultAppConfig;
+        const stored: AppSavedConfig = config.app || {};
+        // Backward compatibility merge with defaults
+        return {
+            ...defaultAppConfig,
+            ...stored,
+        };
     } catch (error) {
         console.error('Error reading encrypted config:', error);
         return defaultAppConfig;

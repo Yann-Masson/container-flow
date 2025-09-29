@@ -10,14 +10,14 @@
     "dist",
     "dist-electron"
   ],
-  "icon": "public/assets/icons/container-flow-1024.png",
+  "icon": "assets/icons/container-flow-1024.png",
   "mac": {
     "target": [
       "dmg",
       "zip"
     ],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
-    "icon": "public/assets/icons/container-flow-512.icns"
+    "icon": "assets/icons/container-flow-512.icns"
   },
   "win": {
     "target": [
@@ -29,7 +29,7 @@
       }
     ],
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}",
-    "icon": "public/assets/icons/container-flow.ico"
+    "icon": "assets/icons/container-flow.ico"
   },
   "nsis": {
     "oneClick": false,
@@ -42,7 +42,7 @@
       "AppImage"
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}",
-    "icon": "public/assets/icons/container-flow-512.png",
+    "icon": "assets/icons/container-flow-512.png",
   },
   "publish": {
     "provider": "github",

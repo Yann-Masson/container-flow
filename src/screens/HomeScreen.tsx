@@ -4,7 +4,7 @@ import SettingsDialog from "@/components/SettingsDialog.tsx";
 import { AppPreference } from "../../electron/services/storage/app/app.type";
 import ContainerList from "@/components/container/ContainerList";
 import WordPress from "@/components/wordpress/WordPress";
-import ContainerFlowSvg from '../../public/assets/icons/container-flow.svg';
+import ContainerFlowSvg from '../../assets/icons/container-flow.svg';
 
 interface HomeScreenProps {
     appMode: AppPreference;

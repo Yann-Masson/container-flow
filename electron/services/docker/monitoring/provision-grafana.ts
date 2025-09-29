@@ -1,17 +1,16 @@
 export interface ProvisionGrafanaOptions {
-    baseUrl?: string; // e.g., http://localhost:3000 or through SSH tunnel
-    username?: string; // admin
-    password?: string; // admin
-    prometheusUrl?: string; // internal URL inside network (prometheus:9090)
-    datasourceName?: string; // Prometheus
-    retry?: { attempts: number; intervalMs: number }; // readiness attempts
-    dashboards?: Array<{
+    baseUrl: string; // e.g., http://localhost:3000 or through SSH tunnel
+    username: string; // admin
+    password: string; // admin
+    datasourceUrl: string; // internal URL inside network (prometheus:9090)
+    datasourceName: string; // Prometheus
+    retry: { attempts: number; intervalMs: number }; // readiness attempts
+    dashboards: Array<{
         title: string;
         uid?: string;
         json: any; // full dashboard JSON structure
         folderId?: number; // 0 = General
     }>;
-    logger?: (msg: string) => void;
 }
 
 interface ProvisionResult {
@@ -26,20 +25,19 @@ interface ProvisionResult {
  * Idempotent & safe to call multiple times.
  */
 export async function provisionGrafana(
-    opts: ProvisionGrafanaOptions = {},
+    opts: ProvisionGrafanaOptions,
 ): Promise<ProvisionResult> {
     const {
-        baseUrl = 'http://localhost:3000',
-        username = 'admin',
-        password = 'admin',
-        prometheusUrl = 'http://prometheus:9090',
-        datasourceName = 'Prometheus',
-        retry = { attempts: 30, intervalMs: 2000 },
-        dashboards = [],
-        logger = () => {},
+        baseUrl,
+        username,
+        password,
+        datasourceUrl: prometheusUrl,
+        datasourceName,
+        retry,
+        dashboards,
     } = opts;
 
-    logger(`[Grafana] Waiting for availability at ${baseUrl}`);
+    console.log(`[Grafana] Waiting for availability at ${baseUrl}`);
     for (let i = 0; i < retry.attempts; i++) {
         try {
             const r = await fetch(`${baseUrl}/api/health`);
@@ -60,7 +58,7 @@ export async function provisionGrafana(
     let updated = false;
     let finalInfo: any = null;
 
-    logger('[Grafana] Checking existing datasource');
+    console.log('[Grafana] Checking existing datasource');
     let dsResp = await fetch(
         `${baseUrl}/api/datasources/name/${encodeURIComponent(datasourceName)}`,
         { headers },
@@ -69,7 +67,7 @@ export async function provisionGrafana(
     if (dsResp.status === 200) {
         finalInfo = await dsResp.json(); // parse ONCE
     } else if (dsResp.status === 404) {
-        logger('[Grafana] Creating Prometheus datasource');
+        console.log('[Grafana] Creating Prometheus datasource');
         const createResp = await fetch(`${baseUrl}/api/datasources`, {
             method: 'POST',
             headers,
@@ -110,7 +108,7 @@ export async function provisionGrafana(
 
     // Update URL if it changed (e.g., prometheus service address changed)
     if (!created && finalInfo.url !== prometheusUrl) {
-        logger('[Grafana] Updating datasource URL');
+        console.log('[Grafana] Updating datasource URL');
         const upd = await fetch(`${baseUrl}/api/datasources/${finalInfo.id}`, {
             method: 'PUT',
             headers,
@@ -158,7 +156,7 @@ export async function provisionGrafana(
     };
 
     for (const dash of dashboards) {
-            logger(`[Grafana] Importing dashboard: ${dash.title}`);
+            console.log(`[Grafana] Importing dashboard: ${dash.title}`);
             const dashboardPatched = patchDashboardDatasources({
                 ...dash.json,
                 title: dash.title,
@@ -187,7 +185,7 @@ export async function provisionGrafana(
                 body: JSON.stringify(payload),
             });
             if (!r.ok) {
-                logger(
+                console.log(
                     `[Grafana] Dashboard import failed (${dash.title}): ${
                         r.status
                     } ${await r.text()}`,
@@ -197,7 +195,7 @@ export async function provisionGrafana(
             dashboardsImported++;
     }
 
-    logger('[Grafana] Provisioning complete');
+    console.log('[Grafana] Provisioning complete');
     return { created, updated, datasourceId: finalInfo.id, dashboardsImported };
 }
 

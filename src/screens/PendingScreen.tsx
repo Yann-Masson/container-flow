@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import ContainerFlowSvg from '../../public/assets/icons/container-flow.svg';
+import ContainerFlowSvg from '../../assets/icons/container-flow.svg';
 
 export default function PendingScreen() {
     return (
