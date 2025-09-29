@@ -17,7 +17,7 @@
       "zip"
     ],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
-    "icon": "assets/icons/container-flow-512.icns"
+    "icon": "assets/icons/container-flow-1024.png"
   },
   "win": {
     "target": [

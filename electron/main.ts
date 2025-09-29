@@ -46,14 +46,20 @@ function log(message: string) {
 }
 
 function createWindow() {
-    win = new BrowserWindow({
-        icon: path.join(process.env.APP_ROOT, 'assets/icons/container-flow-1024.png'),
+    // On macOS the app bundle icon (from .icns) is used automatically; specifying a PNG path that
+    // isn't packaged (previously) caused a fallback to the default electron icon. We now only
+    // set an explicit icon on non-mac platforms.
+    const windowOptions: Electron.BrowserWindowConstructorOptions = {
         webPreferences: {
             preload: path.join(__dirname, 'preload.mjs'),
             contextIsolation: true,
             nodeIntegration: false,
-        },
-    });
+        }
+    };
+    if (process.platform !== 'darwin') {
+        windowOptions.icon = path.join(process.env.APP_ROOT!, 'assets/icons/container-flow-1024.png');
+    }
+    win = new BrowserWindow(windowOptions);
 
     // Create a menu for accessing logs
     const menu = Menu.buildFromTemplate([
