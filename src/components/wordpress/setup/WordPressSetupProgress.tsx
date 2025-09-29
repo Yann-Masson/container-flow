@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,10 @@ import { ChevronDown, ChevronUp, Globe, Server, Database, Activity, BarChart2, C
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StatusIndicator } from '@/components/StatusIndicator';
 import { useAppSelector } from '@/store/hooks';
-import { selectWordPressSetupIsRunning, selectWordPressSetupSteps } from '@/store/slices/wordpressSetupSlice';
+import { selectWordPressSetupIsRunning, selectWordPressSetupSteps, runWordPressSetup } from '@/store/slices/wordpressSetupSlice';
+import { Input } from '@/components/ui/input';
+import { useAppDispatch } from '@/store/hooks';
+import { Loader2, Play } from 'lucide-react';
 
 interface WordPressSetupProgressProps {
     showDetailsInitial?: boolean;
@@ -18,9 +21,14 @@ export default function WordPressSetupProgress({
     showDetailsInitial = false,
     onDetailsVisibilityChange
 }: WordPressSetupProgressProps) {
+    const dispatch = useAppDispatch();
     const isSetupRunning = useAppSelector(selectWordPressSetupIsRunning);
     const steps = useAppSelector(selectWordPressSetupSteps);
     const [showDetailsState, setShowDetailsState] = useState(showDetailsInitial);
+    const [grafanaAuthNeeded, setGrafanaAuthNeeded] = useState(false);
+    const [grafanaUsername, setGrafanaUsername] = useState('');
+    const [grafanaPassword, setGrafanaPassword] = useState('');
+    const unauthorizedDetectedRef = useRef(false);
 
   // Parent width coordination (unchanged logic)
   useEffect(() => {
@@ -77,8 +85,57 @@ export default function WordPressSetupProgress({
     const totalSteps = steps.length;
     const progress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
+    // Detect unauthorized Grafana provisioning failure
+    useEffect(() => {
+        if (unauthorizedDetectedRef.current) return; // avoid flipping UI repeatedly
+        const grafanaProvStep = steps.find(s => s.id === 'grafana-provision');
+        if (grafanaProvStep && grafanaProvStep.status === 'error') {
+            const msg = grafanaProvStep.statusMessage || '';
+            if (/401/i.test(msg) || /unauthorized/i.test(msg)) {
+                setGrafanaAuthNeeded(true);
+                unauthorizedDetectedRef.current = true;
+            }
+        }
+    }, [steps]);
+
+    const handleRetry = useCallback(() => {
+        if (isSetupRunning) return;
+        dispatch(runWordPressSetup({
+            grafanaAuth: grafanaAuthNeeded && grafanaUsername && grafanaPassword ? { username: grafanaUsername, password: grafanaPassword } : undefined
+        }));
+    }, [dispatch, grafanaAuthNeeded, grafanaUsername, grafanaPassword, isSetupRunning]);
+
     return (
-        <div className="space-y-4 w-full max-w-2xl mx-auto px-2 sm:px-4">
+                <div className="space-y-4 w-full max-w-2xl mx-auto px-2 sm:px-4">
+                        {grafanaAuthNeeded && (
+                            <div className="space-y-3 p-3 border rounded-md">
+                                <p className="text-sm font-medium">Grafana credentials required</p>
+                                <p className="text-xs text-muted-foreground">Provisioning failed due to invalid default credentials. Enter the current Grafana admin credentials and retry.</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-medium" htmlFor="grafana-username">Username</label>
+                                        <Input id="grafana-username" value={grafanaUsername} onChange={e => setGrafanaUsername(e.target.value)} placeholder="admin" />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-medium" htmlFor="grafana-password">Password</label>
+                                        <Input id="grafana-password" type="password" value={grafanaPassword} onChange={e => setGrafanaPassword(e.target.value)} placeholder="••••••" />
+                                    </div>
+                                </div>
+                                <Button disabled={isSetupRunning} onClick={handleRetry} className="w-full">
+                                    {isSetupRunning ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Retrying...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="mr-2 h-4 w-4" />
+                                            Retry Setup with Grafana Credentials
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
             {/* Progress bar is always visible when setup is running */}
             {(isSetupRunning || progress === 100) && (
                 <div className="space-y-2">

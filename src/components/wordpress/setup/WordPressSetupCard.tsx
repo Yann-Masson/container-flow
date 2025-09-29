@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Loader2, Play, Server } from 'lucide-react';
+import { Server } from 'lucide-react';
 import WordPressSetupProgress from './WordPressSetupProgress';
 import { toast } from 'sonner';
-import { Button } from "@/components/ui/button.tsx";
+import WordPressSetupActionButton from './WordPressSetupActionButton';
 import { StatusIndicator } from '@/components/StatusIndicator';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { runWordPressSetup, selectWordPressSetupStatus } from '@/store/slices/wordpressSetupSlice';
@@ -21,15 +19,14 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
     const status = useAppSelector(selectWordPressSetupStatus);
     const isRunning = status === 'running';
     const failed = status === 'error';
-    const [forceSetup, setForceSetup] = useState(false);
     const prevStatus = useRef(status);
 
     // Auto-start if idle on mount
     useEffect(() => {
         if (status === 'idle') {
-            dispatch(runWordPressSetup({ force: forceSetup }));
+            dispatch(runWordPressSetup({}));
         }
-    }, [status, dispatch, forceSetup]);
+    }, [status, dispatch]);
 
     // Toasts & callbacks
     useEffect(() => {
@@ -48,7 +45,7 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
 
     const handleRetrySetup = () => {
         if (!isRunning) {
-            dispatch(runWordPressSetup({ force: forceSetup }));
+            dispatch(runWordPressSetup({}));
             onRetrySetup();
         }
     };
@@ -74,33 +71,11 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
                 <CardContent className="space-y-6">
                     {failed && (
                         <div className="flex flex-col gap-3 py-4">
-                            <div className="flex items-center space-x-2 p-3 border-red-700 border-1 rounded-lg">
-                                <Switch
-                                    id="force-setup-dialog"
-                                    checked={forceSetup}
-                                    onCheckedChange={setForceSetup}
-                                    className="data-[state=checked]:bg-red-500 data-[state=unchecked]:bg-red-200"
-                                />
-                                <Label htmlFor="force-setup-dialog" className="flex-1">
-                                    <div className="text-sm text-red-600">
-                                        Force the recreation of existing containers
-                                    </div>
-                                </Label>
-                            </div>
-
-                            <Button onClick={handleRetrySetup} disabled={isRunning} size="lg" className="w-full">
-                                {isRunning ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Setup in progress...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play className="mr-2 h-4 w-4" />
-                                        Re-Launch WordPress Setup{forceSetup ? ' (Force)' : ''}
-                                    </>
-                                )}
-                            </Button>
+                            <WordPressSetupActionButton
+                                className="w-full"
+                                retryLabel="Re-Launch WordPress Setup"
+                                onAction={handleRetrySetup}
+                            />
                         </div>
                     )}
                     <WordPressSetupProgress showDetailsInitial={false} />

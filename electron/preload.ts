@@ -66,7 +66,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         wordpress: {
             setup: (
                 progress: (event: { step: string; status: string; message?: string }) => void,
-                options?: { force?: boolean }
+                options?: { force?: boolean; grafanaAuth?: { username: string; password: string } }
             ) => {
                 // temporary listener scoped to this invocation
                 const handler = (_: any, event: { step: string; status: string; message?: string }) => {

@@ -4,13 +4,18 @@ import type { ContainerInfo } from 'dockerode';
 export type ProgressStatus = 'starting' | 'success' | 'error';
 export type ProgressCallback = (step: string, status: ProgressStatus, message?: string) => void;
 
-export interface SetupOptions { force?: boolean }
+export interface SetupOptions { 
+  force?: boolean;
+  /** Optional Grafana credentials to override default admin/admin when user has changed them */
+  grafanaAuth?: { username: string; password: string };
+}
 
 // No composite result is needed anymore; setup process is side-effect only.
 
 export interface EnsureContext {
   force: boolean;
   progress?: ProgressCallback;
+  grafanaAuth?: { username: string; password: string };
 }
 
 export type EnsureFn = (ctx: EnsureContext) => Promise<void>;

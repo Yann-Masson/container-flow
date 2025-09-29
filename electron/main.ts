@@ -420,16 +420,18 @@ function setupIpcHandlers() {
         // WordPress handlers
         ipcMain.handle('docker:wordpress:setup', async (_, options) => {
             try {
-                return await services.docker.wordpress.setup(
+                const success = await services.docker.wordpress.setup(
                     options,
                     (step, status, message) => {
-                        // Send progress updates to the renderer process
                         win?.webContents.send('wordpress:setup:progress', { step, status, message });
                     }
                 );
+                return { success };
             } catch (error) {
                 log(`Error in docker:wordpress:setup: ${error}`);
-                throw error;
+                // Also emit an error progress event for UI clarity
+                win?.webContents.send('wordpress:setup:progress', { step: 'setup', status: 'error', message: (error as Error).message });
+                return { success: false };
             }
         });
 

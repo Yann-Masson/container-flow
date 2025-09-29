@@ -1,16 +1,14 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Loader2, Play, Server } from 'lucide-react';
+import { Server } from 'lucide-react';
 import { toast } from 'sonner';
 import WordPressSetupProgress from './WordPressSetupProgress';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { runWordPressSetup, selectWordPressSetupStatus } from '@/store/slices/wordpressSetupSlice';
+import { runWordPressSetup, selectWordPressSetupStatus, selectWordPressSetup } from '@/store/slices/wordpressSetupSlice';
+import WordPressSetupActionButton from './WordPressSetupActionButton';
 
 interface WordPressSetupDialogProps {
     children: React.ReactNode;
@@ -19,10 +17,10 @@ interface WordPressSetupDialogProps {
 export default function WordPressSetupDialog({ children }: WordPressSetupDialogProps) {
     const dispatch = useAppDispatch();
     const status = useAppSelector(selectWordPressSetupStatus);
+    const fullSetup = useAppSelector(selectWordPressSetup);
     const isSetupRunning = status === 'running';
     const failed = status === 'error';
     const [open, setOpen] = useState(false);
-    const [forceSetup, setForceSetup] = useState(false);
     const [detailsVisible, setDetailsVisible] = useState(false);
     const prevStatus = useRef(status);
 
@@ -39,16 +37,8 @@ export default function WordPressSetupDialog({ children }: WordPressSetupDialogP
         }
     }, [status]);
 
-    const handleSetupStart = () => {
-        if (!isSetupRunning) {
-            dispatch(runWordPressSetup({ force: forceSetup }));
-        }
-    };
-
-    const handleRetrySetup = () => {
-        if (!isSetupRunning) {
-            dispatch(runWordPressSetup({ force: forceSetup }));
-        }
+    const handleAction = () => {
+        if (!isSetupRunning) dispatch(runWordPressSetup({}));
     };
 
     // Callback from progress component when details visibility toggles
@@ -90,60 +80,21 @@ export default function WordPressSetupDialog({ children }: WordPressSetupDialogP
                         </p>
 
                         {/* Retry section with force mode switch */}
-                        {failed && (
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center space-x-2 p-3 border-red-700 border-1 rounded-lg">
-                                    <Switch
-                                        id="force-setup-dialog"
-                                        checked={forceSetup}
-                                        onCheckedChange={setForceSetup}
-                                        className="data-[state=checked]:bg-red-500 data-[state=unchecked]:bg-red-200"
-                                    />
-                                    <Label htmlFor="force-setup-dialog" className="flex-1">
-                                        <div className="text-sm text-red-600">
-                                            Force the recreation of existing containers
-                                        </div>
-                                    </Label>
-                                </div>
-
-                                <Button onClick={handleRetrySetup} disabled={isSetupRunning} size="lg" className="w-full">
-                                    {isSetupRunning ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Setup in progress...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Play className="mr-2 h-4 w-4" />
-                                            Re-Launch WordPress Setup{forceSetup ? ' (Force)' : ''}
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        )}
+                                                {failed && (
+                                                    <div className="flex flex-col gap-3">
+                                                        {fullSetup.error && (
+                                                            <div className="text-xs text-red-600 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-800 rounded p-2 whitespace-pre-wrap break-all">
+                                                                {fullSetup.error}
+                                                            </div>
+                                                        )}
+                                                        <WordPressSetupActionButton className="w-full" retryLabel="Re-Launch WordPress Setup" onAction={handleAction} />
+                                                    </div>
+                                                )}
 
                         {/* Initial launch button */}
                         {!failed && (
                             <div className="w-full p-2">
-                                <Button
-                                    variant={'default'}
-                                    size="lg"
-                                    onClick={handleSetupStart}
-                                    disabled={isSetupRunning}
-                                    className="w-full"
-                                >
-                                    {isSetupRunning ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                            Setup in progress...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Play className="mr-2 h-4 w-4"/>
-                                            Launch WordPress Setup
-                                        </>
-                                    )}
-                                </Button>
+                                <WordPressSetupActionButton className="w-full" launchLabel="Launch WordPress Setup" onAction={handleAction} />
                             </div>
                         )}
 

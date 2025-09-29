@@ -51,21 +51,34 @@ const initialState: WordPressSetupState = {
   steps: prepareSteps()
 };
 
-export const runWordPressSetup = createAsyncThunk<void, { force?: boolean } | void, { state: RootState }>(
+export const runWordPressSetup = createAsyncThunk<void, { force?: boolean; grafanaAuth?: { username: string; password: string } } | void, { state: RootState }>(
   'wordpressSetup/run',
   async (arg, { dispatch, getState, rejectWithValue }) => {
     const force = !!(arg && typeof arg === 'object' && 'force' in arg && arg.force);
+    const grafanaAuth = (arg && typeof arg === 'object' && 'grafanaAuth' in arg) ? (arg as any).grafanaAuth : undefined;
     const current = getState().wordpressSetup;
     if (current.status === 'running') return; // ignore concurrent starts
     dispatch(wordpressSetupSlice.actions.start({ force }));
     try {
-      await window.electronAPI.docker.wordpress.setup(
+      const result = await window.electronAPI.docker.wordpress.setup(
         (event: WordPressSetupProgressEvent) => {
           dispatch(wordpressSetupSlice.actions.progress(event));
         },
-        { force }
+        { force, grafanaAuth }
       );
-      dispatch(wordpressSetupSlice.actions.complete());
+      if (result?.success) {
+        dispatch(wordpressSetupSlice.actions.complete());
+      } else {
+        // If success false but no explicit error step added, mark failed generically
+        const setupStep = getState().wordpressSetup.steps.find(s => s.id === 'setup');
+        if (!setupStep || setupStep.status !== 'error') {
+          dispatch(wordpressSetupSlice.actions.failed('Setup reported unsuccessful'));
+          return rejectWithValue('Setup reported unsuccessful');
+        }
+        // If we already have an error step, also fail the overall status
+        dispatch(wordpressSetupSlice.actions.failed(setupStep.statusMessage || 'Setup failed'));
+        return rejectWithValue(setupStep.statusMessage || 'Setup failed');
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Unknown error';
       dispatch(wordpressSetupSlice.actions.failed(message));

@@ -55,8 +55,8 @@ interface ElectronAPI {
         wordpress: {
             setup: (
                 progress: (event: { step: string; status: 'starting' | 'success' | 'error'; message?: string }) => void,
-                options?: { force?: boolean }
-            ) => Promise<void>;
+                options?: { force?: boolean; grafanaAuth?: { username: string; password: string } }
+            ) => Promise<{ success: boolean }>;
             create: (options: import('../services/docker/wordpress/create.ts').WordPressCreateOptions) => Promise<{
                 id: string;
                 name: string
