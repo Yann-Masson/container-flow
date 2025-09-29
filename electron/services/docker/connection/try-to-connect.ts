@@ -17,7 +17,7 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
         state.sshClient = new Client();
 
         state.sshClient.on('ready', () => {
-            console.log('✅ SSH connected');
+            console.log('SSH connected');
 
             state.connected = true;
 
@@ -31,7 +31,7 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
                                 return;
                             }
 
-                            console.log('🔗 Tunnel créé pour Docker socket');
+                            console.log('Tunnel created for Docker socket');
 
                             localSocket.pipe(stream).pipe(localSocket);
                         },
@@ -39,7 +39,7 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
             });
 
             state.server!.listen(LOCAL_PORT, '127.0.0.1', () => {
-                console.log(`🧩 Tunnel prêt sur localhost:${LOCAL_PORT}`);
+                console.log(`Tunnel ready on localhost:${LOCAL_PORT}`);
 
                 state.dockerClient = new Docker({
                     host: '127.0.0.1',
@@ -49,23 +49,23 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
                 // Create MySQL tunnel as well
                 createMySQLTunnel()
                         .then(() => {
-                            console.log('✅ MySQL tunnel established');
+                            console.log('MySQL tunnel established');
                             resolve();
                         })
                         .catch((err) => {
-                            console.error('❌ Failed to create MySQL tunnel:', err);
+                            console.error('Failed to create MySQL tunnel:', err);
                             resolve(); // Don't fail the whole connection for MySQL tunnel
                         });
             });
 
             state.server!.on('error', (err) => {
-                console.error('❌ Server error:', err);
+                console.error('Server error:', err);
                 reject(err);
             });
         });
 
         state.sshClient.on('error', (err) => {
-            console.error('❌ SSH error:', err);
+            console.error('SSH error:', err);
             reject(err);
         });
 

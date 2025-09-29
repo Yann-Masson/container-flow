@@ -4,7 +4,7 @@ import { useAppState } from '../providers/AppStateProvider';
 import { AppLifecycleState } from '../utils/state/app-state';
 import { AppPreference } from '../../electron/services/storage/app/app.type';
 
-import FormPage from '@/screens/LoginFormScreen';
+import LoginFormScreen from '@/screens/LoginFormScreen';
 import PendingPage from '@/screens/PendingScreen';
 import HomePage from '@/screens/HomeScreen';
 import FirstSetupScreen from '@/screens/FirstSetupScreen';
@@ -23,7 +23,7 @@ export const AppScreens: React.FC = () => {
       case AppLifecycleState.INIT:
         return <PendingPage />;
       case AppLifecycleState.DISCONNECTED:
-        return <FormPage setIsConnected={() => connect()} />;
+        return <LoginFormScreen setIsConnected={() => connect()} />;
       case AppLifecycleState.CONNECTING:
         return <PendingPage />; // previous screen remains underneath due to controller caching
       case AppLifecycleState.UNCONFIGURED:

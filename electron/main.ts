@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
 import electronUpdater, { type AppUpdater } from 'electron-updater';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -46,9 +46,43 @@ function log(message: string) {
 }
 
 function createWindow() {
-    // On macOS the app bundle icon (from .icns) is used automatically; specifying a PNG path that
-    // isn't packaged (previously) caused a fallback to the default electron icon. We now only
-    // set an explicit icon on non-mac platforms.
+    const isMac = process.platform === 'darwin';
+
+    if (isMac) {
+        // Create a minimal menu for macOS with essential shortcuts
+        const template: Electron.MenuItemConstructorOptions[] = [
+            {
+                label: app.name,
+                submenu: [
+                    { role: 'about' },
+                    { type: 'separator' },
+                    { role: 'hide' },
+                    { role: 'hideOthers' },
+                    { role: 'unhide' },
+                    { type: 'separator' },
+                    { role: 'quit' },
+                ],
+            },
+            {
+                label: 'Edit',
+                submenu: [
+                    { role: 'undo' },
+                    { role: 'redo' },
+                    { type: 'separator' },
+                    { role: 'cut' },
+                    { role: 'copy' },
+                    { role: 'paste' },
+                    { role: 'delete' },
+                    { role: 'selectAll' },
+                    { role: 'pasteAndMatchStyle' },
+                ],
+            },
+        ];
+
+        const menu = Menu.buildFromTemplate(template);
+        Menu.setApplicationMenu(menu);
+    }
+
     const windowOptions: Electron.BrowserWindowConstructorOptions = {
         webPreferences: {
             preload: path.join(__dirname, 'preload.mjs'),
@@ -56,103 +90,24 @@ function createWindow() {
             nodeIntegration: false,
         },
     };
-    if (process.platform !== 'darwin') {
-        windowOptions.icon = path.join(
-            process.env.APP_ROOT!,
-            'assets/icons/container-flow-1024.png',
-        );
+
+    const isWindows = process.platform.includes('win');
+
+    if (isWindows) {
+        windowOptions.icon = path.join(process.env.APP_ROOT!, 'assets/icons/container-flow.ico');
     }
+
+    windowOptions.backgroundColor = '#0d1220';
+    windowOptions.titleBarStyle = 'hidden';
+    windowOptions.titleBarOverlay = {
+        color: 'rgba(0, 0, 0, 0)', // Transparent background
+        symbolColor: '#ffffff',
+    };
+
     win = new BrowserWindow(windowOptions);
 
-    // Add full role-based menu (hidden on non-mac) to preserve native shortcuts
-    // const isMac = process.platform === 'darwin';
-    // const menuTemplate = [
-    //     ...(isMac ? [{
-    //         label: app.name,
-    //         submenu: [
-    //             { role: 'about' },
-    //             { type: 'separator' },
-    //             { role: 'services' },
-    //             { type: 'separator' },
-    //             { role: 'hide' },
-    //             { role: 'hideOthers' },
-    //             { role: 'unhide' },
-    //             { type: 'separator' },
-    //             { role: 'quit' }
-    //         ]
-    //     }] : []),
-    //     {
-    //         label: 'Edit',
-    //         submenu: [
-    //             { role: 'undo' },
-    //             { role: 'redo' },
-    //             { type: 'separator' },
-    //             { role: 'cut' },
-    //             { role: 'copy' },
-    //             { role: 'paste' },
-    //             ...(isMac ? [{ role: 'pasteAndMatchStyle' }] : []),
-    //             { role: 'delete' },
-    //             { role: 'selectAll' }
-    //         ]
-    //     },
-    //     {
-    //         label: 'View',
-    //         submenu: [
-    //             { role: 'reload' },
-    //             { role: 'forceReload' },
-    //             { role: 'toggleDevTools' },
-    //             { type: 'separator' },
-    //             { role: 'resetZoom' },
-    //             { role: 'zoomIn' },
-    //             { role: 'zoomOut' },
-    //             { type: 'separator' },
-    //             { role: 'togglefullscreen' }
-    //         ]
-    //     },
-    //     {
-    //         label: 'Window',
-    //         submenu: [
-    //             { role: 'minimize' },
-    //             { role: 'zoom' },
-    //             ...(isMac ? [
-    //                 { type: 'separator' },
-    //                 { role: 'front' },
-    //                 { type: 'separator' },
-    //                 { role: 'window' }
-    //             ] : [
-    //                 { role: 'close' }
-    //             ])
-    //         ]
-    //     },
-    //     {
-    //         label: 'Debug',
-    //         submenu: [
-    //             {
-    //                 label: 'Open log file',
-    //                 click: () => shell.showItemInFolder(logPath)
-    //             },
-    //             {
-    //                 label: 'Force update check',
-    //                 click: () => {
-    //                     log('🔄 Forced update check...');
-    //                     setupAutoUpdater();
-    //                 }
-    //             },
-    //             {
-    //                 label: 'Open DevTools',
-    //                 click: () => win?.webContents.openDevTools()
-    //             }
-    //         ]
-    //     }
-    // ] as const;
-    // const menu = Menu.buildFromTemplate(menuTemplate as unknown as Electron.MenuItemConstructorOptions[]);
-    // Menu.setApplicationMenu(menu);
-    // if (!isMac) {
-    //     // win.setAutoHideMenuBar(true);    // allow Alt key to show
-    // }
-    win.setMenuBarVisibility(false); // hide visually
+    win.setMenuBarVisibility(false);
 
-    // Test active push message to Renderer-process.
     win.webContents.on('did-finish-load', () => {
         win?.webContents.send('main-process-message', new Date().toLocaleString());
     });
