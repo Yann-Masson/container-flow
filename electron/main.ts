@@ -64,34 +64,93 @@ function createWindow() {
     }
     win = new BrowserWindow(windowOptions);
 
-    // Create a menu for accessing logs
-    // const menu = Menu.buildFromTemplate([
+    // Add full role-based menu (hidden on non-mac) to preserve native shortcuts
+    // const isMac = process.platform === 'darwin';
+    // const menuTemplate = [
+    //     ...(isMac ? [{
+    //         label: app.name,
+    //         submenu: [
+    //             { role: 'about' },
+    //             { type: 'separator' },
+    //             { role: 'services' },
+    //             { type: 'separator' },
+    //             { role: 'hide' },
+    //             { role: 'hideOthers' },
+    //             { role: 'unhide' },
+    //             { type: 'separator' },
+    //             { role: 'quit' }
+    //         ]
+    //     }] : []),
+    //     {
+    //         label: 'Edit',
+    //         submenu: [
+    //             { role: 'undo' },
+    //             { role: 'redo' },
+    //             { type: 'separator' },
+    //             { role: 'cut' },
+    //             { role: 'copy' },
+    //             { role: 'paste' },
+    //             ...(isMac ? [{ role: 'pasteAndMatchStyle' }] : []),
+    //             { role: 'delete' },
+    //             { role: 'selectAll' }
+    //         ]
+    //     },
+    //     {
+    //         label: 'View',
+    //         submenu: [
+    //             { role: 'reload' },
+    //             { role: 'forceReload' },
+    //             { role: 'toggleDevTools' },
+    //             { type: 'separator' },
+    //             { role: 'resetZoom' },
+    //             { role: 'zoomIn' },
+    //             { role: 'zoomOut' },
+    //             { type: 'separator' },
+    //             { role: 'togglefullscreen' }
+    //         ]
+    //     },
+    //     {
+    //         label: 'Window',
+    //         submenu: [
+    //             { role: 'minimize' },
+    //             { role: 'zoom' },
+    //             ...(isMac ? [
+    //                 { type: 'separator' },
+    //                 { role: 'front' },
+    //                 { type: 'separator' },
+    //                 { role: 'window' }
+    //             ] : [
+    //                 { role: 'close' }
+    //             ])
+    //         ]
+    //     },
     //     {
     //         label: 'Debug',
     //         submenu: [
     //             {
     //                 label: 'Open log file',
-    //                 click: () => {
-    //                     shell.showItemInFolder(logPath);
-    //                 },
+    //                 click: () => shell.showItemInFolder(logPath)
     //             },
     //             {
     //                 label: 'Force update check',
     //                 click: () => {
     //                     log('🔄 Forced update check...');
     //                     setupAutoUpdater();
-    //                 },
+    //                 }
     //             },
     //             {
     //                 label: 'Open DevTools',
-    //                 click: () => {
-    //                     win?.webContents.openDevTools();
-    //                 },
-    //             },
-    //         ],
-    //     },
-    // ]);
+    //                 click: () => win?.webContents.openDevTools()
+    //             }
+    //         ]
+    //     }
+    // ] as const;
+    // const menu = Menu.buildFromTemplate(menuTemplate as unknown as Electron.MenuItemConstructorOptions[]);
     // Menu.setApplicationMenu(menu);
+    // if (!isMac) {
+    //     // win.setAutoHideMenuBar(true);    // allow Alt key to show
+    // }
+    win.setMenuBarVisibility(false); // hide visually
 
     // Test active push message to Renderer-process.
     win.webContents.on('did-finish-load', () => {
