@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import electronUpdater, { type AppUpdater } from 'electron-updater';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -54,45 +54,48 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.mjs'),
             contextIsolation: true,
             nodeIntegration: false,
-        }
+        },
     };
     if (process.platform !== 'darwin') {
-        windowOptions.icon = path.join(process.env.APP_ROOT!, 'assets/icons/container-flow-1024.png');
+        windowOptions.icon = path.join(
+            process.env.APP_ROOT!,
+            'assets/icons/container-flow-1024.png',
+        );
     }
     win = new BrowserWindow(windowOptions);
 
     // Create a menu for accessing logs
-    const menu = Menu.buildFromTemplate([
-        {
-            label: 'Debug',
-            submenu: [
-                {
-                    label: 'Open log file',
-                    click: () => {
-                        shell.showItemInFolder(logPath);
-                    }
-                },
-                {
-                    label: 'Force update check',
-                    click: () => {
-                        log('🔄 Forced update check...');
-                        setupAutoUpdater();
-                    }
-                },
-                {
-                    label: 'Open DevTools',
-                    click: () => {
-                        win?.webContents.openDevTools();
-                    }
-                }
-            ]
-        }
-    ]);
-    Menu.setApplicationMenu(menu);
+    // const menu = Menu.buildFromTemplate([
+    //     {
+    //         label: 'Debug',
+    //         submenu: [
+    //             {
+    //                 label: 'Open log file',
+    //                 click: () => {
+    //                     shell.showItemInFolder(logPath);
+    //                 },
+    //             },
+    //             {
+    //                 label: 'Force update check',
+    //                 click: () => {
+    //                     log('🔄 Forced update check...');
+    //                     setupAutoUpdater();
+    //                 },
+    //             },
+    //             {
+    //                 label: 'Open DevTools',
+    //                 click: () => {
+    //                     win?.webContents.openDevTools();
+    //                 },
+    //             },
+    //         ],
+    //     },
+    // ]);
+    // Menu.setApplicationMenu(menu);
 
     // Test active push message to Renderer-process.
     win.webContents.on('did-finish-load', () => {
-        win?.webContents.send('main-process-message', (new Date).toLocaleString());
+        win?.webContents.send('main-process-message', new Date().toLocaleString());
     });
 
     if (VITE_DEV_SERVER_URL) {
@@ -135,10 +138,12 @@ function setupAutoUpdater() {
             type: 'info',
             title: 'Update available',
             message: `A new version (${info.version}) is available!`,
-            detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nDo you want to download and install the update now?`,
+            detail: `Current version: ${app.getVersion()}\nNew version: ${
+                info.version
+            }\n\nDo you want to download and install the update now?`,
             buttons: ['Download now', 'Later'],
             defaultId: 0,
-            cancelId: 1
+            cancelId: 1,
         });
 
         if (response.response === 0) {
@@ -156,12 +161,16 @@ function setupAutoUpdater() {
     autoUpdater.on('error', (err) => {
         log(`ERROR during update: ${err.message}`);
         log(`Stack trace: ${err.stack}`);
-        dialog.showErrorBox('Update error',
-            `An error occurred while checking for updates:\n\n${err.message}`);
+        dialog.showErrorBox(
+            'Update error',
+            `An error occurred while checking for updates:\n\n${err.message}`,
+        );
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-        const logMessage = `Downloading: ${Math.round(progressObj.percent)}% - ${Math.round(progressObj.bytesPerSecond / 1024)} KB/s`;
+        const logMessage = `Downloading: ${Math.round(progressObj.percent)}% - ${Math.round(
+            progressObj.bytesPerSecond / 1024,
+        )} KB/s`;
         log(logMessage);
         if (win) {
             win.setTitle(`Container Flow - Downloading ${Math.round(progressObj.percent)}%`);
@@ -181,7 +190,7 @@ function setupAutoUpdater() {
             detail: `The new version (${info.version}) is ready to be installed.\n\nDo you want to restart the application now to apply the update?`,
             buttons: ['Restart now', 'Restart later'],
             defaultId: 0,
-            cancelId: 1
+            cancelId: 1,
         });
 
         if (response.response === 0) {
@@ -193,7 +202,7 @@ function setupAutoUpdater() {
     });
 
     log('🚀 Starting update check...');
-    autoUpdater.checkForUpdatesAndNotify().catch(err => {
+    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
         log(`Error during checkForUpdatesAndNotify: ${err.message}`);
         log(`Stack: ${err.stack}`);
     });
@@ -429,14 +438,22 @@ function setupIpcHandlers() {
                 const success = await services.docker.wordpress.setup(
                     options,
                     (step, status, message) => {
-                        win?.webContents.send('wordpress:setup:progress', { step, status, message });
-                    }
+                        win?.webContents.send('wordpress:setup:progress', {
+                            step,
+                            status,
+                            message,
+                        });
+                    },
                 );
                 return { success };
             } catch (error) {
                 log(`Error in docker:wordpress:setup: ${error}`);
                 // Also emit an error progress event for UI clarity
-                win?.webContents.send('wordpress:setup:progress', { step: 'setup', status: 'error', message: (error as Error).message });
+                win?.webContents.send('wordpress:setup:progress', {
+                    step: 'setup',
+                    status: 'error',
+                    message: (error as Error).message,
+                });
                 return { success: false };
             }
         });
@@ -550,7 +567,7 @@ function setupIpcHandlers() {
                 throw error;
             }
         });
-        ipcMain.handle('runtime:passwords:setRootAndMetrics', async (_,_opts) => {
+        ipcMain.handle('runtime:passwords:setRootAndMetrics', async (_, _opts) => {
             try {
                 passwordManager.setRootAndMetrics(_opts);
                 return passwordManager.status();
@@ -559,7 +576,7 @@ function setupIpcHandlers() {
                 throw error;
             }
         });
-        ipcMain.handle('runtime:passwords:registerProject', async (_,{ projectName, creds }) => {
+        ipcMain.handle('runtime:passwords:registerProject', async (_, { projectName, creds }) => {
             try {
                 passwordManager.registerProject(projectName, creds);
                 return true;
