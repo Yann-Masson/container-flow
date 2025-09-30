@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.3",
   "type": "module",
-  "description": "A React application with Electron and Vite",
+  "description": "A desktop application to manage your Docker containers",
   "author": "Yann Masson",
   "packageManager": "pnpm@10.15.1",
   "main": "dist-electron/main.js",
