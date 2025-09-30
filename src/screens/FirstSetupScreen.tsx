@@ -30,7 +30,7 @@ export default function FirstSetupScreen(props: FirstSetupScreenProps) {
             });
             setAppMode(selectedMode);
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde:', error);
+            console.error('Error during save:', error);
         } finally {
             setIsSaving(false);
         }
@@ -39,61 +39,57 @@ export default function FirstSetupScreen(props: FirstSetupScreenProps) {
     const getModeDescription = (mode: AppPreference) => {
         switch (mode) {
             case AppPreference.LIST:
-                return 'Mode standard avec gestion des conteneurs Docker';
+                return 'Standard mode with Docker container management';
             case AppPreference.WORDPRESS:
-                return 'Mode WordPress avec configuration automatique';
+                return 'WordPress mode with automatic configuration';
             default:
                 return '';
         }
     };
 
     return (
-        <div className='flex flex-col items-center justify-center min-h-screen p-4'>
-            <Card
-                variant='glass'
-                accent='glow'
-                interactive={false}
-                withHoverOverlay
-                className='group relative overflow-hidden w-full max-w-md bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl border-gray-200 dark:border-gray-800'
-            >
-                <CardHeader>
-                    <CardTitle>Configuration initiale</CardTitle>
-                    <CardDescription>
-                        Choisissez le mode d'utilisation de l'application
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className='space-y-4'>
-                    <div className='space-y-2'>
-                        <Label htmlFor='mode-select'>Mode d'application</Label>
-                        <Select
-                            value={selectedMode}
-                            onValueChange={(value) => setSelectedMode(value as AppPreference)}
-                        >
-                            <SelectTrigger id='mode-select'>
-                                <SelectValue placeholder='Sélectionnez un mode' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={AppPreference.LIST}>Basique</SelectItem>
-                                <SelectItem value={AppPreference.WORDPRESS}>WordPress</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {selectedMode && (
-                        <div className='text-sm text-muted-foreground'>
-                            {getModeDescription(selectedMode)}
-                        </div>
-                    )}
-
-                    <Button
-                        onClick={handleSave}
-                        disabled={!selectedMode || isSaving}
-                        className='w-full'
+        <Card
+            variant='glass'
+            accent='glow'
+            interactive={false}
+            withHoverOverlay
+            className='group relative overflow-hidden w-full max-w-md bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl border-gray-200 dark:border-gray-800'
+        >
+            <CardHeader>
+                <CardTitle>Initial Setup</CardTitle>
+                <CardDescription>Choose the application usage mode</CardDescription>
+            </CardHeader>
+            <CardContent className='space-y-4'>
+                <div className='space-y-2 mt-6'>
+                    <Label htmlFor='mode-select'>Application Mode</Label>
+                    <Select
+                        value={selectedMode}
+                        onValueChange={(value) => setSelectedMode(value as AppPreference)}
                     >
-                        {isSaving ? 'Sauvegarde...' : 'Sélectionner'}
-                    </Button>
-                </CardContent>
-            </Card>
-        </div>
+                        <SelectTrigger id='mode-select' className='w-full'>
+                            <SelectValue placeholder='Select a mode' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={AppPreference.LIST}>Basic</SelectItem>
+                            <SelectItem value={AppPreference.WORDPRESS}>WordPress</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {selectedMode && (
+                    <div className='text-sm text-muted-foreground'>
+                        {getModeDescription(selectedMode)}
+                    </div>
+                )}
+
+                <Button
+                    onClick={handleSave}
+                    disabled={!selectedMode || isSaving}
+                    className='w-full'
+                >
+                    {isSaving ? 'Saving...' : 'Select'}
+                </Button>
+            </CardContent>
+        </Card>
     );
 }
