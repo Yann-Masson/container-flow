@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { ContainerCreateOptions } from 'dockerode';
 import { State } from "../../utils/state/basic-state.ts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card.tsx";
+import { LogSearchOptions, ProcessedLogs } from './ContainerLogsDialog';
 import { toast } from "sonner";
 import { ContainerHeader } from "./ContainerHeader.tsx";
 import { ContainerCard } from "./ContainerCard.tsx";
@@ -80,15 +81,21 @@ export default function ContainerList() {
     };
 
     // Get container logs
-    const handleGetLogs = async (containerId: string, containerName: string) => {
+    const handleGetLogs = async (containerId: string, containerName: string, searchOptions?: LogSearchOptions): Promise<ProcessedLogs> => {
         try {
             return await dockerClientService.containers.getLogs(containerId, {
                 stdout: true,
                 stderr: true
-            });
+            }, searchOptions);
         } catch (error) {
             toast.error(`Failed to get logs for container "${containerName}": ${error}`);
-            return 'Failed to retrieve logs';
+            return {
+                lines: [{ original: 'Failed to retrieve logs', cleaned: 'Failed to retrieve logs', category: 'error', timestamp: null }],
+                totalLines: 1,
+                totalPages: 1,
+                currentPage: 1,
+                hasMore: false
+            };
         }
     };
 

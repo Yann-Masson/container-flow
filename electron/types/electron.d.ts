@@ -11,6 +11,8 @@ import {
     PruneNetworksInfo,
 } from 'dockerode';
 
+import { LogSearchOptions as SearchOptions, ProcessedLogs } from '../services/docker/containers/get-logs';
+
 interface ElectronAPI {
     system: {
         openExternal: (url: string) => Promise<boolean>;
@@ -32,8 +34,9 @@ interface ElectronAPI {
             remove: (id: string, options?: { v?: boolean; force?: boolean }) => Promise<void>;
             getLogs: (
                 id: string,
-                options?: ContainerLogsOptions
-            ) => Promise<string>;
+                options?: ContainerLogsOptions,
+                searchOptions?: SearchOptions
+            ) => Promise<ProcessedLogs>;
         };
         images: {
             pull: (image: string) => Promise<void>;

@@ -3,7 +3,7 @@ import { Card, CardContent, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { ContainerDetailsDialog } from "./ContainerDetailsDialog";
 import { ContainerDeleteDialog } from "./ContainerDeleteDialog";
-import { ContainerLogsDialog } from "./ContainerLogsDialog";
+import { ContainerLogsDialog, ProcessedLogs, LogSearchOptions } from "./ContainerLogsDialog";
 import { ContainerCreateDialog } from "./create/ContainerCreateDialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { PlayIcon, SquareIcon } from "lucide-react";
@@ -18,7 +18,7 @@ interface ContainerCardProps {
     getImageBadgeStyle: (image: string) => string;
     onStart: (containerId: string, containerName: string) => void;
     onStop: (containerId: string, containerName: string) => void;
-    onGetLogs: (containerId: string, containerName: string) => Promise<string>;
+    onGetLogs: (containerId: string, containerName: string, searchOptions?: LogSearchOptions) => Promise<ProcessedLogs>;
     onDelete: (containerId: string, containerName: string) => void;
     onCreate: (containerConfig: ContainerCreateOptions, previousContainerId: string | null, removePreviousContainer: boolean) => void;
 }
@@ -105,7 +105,7 @@ export function ContainerCard({
                                     <ContainerLogsDialog
                                         containerId={container.Id}
                                         containerName={containerName}
-                                        onGetLogs={() => onGetLogs(container.Id, containerName)}
+                                        onGetLogs={(searchOptions) => onGetLogs(container.Id, containerName, searchOptions)}
                                     />
                                 </div>
 

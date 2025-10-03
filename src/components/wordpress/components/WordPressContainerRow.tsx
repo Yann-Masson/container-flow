@@ -71,7 +71,7 @@ export function WordPressContainerRow({
         <ContainerLogsDialog
           containerName={container.Name.replace('wordpress-', '')}
           containerId={container.Id}
-          onGetLogs={() => window.electronAPI.docker.containers.getLogs(container.Id, { follow: true })}
+          onGetLogs={(searchOptions) => window.electronAPI.docker.containers.getLogs(container.Id, { follow: true }, searchOptions)}
         />
         {isRunning ? (
           <Button

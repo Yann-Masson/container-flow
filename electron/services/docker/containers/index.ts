@@ -5,7 +5,7 @@ import { create } from './create';
 import { start } from './start';
 import { stop } from './stop';
 import { remove } from './remove';
-import { getLogs } from './get-logs';
+import { getLogs, getLogsRaw } from './get-logs';
 
 export default {
     getByName,
@@ -16,4 +16,5 @@ export default {
     stop,
     remove,
     getLogs,
+    getLogsRaw,
 };

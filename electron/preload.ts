@@ -9,6 +9,7 @@ import {
     NetworkListOptions
 } from "dockerode";
 import { AppSavedConfig } from "./services/storage/app/app.type.ts";
+import { LogSearchOptions, ProcessedLogs } from "./services/docker/containers/get-logs.ts";
 import { SSHSavedConfig } from "./services/storage/ssh/ssh.type.ts";
 import { WordPressDeleteOptions } from "./services/docker/wordpress/delete.ts";
 import { WordPressCreateOptions } from "./services/docker/wordpress/create.ts";
@@ -33,8 +34,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
                 ipcRenderer.invoke('docker:containers:stop', id, options),
             remove: (id: string, options?: { v?: boolean; force?: boolean }) =>
                 ipcRenderer.invoke('docker:containers:remove', id, options),
-            getLogs: (id: string, options?: ContainerLogsOptions) =>
-                ipcRenderer.invoke('docker:containers:getLogs', id, options),
+            getLogs: (id: string, options?: ContainerLogsOptions, searchOptions?: LogSearchOptions): Promise<ProcessedLogs> =>
+                ipcRenderer.invoke('docker:containers:getLogs', id, options, searchOptions),
+            getLogsRaw: (id: string, options?: ContainerLogsOptions) =>
+                ipcRenderer.invoke('docker:containers:getLogsRaw', id, options),
         },
         images: {
             pull: (image: string) => ipcRenderer.invoke('docker:images:pull', image),

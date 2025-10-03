@@ -336,11 +336,21 @@ function setupIpcHandlers() {
             }
         });
 
-        ipcMain.handle('docker:containers:getLogs', async (_, id, options) => {
+        ipcMain.handle('docker:containers:getLogs', async (_, id, options, searchOptions) => {
             try {
-                return await services.docker.containers.getLogs(id, options);
+                return await services.docker.containers.getLogs(id, options, searchOptions);
             } catch (error) {
                 log(`Error in docker:containers:getLogs: ${error}`);
+                throw error;
+            }
+        });
+
+        // Keep old API for backward compatibility
+        ipcMain.handle('docker:containers:getLogsRaw', async (_, id, options) => {
+            try {
+                return await services.docker.containers.getLogsRaw(id, options);
+            } catch (error) {
+                log(`Error in docker:containers:getLogsRaw: ${error}`);
                 throw error;
             }
         });

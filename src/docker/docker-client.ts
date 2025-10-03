@@ -1,5 +1,6 @@
 import { ContainerCreateOptions, NetworkConnectOptions, NetworkCreateOptions, NetworkListOptions } from 'dockerode';
 import { SSHConfig } from "../../electron/services/docker/connection/try-to-connect.ts";
+import { LogSearchOptions, ProcessedLogs } from '../components/container/ContainerLogsDialog';
 
 class DockerClientService {
     private get electronAPI() {
@@ -63,9 +64,9 @@ class DockerClientService {
             await this.waitForElectronAPI();
             return this.electronAPI.docker.containers.remove(id, options);
         },
-        getLogs: async (id: string, options?: { follow?: boolean; stdout?: boolean; stderr?: boolean }) => {
+        getLogs: async (id: string, options?: { follow?: boolean; stdout?: boolean; stderr?: boolean }, searchOptions?: LogSearchOptions): Promise<ProcessedLogs> => {
             await this.waitForElectronAPI();
-            return this.electronAPI.docker.containers.getLogs(id, options);
+            return this.electronAPI.docker.containers.getLogs(id, options, searchOptions);
         },
     };
 
