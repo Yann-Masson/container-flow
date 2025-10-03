@@ -12,6 +12,7 @@ import {
 } from 'dockerode';
 
 import { LogSearchOptions as SearchOptions, ProcessedLogs } from '../services/docker/containers/get-logs';
+import { WordPressContainerVersionStatus } from '../services/docker/wordpress/version-utils';
 
 interface ElectronAPI {
     system: {
@@ -66,6 +67,8 @@ interface ElectronAPI {
             }>;
             clone: (sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo) => Promise<ContainerInspectInfo>;
             changeUrl: (container: ContainerInspectInfo, newUrl: string) => Promise<ContainerInspectInfo>;
+            checkUpdates: () => Promise<string[]>;
+            update: (containerId: string) => Promise<import('../services/docker/wordpress/update.ts').WordPressUpdateContainerResult>;
             delete: (options: import('../services/docker/wordpress/delete.ts').WordPressDeleteOptions) => Promise<void>;
         };
     };

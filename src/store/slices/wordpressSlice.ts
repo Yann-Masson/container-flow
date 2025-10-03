@@ -6,7 +6,7 @@ import {
     WordPressProject, 
     CreateWordPressServicePayload as CreateWordPressProjectPayload, 
     ContainerActionPayload,
-    CloneContainerPayload 
+    CloneContainerPayload,
 } from '../types/container';
 
 // Initial state
@@ -23,6 +23,12 @@ const initialState: ContainerState = {
         stopping: {},
         removing: {},
         deleting: {}, // per project name
+        updating: {},
+    },
+    versionInfo: {
+        status: State.IDLE,
+        error: null,
+        containers: [],
     },
 };
 
@@ -45,6 +51,48 @@ export const fetchContainers = createAsyncThunk(
             return inspectedContainers;
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to fetch containers';
+            return rejectWithValue(message);
+        }
+    }
+);
+
+export const checkWordPressUpdates = createAsyncThunk<
+    string[],
+    void,
+    { rejectValue: string }
+>(
+    'containers/checkWordPressUpdates',
+    async (_, { rejectWithValue }) => {
+        try {
+            const outdatedContainerIds = await window.electronAPI.docker.wordpress.checkUpdates();
+            return outdatedContainerIds;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to check WordPress image updates';
+            return rejectWithValue(message);
+        }
+    }
+);
+
+export const updateWordPressContainer = createAsyncThunk<
+    { previousContainerId: string; container: ContainerInspectInfo },
+    string,
+    { rejectValue: string }
+>(
+    'containers/updateWordPressContainer',
+    async (containerId, { rejectWithValue }) => {
+        try {
+            const response = await window.electronAPI.docker.wordpress.update(containerId);
+            const normalizedContainer: ContainerInspectInfo = {
+                ...response.container,
+                Name: response.container.Name?.replace(/^\/+/, '') ?? response.container.Name,
+            };
+
+            return {
+                previousContainerId: response.previousContainerId,
+                container: normalizedContainer,
+            };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to update WordPress container';
             return rejectWithValue(message);
         }
     }
@@ -240,6 +288,7 @@ const wordpressSlice = createSlice({
                 stopping: {},
                 removing: {},
                 deleting: {}, // per project name
+                updating: {},
             };
         },
         // Optional reducer to force recompute all projects from current containers
@@ -266,6 +315,21 @@ const wordpressSlice = createSlice({
                 state.status = State.ERROR;
                 state.error = action.payload as string;
                 state.operationStatus.retrievingAll = false;
+            });
+
+        builder
+            .addCase(checkWordPressUpdates.pending, (state) => {
+                state.versionInfo.status = State.LOADING;
+                state.versionInfo.error = null;
+            })
+            .addCase(checkWordPressUpdates.fulfilled, (state, action) => {
+                state.versionInfo.status = State.SUCCESS;
+                state.versionInfo.error = null;
+                state.versionInfo.containers = action.payload;
+            })
+            .addCase(checkWordPressUpdates.rejected, (state, action) => {
+                state.versionInfo.status = State.ERROR;
+                state.versionInfo.error = action.payload as string;
             });
 
         // Create WordPress service
@@ -428,6 +492,46 @@ const wordpressSlice = createSlice({
             })
             .addCase(removeContainer.rejected, (state, action) => {
                 delete state.operationStatus.removing[action.meta.arg.containerId];
+                state.error = action.payload as string;
+            })
+            .addCase(updateWordPressContainer.pending, (state, action) => {
+                state.operationStatus.updating[action.meta.arg] = true;
+                state.error = null;
+            })
+            .addCase(updateWordPressContainer.fulfilled, (state, action) => {
+                const { previousContainerId, container: updatedContainer } = action.payload;
+                delete state.operationStatus.updating[previousContainerId];
+                state.error = null;
+
+                const containerIndex = state.containers.findIndex(c => c.Id === previousContainerId);
+                if (containerIndex >= 0) {
+                    state.containers[containerIndex] = updatedContainer;
+                } else {
+                    state.containers.push(updatedContainer);
+                }
+
+                const serviceName = updatedContainer.Config.Labels?.['container-flow.name'];
+                if (serviceName) {
+                    const projectContainers = state.containers.filter(c => c.Config.Labels?.['container-flow.name'] === serviceName);
+                    const updatedProject = buildProjectFromContainers(serviceName, projectContainers);
+                    if (updatedProject) {
+                        const projectIndex = state.projects.findIndex(p => p.name === serviceName);
+                        if (projectIndex >= 0) {
+                            state.projects[projectIndex] = updatedProject;
+                        } else {
+                            state.projects.push(updatedProject);
+                        }
+                        state.projects = sortProjectsAlphabetically(state.projects);
+                    }
+                }
+
+                state.versionInfo.containers = state.versionInfo.containers.filter(
+                    (containerId) => containerId !== previousContainerId && containerId !== updatedContainer.Id,
+                );
+                state.versionInfo.status = State.SUCCESS;
+            })
+            .addCase(updateWordPressContainer.rejected, (state, action) => {
+                delete state.operationStatus.updating[action.meta.arg];
                 state.error = action.payload as string;
             })
             // Delete WordPress project

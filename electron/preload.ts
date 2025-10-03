@@ -87,6 +87,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
                 ipcRenderer.invoke('docker:wordpress:clone', sourceContainer),
             changeUrl: (container: ContainerInspectInfo, newUrl: string) =>
                 ipcRenderer.invoke('docker:wordpress:changeUrl', container, newUrl),
+            checkUpdates: () =>
+                ipcRenderer.invoke('docker:wordpress:checkUpdates'),
+            update: (containerId: string) =>
+                ipcRenderer.invoke('docker:wordpress:update', containerId),
             'delete': (options: WordPressDeleteOptions) => ipcRenderer.invoke('docker:wordpress:delete', options),
         },
     },

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { CardDescription, CardTitle } from '@/components/ui/card';
 import { ChevronRight, Database, ExternalLink, Globe } from 'lucide-react';
 import { WordPressProject } from '@/store/types/container';
+import { Badge } from '@/components/ui/badge';
 
 interface WordPressProjectHeaderProps {
   project: WordPressProject;
@@ -11,6 +12,7 @@ interface WordPressProjectHeaderProps {
   totalCount: number;
   onOpenUrl: () => void;
   disabled: boolean;
+  hasUpdates?: boolean;
 }
 
 export function WordPressProjectHeader({
@@ -19,7 +21,8 @@ export function WordPressProjectHeader({
   runningCount,
   totalCount,
   onOpenUrl,
-  disabled
+  disabled,
+  hasUpdates = false,
 }: WordPressProjectHeaderProps) {
   return (
     <div className="w-full relative z-10">
@@ -37,6 +40,9 @@ export function WordPressProjectHeader({
             <CardTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5"/>
               <motion.span layoutId={`wp-title-${project.name}`}>{project.name}</motion.span>
+              {hasUpdates && (
+                <Badge variant="destructive" className="text-xs">Update available</Badge>
+              )}
             </CardTitle>
             <CardDescription className="flex items-center gap-2 text-xs">
               <span className="inline-flex items-center gap-1">
@@ -97,7 +103,12 @@ export function WordPressProjectHeader({
             <div className="min-w-0 flex-1">
               <CardTitle className="flex items-center gap-2 truncate">
                 <Globe className="h-5 w-5 shrink-0"/>
-                <span className="truncate">{project.name}</span>
+                <span className="truncate flex items-center gap-2">
+                  <span>{project.name}</span>
+                  {hasUpdates && (
+                    <Badge variant="destructive" className="text-[10px]">Update</Badge>
+                  )}
+                </span>
               </CardTitle>
               <CardDescription className="hidden min-[301px]:block text-xs">
                 <p>{totalCount} container{totalCount !== 1 ? 's' : ''} • {runningCount} running</p>

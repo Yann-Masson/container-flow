@@ -509,6 +509,24 @@ function setupIpcHandlers() {
             }
         });
 
+        ipcMain.handle('docker:wordpress:checkUpdates', async () => {
+            try {
+                return await services.docker.wordpress.checkUpdates();
+            } catch (error) {
+                log(`Error in docker:wordpress:checkUpdates: ${error}`);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('docker:wordpress:update', async (_, containerId: string) => {
+            try {
+                return await services.docker.wordpress.update(containerId);
+            } catch (error) {
+                log(`Error in docker:wordpress:update: ${error}`);
+                throw error;
+            }
+        });
+
         ipcMain.handle('docker:wordpress:delete', async (_, options) => {
             try {
                 return await services.docker.wordpress.delete(options);

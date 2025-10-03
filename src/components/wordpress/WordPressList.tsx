@@ -6,13 +6,14 @@ import WordPressProjectCard from './WordPressProjectCard';
 import { AnimatePresence, motion } from 'framer-motion';
 import WordPressProjectSkeleton from './WordPressProjectSkeleton';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchContainers } from '@/store/slices/wordpressSlice';
+import { fetchContainers, checkWordPressUpdates } from '@/store/slices/wordpressSlice';
 import { 
     selectProjects, 
     selectContainerStatus, 
     selectContainerError,
     selectProjectCount,
-    selectTotalContainerCount
+    selectTotalContainerCount,
+    selectOutdatedContainerCount
 } from '@/store/selectors/containerSelectors';
 import { State } from '@/utils/state/basic-state';
 
@@ -25,13 +26,16 @@ export default function WordPressList() {
     const error = useAppSelector(selectContainerError);
     const projectCount = useAppSelector(selectProjectCount);
     const totalContainerCount = useAppSelector(selectTotalContainerCount);
+    const outdatedContainerCount = useAppSelector(selectOutdatedContainerCount);
     
     const isRefreshing = status === State.LOADING;
 
     const retrieveContainers = useCallback(async () => {
         try {
             const resultAction = await dispatch(fetchContainers());
-            if (fetchContainers.rejected.match(resultAction)) {
+            if (fetchContainers.fulfilled.match(resultAction)) {
+                await dispatch(checkWordPressUpdates());
+            } else if (fetchContainers.rejected.match(resultAction)) {
                 toast.error('❌ Error retrieving containers', {
                     description: resultAction.payload as string || 'An unknown error occurred',
                 });
@@ -63,9 +67,12 @@ export default function WordPressList() {
                 <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold">{status === State.SUCCESS && projectCount} WordPress Projects</h2>
                     {status === State.SUCCESS && (
-                        <p className="text-sm text-gray-600 hidden sm:block">
-                            {totalContainerCount} total containers
-                        </p>
+                        <div className="hidden sm:flex flex-col text-sm text-gray-600">
+                            <span>{totalContainerCount} total containers</span>
+                            {outdatedContainerCount > 0 && (
+                                <span className="text-red-400">{outdatedContainerCount} container{outdatedContainerCount !== 1 ? 's are' : ' is'} outdated</span>
+                            )}
+                        </div>
                     )}
                 </div>
                 <Button
@@ -91,6 +98,12 @@ export default function WordPressList() {
             {/* Show skeleton loading states when loading */}
             {status === State.LOADING && projectCount === 0 && (
                 <WordPressProjectSkeleton count={3} />
+            )}
+
+            {status === State.SUCCESS && outdatedContainerCount > 0 && (
+                <p className="text-sm text-red-400">
+                    Updates available for {outdatedContainerCount} container{outdatedContainerCount !== 1 ? 's' : ''}. Use the Update action next to each container to apply the latest WordPress image.
+                </p>
             )}
 
             {/* Show actual projects */}

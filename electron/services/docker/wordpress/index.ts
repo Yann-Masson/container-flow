@@ -4,7 +4,9 @@ import create from './create';
 import clone from './clone';
 import deleteWordPress from './delete';
 import utils from './utils';
-import changeUrl from "./change-url.ts";
+import changeUrl from './change-url';
+import { checkWordPressUpdates } from './check-updates';
+import { updateWordPressContainer } from './update';
 
 export default {
     setup,
@@ -12,6 +14,8 @@ export default {
     clone,
     delete: deleteWordPress,
     changeUrl,
+    update: updateWordPressContainer,
+    checkUpdates: checkWordPressUpdates,
     validate,
     utils,
 };

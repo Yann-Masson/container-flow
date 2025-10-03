@@ -30,6 +30,11 @@ export const selectOperationStatus = createSelector(
     (containerState) => containerState.operationStatus
 );
 
+export const selectVersionInfo = createSelector(
+    [selectContainerState],
+    (containerState) => containerState.versionInfo
+);
+
 // Specific operation selectors
 export const selectIsCreating = createSelector(
     [selectOperationStatus],
@@ -61,9 +66,38 @@ export const selectIsContainerRemoving = (containerId: string) => createSelector
     (operationStatus) => operationStatus.removing[containerId] || false
 );
 
+export const selectIsContainerUpdating = (containerId: string) => createSelector(
+    [selectOperationStatus],
+    (operationStatus) => operationStatus.updating[containerId] || false
+);
+
 export const selectIsProjectDeleting = (projectName: string) => createSelector(
     [selectOperationStatus],
     (operationStatus) => operationStatus.deleting?.[projectName] || false
+);
+
+export const selectOutdatedContainerIds = createSelector(
+    [selectVersionInfo],
+    (versionInfo) => versionInfo.containers
+);
+
+export const selectIsContainerOutdated = (containerId: string) => createSelector(
+    [selectOutdatedContainerIds],
+    (outdatedIds) => outdatedIds.includes(containerId)
+);
+
+export const selectProjectHasUpdates = (projectName: string) => createSelector(
+    [selectProjects, selectOutdatedContainerIds],
+    (projects, outdatedIds) => {
+        const project = projects.find((service) => service.name === projectName);
+        if (!project) return false;
+        return project.containers.some((container) => outdatedIds.includes(container.Id));
+    }
+);
+
+export const selectOutdatedContainerCount = createSelector(
+    [selectOutdatedContainerIds],
+    (outdatedIds) => outdatedIds.length
 );
 
 // Service-specific selectors

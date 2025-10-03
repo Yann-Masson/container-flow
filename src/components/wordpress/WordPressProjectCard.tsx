@@ -9,12 +9,14 @@ import { toast } from 'sonner';
 import WordPressChangeUrlDialog from './WordPressChangeUrlDialog';
 import { WordPressDeleteDialog } from './WordPressDeleteDialog';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { cloneContainer, startContainer, stopContainer, removeContainer } from '@/store/slices/wordpressSlice';
+import { cloneContainer, startContainer, stopContainer, removeContainer, updateWordPressContainer } from '@/store/slices/wordpressSlice';
 import { 
     selectIsCloning,
     selectIsRetrievingAll,
     selectOperationStatus,
-    selectIsProjectDeleting
+    selectIsProjectDeleting,
+    selectProjectHasUpdates,
+    selectOutdatedContainerIds
 } from '@/store/selectors/containerSelectors';
 import { WordPressProject } from '@/store/types/container';
 import { WordPressProjectHeader } from './components/WordPressProjectHeader';
@@ -42,6 +44,8 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
     const operationStatus = useAppSelector(selectOperationStatus);
     const isAnyInstanceRemoving = project.containers.some(c => operationStatus.removing[c.Id]);
     const isDeletingProject = useAppSelector(selectIsProjectDeleting(project.name));
+    const hasUpdates = useAppSelector(selectProjectHasUpdates(project.name));
+    const outdatedContainerIds = useAppSelector(selectOutdatedContainerIds);
 
     const runningCount = project.containers.filter(c => c.State.Status === 'running').length;
     const totalCount = project.containers.length;
@@ -190,6 +194,36 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
         }
     };
 
+    const handleUpdateContainer = async (container: ContainerInspectInfo) => {
+        if (operationStatus.updating?.[container.Id]) return;
+
+        const containerName = container.Name.replace('wordpress-', '');
+
+        toast.info('⬆️ Updating container...', {
+            description: `Updating ${containerName}`,
+        });
+
+        try {
+            const resultAction = await dispatch(updateWordPressContainer(container.Id));
+
+            if (updateWordPressContainer.fulfilled.match(resultAction)) {
+                toast.success('✅ Container updated!', {
+                    description: `${containerName} is now running the latest WordPress image`,
+                    duration: 6000,
+                });
+            } else if (updateWordPressContainer.rejected.match(resultAction)) {
+                toast.error('❌ Error updating container', {
+                    description: resultAction.payload as string || 'An unknown error occurred',
+                });
+            }
+        } catch (error) {
+            console.error('Failed to update container:', error);
+            toast.error('❌ Error updating container', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
+            });
+        }
+    };
+
     const handleChangeUrl = () => {
         setIsChangeUrlDialogOpen(true);
     };
@@ -215,6 +249,7 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                 totalCount={totalCount}
                                 onOpenUrl={openUrl}
                                 disabled={isRetrievingAll || isDeletingProject}
+                                hasUpdates={hasUpdates}
                             />
                         </CardHeader>
                     </CollapsibleTrigger>
@@ -254,7 +289,9 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             />
 
                                             {/* Individual Containers */}
-                                            {project.containers.map((container) => (
+                                            {project.containers.map((container) => {
+                                                const isContainerOutdated = outdatedContainerIds.includes(container.Id);
+                                                return (
                                                 <WordPressContainerRow
                                                     key={container.Id}
                                                     container={container}
@@ -265,8 +302,12 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                                     removing={!!operationStatus.removing[container.Id]}
                                                     disabled={isRetrievingAll || isDeletingProject}
                                                     onAction={handleContainerAction}
+                                                    onUpdate={handleUpdateContainer}
+                                                    updating={!!operationStatus.updating?.[container.Id]}
+                                                    isOutdated={isContainerOutdated}
                                                 />
-                                            ))}
+                                                );
+                                            })}
                                         </motion.div>
                                     </CardContent>
                                 </motion.div>

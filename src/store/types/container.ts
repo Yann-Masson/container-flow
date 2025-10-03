@@ -27,6 +27,13 @@ export interface ContainerState {
         stopping: Record<string, boolean>; // containerID -> isStopping
         removing: Record<string, boolean>; // containerID -> isRemoving
         deleting: Record<string, boolean>; // projectName -> isDeleting
+        updating: Record<string, boolean>; // containerID -> isUpdating
+    };
+
+    versionInfo: {
+        status: State;
+        error: string | null;
+        containers: string[]; // List of container IDs that are outdated
     };
 }
 
