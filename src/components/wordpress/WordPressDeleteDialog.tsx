@@ -44,7 +44,7 @@ export function WordPressDeleteDialog({ projectName, open, onOpenChange }: WordP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-black/80 backdrop-blur-md border-red-500/30">
+      <DialogContent className="bg-black/80 backdrop-blur-md border-red-500/30 w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">Delete Project <Badge variant="destructive" className="text-[10px]">Danger</Badge></DialogTitle>
           <DialogDescription>

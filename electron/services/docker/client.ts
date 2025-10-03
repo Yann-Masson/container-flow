@@ -64,14 +64,14 @@ export const createMySQLTunnel = (): Promise<void> => {
                             return;
                         }
 
-                        console.log('🔗 MySQL tunnel created');
+                        console.log('MySQL tunnel created');
                         localSocket.pipe(stream).pipe(localSocket);
                     }
             );
         });
 
         state.mysqlServer.listen(MYSQL_LOCAL_PORT, '127.0.0.1', () => {
-            console.log(`🧩 MySQL tunnel ready on localhost:${MYSQL_LOCAL_PORT}`);
+            console.log(`MySQL tunnel ready on localhost:${MYSQL_LOCAL_PORT}`);
             resolve();
         });
 

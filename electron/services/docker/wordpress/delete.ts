@@ -67,7 +67,8 @@ export default async function deleteWordPress(options: WordPressDeleteOptions): 
 
         // 3. Remove any additional named volumes that might be associated
         try {
-            const volumeName = `wp-${name.replace(/[^a-zA-Z0-9]/g, '-')}-data`;
+            const volumeName = `wordpress-${name.replace(/[^a-zA-Z0-9]/g, '-')}-data`;
+            console.log(`Removing volume: ${volumeName}`);
             const volume = client.getVolume(volumeName);
             await volume.remove({ force: true });
             console.log(`Volume removed: ${volumeName}`);
