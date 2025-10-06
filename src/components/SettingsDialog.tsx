@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -24,12 +24,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { LogOut, Settings } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { LogOut, Settings, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppPreference } from '../../electron/services/storage/app/app.type';
 import WordPressSetupDialog from '@/components/wordpress/setup/WordPressSetupDialog';
+import PasswordsDialog from '@/components/PasswordsDialog';
 import { useAppDispatch } from '@/store/hooks';
 import { resetWordPressSetup } from '@/store/slices/wordpressSetupSlice';
+import { ScrollArea } from './ui/scroll-area';
 
 interface SettingsDialogProps {
     currentMode: AppPreference;
@@ -46,6 +49,25 @@ export default function SettingsDialog({
     const [open, setOpen] = useState(false);
     const [showModeConfirmation, setShowModeConfirmation] = useState(false);
     const [selectedMode, setSelectedMode] = useState<AppPreference>(currentMode);
+    const [hasPasswords, setHasPasswords] = useState(false);
+
+    useEffect(() => {
+        if (open && currentMode === AppPreference.WORDPRESS) {
+            checkPasswordsAvailability();
+        }
+    }, [open, currentMode]);
+
+    const checkPasswordsAvailability = async () => {
+        try {
+            const status = await window.electronAPI.passwords.status();
+            setHasPasswords(
+                status.rootPresent || status.metricsPresent || status.projects.length > 0,
+            );
+        } catch (error) {
+            console.error('Error checking passwords availability:', error);
+            setHasPasswords(false);
+        }
+    };
 
     const handleModeChange = (newMode: string) => {
         const mode = newMode as AppPreference;
@@ -115,66 +137,110 @@ export default function SettingsDialog({
                         </p>
                     </div>
 
-                    <div className='space-y-4 sm:space-y-6 py-2 sm:py-4 w-full hidden min-[250px]:flex flex-col min-w-0'>
-                        {/* Application Mode */}
-                        <div className='space-y-2 sm:space-y-3 w-full flex flex-col min-w-0'>
-                            <h3 className='text-sm font-medium w-full min-w-0'>Application Mode</h3>
-                            <Select value={currentMode} onValueChange={handleModeChange}>
-                                <SelectTrigger className='w-full min-w-0'>
-                                    <SelectValue placeholder='Select a mode' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={AppPreference.LIST}>
-                                        <span className='block truncate'>
-                                            Basic - Simple container management
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value={AppPreference.WORDPRESS}>
-                                        <span className='block truncate'>
-                                            WordPress - Complete infrastructure
-                                        </span>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <p className='text-xs text-muted-foreground'>
-                                Current mode: {getModeLabel(currentMode)}
-                            </p>
-                        </div>
-
-                        {/* WordPress Infrastructure Check */}
-                        {currentMode === AppPreference.WORDPRESS && (
-                            <div className='space-y-2 sm:space-y-3'>
-                                <h3 className='text-sm font-medium'>WordPress Infrastructure</h3>
-                                <WordPressSetupDialog>
-                                    <Button variant='outline' className='w-full justify-start'>
-                                        <Settings className='mr-2 h-4 w-4 shrink-0' />
-                                        <span className='truncate'>
-                                            Configure WordPress Infrastructure
-                                        </span>
-                                    </Button>
-                                </WordPressSetupDialog>
+                    <ScrollArea className='max-h-[calc(90vh-160px)] w-full min-w-0 hidden min-[250px]:flex'>
+                        <div className='space-y-4 sm:space-y-6 p-2 sm:py-4 w-full hidden min-[250px]:flex flex-col min-w-0'>
+                            {/* Application Mode */}
+                            <div className='space-y-2 sm:space-y-3 w-full flex flex-col min-w-0'>
+                                <h3 className='text-sm font-medium w-full min-w-0'>
+                                    Application Mode
+                                </h3>
+                                <Select value={currentMode} onValueChange={handleModeChange}>
+                                    <SelectTrigger className='w-full min-w-0'>
+                                        <SelectValue placeholder='Select a mode' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={AppPreference.LIST}>
+                                            <span className='block truncate'>
+                                                Basic - Simple container management
+                                            </span>
+                                        </SelectItem>
+                                        <SelectItem value={AppPreference.WORDPRESS}>
+                                            <span className='block truncate'>
+                                                WordPress - Complete infrastructure
+                                            </span>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
                                 <p className='text-xs text-muted-foreground'>
-                                    Checks that Traefik, MySQL, and the network are operational
+                                    Current mode: {getModeLabel(currentMode)}
                                 </p>
                             </div>
-                        )}
 
-                        {/* Disconnect */}
-                        <div className='space-y-2 sm:space-y-3'>
-                            <h3 className='text-sm font-medium'>Docker Connection</h3>
-                            <Button
-                                onClick={handleDisconnect}
-                                variant='destructive'
-                                className='w-full'
-                            >
-                                <LogOut className='mr-2 h-4 w-4 shrink-0' />
-                                <span className='truncate'>Disconnect</span>
-                            </Button>
-                            <p className='text-xs text-muted-foreground'>
-                                Closes the connection and returns to the login screen
-                            </p>
+                            {/* WordPress Infrastructure Check */}
+                            {currentMode === AppPreference.WORDPRESS && (
+                                <div className='space-y-2 sm:space-y-3'>
+                                    <h3 className='text-sm font-medium'>
+                                        WordPress Infrastructure
+                                    </h3>
+                                    <WordPressSetupDialog>
+                                        <Button variant='outline' className='w-full justify-start'>
+                                            <Settings className='mr-2 h-4 w-4 shrink-0' />
+                                            <span className='truncate'>
+                                                Configure WordPress Infrastructure
+                                            </span>
+                                        </Button>
+                                    </WordPressSetupDialog>
+                                    <p className='text-xs text-muted-foreground'>
+                                        Checks that Traefik, MySQL, and the network are operational
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* View Passwords */}
+                            {currentMode === AppPreference.WORDPRESS && (
+                                <div className='space-y-2 sm:space-y-3'>
+                                    <h3 className='text-sm font-medium'>Passwords</h3>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <PasswordsDialog>
+                                                        <Button
+                                                            variant='outline'
+                                                            className='w-full justify-start'
+                                                            disabled={!hasPasswords}
+                                                        >
+                                                            <Key className='mr-2 h-4 w-4 shrink-0' />
+                                                            <span className='truncate'>
+                                                                View Passwords
+                                                            </span>
+                                                        </Button>
+                                                    </PasswordsDialog>
+                                                </div>
+                                            </TooltipTrigger>
+                                            {!hasPasswords && (
+                                                <TooltipContent>
+                                                    <p>
+                                                        No passwords available. Set up WordPress
+                                                        infrastructure first.
+                                                    </p>
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    <p className='text-xs text-muted-foreground'>
+                                        View and copy MySQL and WordPress passwords
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Disconnect */}
+                            <div className='space-y-2 sm:space-y-3'>
+                                <h3 className='text-sm font-medium'>Docker Connection</h3>
+                                <Button
+                                    onClick={handleDisconnect}
+                                    variant='destructive'
+                                    className='w-full'
+                                >
+                                    <LogOut className='mr-2 h-4 w-4 shrink-0' />
+                                    <span className='truncate'>Disconnect</span>
+                                </Button>
+                                <p className='text-xs text-muted-foreground'>
+                                    Closes the connection and returns to the login screen
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    </ScrollArea>
                 </DialogContent>
             </Dialog>
 

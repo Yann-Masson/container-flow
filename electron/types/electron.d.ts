@@ -82,6 +82,28 @@ interface ElectronAPI {
             save: (sshConfig: import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig) => Promise<void>;
         };
     };
+    passwords: {
+        discover: () => Promise<import('../services/runtime/passwords/password-manager.ts').PasswordState>;
+        getState: () => Promise<import('../services/runtime/passwords/password-manager.ts').PasswordState>;
+        status: () => Promise<{
+            rootPresent: boolean;
+            metricsPresent: boolean;
+            projects: string[];
+            initialized: boolean;
+        }>;
+        setRootAndMetrics: (opts: {
+            rootPassword?: string;
+            metricsUser?: string;
+            metricsPassword?: string;
+            metricsDsn?: string;
+        }) => Promise<{
+            rootPresent: boolean;
+            metricsPresent: boolean;
+            projects: string[];
+            initialized: boolean;
+        }>;
+        registerProject: (projectName: string, creds: import('../services/runtime/passwords/password-manager.ts').WordPressProjectCredentials) => Promise<boolean>;
+    };
 }
 
 declare global {

@@ -18,8 +18,14 @@ export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<vo
 
         const stored = getAppConfig();
         const creds = stored.grafanaCredentials ?? grafanaAuth;
-        const usedUsername = creds?.username || 'admin';
-        const usedPassword = creds?.password || 'admin';
+        const usedUsername =
+            typeof creds?.username === 'string' && creds.username.trim().length > 0
+                ? creds.username.trim()
+                : 'admin';
+        const usedPassword =
+            typeof creds?.password === 'string' && creds.password.trim().length > 0
+                ? creds.password.trim()
+                : 'admin';
 
         const result = await provisionGrafana({
             baseUrl: 'https://monitoring.internal.agence-lumia.com',
