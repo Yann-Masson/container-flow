@@ -12,11 +12,11 @@ import { motion } from 'framer-motion';
 import { ScrollArea } from '../ui/scroll-area';
 import * as React from 'react';
 import { dockerClientService } from '@/docker/docker-client';
+import { getImageBadgeStyle } from './ContainerList';
 
 interface ContainerDetailsDialogProps {
     container: ContainerInfo;
     containerName: string;
-    getImageBadgeStyle: (image: string) => string;
     getStatusColor: (status: string) => string;
     children: React.ReactNode;
 }
@@ -24,7 +24,6 @@ interface ContainerDetailsDialogProps {
 export function ContainerDetailsDialog({
     container,
     containerName,
-    getImageBadgeStyle,
     getStatusColor,
     children,
 }: ContainerDetailsDialogProps) {

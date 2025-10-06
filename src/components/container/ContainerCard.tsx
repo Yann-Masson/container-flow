@@ -7,6 +7,7 @@ import { ContainerLogsDialog, ProcessedLogs, LogSearchOptions } from "./Containe
 import { ContainerCreateDialog } from "./create/ContainerCreateDialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { PlayIcon, SquareIcon } from "lucide-react";
+import { getImageBadgeStyle } from './ContainerList.tsx';
 
 interface ContainerCardProps {
     container: ContainerInfo;
@@ -15,7 +16,6 @@ interface ContainerCardProps {
     isLoading: boolean;
     getStatusColor: (status: string) => string;
     getStatusText: (status: string) => string;
-    getImageBadgeStyle: (image: string) => string;
     onStart: (containerId: string, containerName: string) => void;
     onStop: (containerId: string, containerName: string) => void;
     onGetLogs: (containerId: string, containerName: string, searchOptions?: LogSearchOptions) => Promise<ProcessedLogs>;
@@ -30,7 +30,6 @@ export function ContainerCard({
                                   isLoading,
                                   getStatusColor,
                                   getStatusText,
-                                  getImageBadgeStyle,
                                   onStart,
                                   onStop,
                                   onGetLogs,
@@ -41,7 +40,6 @@ export function ContainerCard({
         <ContainerDetailsDialog
             container={container}
             containerName={containerName}
-            getImageBadgeStyle={getImageBadgeStyle}
             getStatusColor={getStatusColor}
         >
             <Card

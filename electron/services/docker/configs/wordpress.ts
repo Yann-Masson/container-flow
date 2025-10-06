@@ -1,6 +1,7 @@
 import { ContainerCreateOptions } from 'dockerode';
 
 const wordpress: ContainerCreateOptions = {
+    name: 'wordpress',
     Image: 'wordpress:latest',
     ExposedPorts: {
         '80/tcp': {},
