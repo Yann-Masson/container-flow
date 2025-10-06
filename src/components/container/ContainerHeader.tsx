@@ -39,7 +39,7 @@ export function ContainerHeader({ state, refreshFunction, running, stopped }: Co
             <motion.div
                 whileHover={{ scale: 1.010 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 p-5 will-change-transform"
+                className="relative z-10 flex flex-col min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between gap-6 p-5 will-change-transform"
             >
                 <div className="flex flex-col gap-4 w-full">
                     {/* Quick Info Chips */}
@@ -108,7 +108,7 @@ export function ContainerHeader({ state, refreshFunction, running, stopped }: Co
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 self-start md:self-auto md:ml-auto">
+                <div className="flex items-center gap-3 self-end md:self-auto md:ml-auto">
                     <Button
                         variant="outline"
                         onClick={refreshFunction}

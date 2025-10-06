@@ -276,14 +276,11 @@ export function ContainerCreateDialog({
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[880px] h-[85vh] p-0 flex flex-col overflow-hidden border border-white/10 bg-[#0b111b]/85 supports-[backdrop-filter]:bg-[#0b111b]/55 backdrop-blur-md supports-[backdrop-filter]:backdrop-blur-xl backdrop-saturate-150 shadow-xl shadow-black/40">
+            <DialogContent className="max-w-[90vw] h-[85vh] p-0 flex flex-col overflow-hidden border border-white/10 bg-[#0b111b]/85 supports-[backdrop-filter]:bg-[#0b111b]/55 backdrop-blur-md supports-[backdrop-filter]:backdrop-blur-xl backdrop-saturate-150 shadow-xl shadow-black/40">
                 {/* Decorative glass overlays (non-interactive) */}
                 <div className='pointer-events-none absolute inset-0'>
-                    {/* Soft radial highlight */}
                     <div className='absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.12),transparent_65%)]' />
-                    {/* Grain / noise */}
                     <div className='absolute inset-0 opacity-[0.03] mix-blend-overlay bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.6)_0px,rgba(255,255,255,0.6)_1px,transparent_1px,transparent_3px)]' />
-                    {/* Subtle top gradient edge */}
                     <div className='absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-white/10 to-transparent' />
                 </div>
                 <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
@@ -918,8 +915,8 @@ export function ContainerCreateDialog({
                     </Tabs>
                 </div>
 
-                <DialogFooter className="px-6 py-4 border-t border-white/10 bg-white/5 backdrop-blur-sm flex justify-between items-center w-full">
-                    <div className="flex items-center space-x-2 w-full">
+                <DialogFooter className="px-6 py-4 border-t border-white/10 bg-white/5 backdrop-blur-sm flex justify-between items-center w-full flex-col gap-4">
+                    <div className="flex items-center space-x-2 w-auto sm:w-full">
                         <Switch checked={advancedConfiguration} onCheckedChange={setAdvancedConfiguration}/>
                         <Label>Advanced Configuration</Label>
                     </div>

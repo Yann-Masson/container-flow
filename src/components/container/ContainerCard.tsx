@@ -52,8 +52,8 @@ export function ContainerCard({
                 className="group relative py-4 overflow-hidden"
             >
                 <CardContent>
-                    <div className="flex justify-between items-center">
-                        <div className="flex-1 gap-3">
+                    <div className="flex justify-between items-center flex-col sm:flex-row gap-4">
+                        <div className="flex-1 gap-3 w-full">
                             <CardTitle className="text-lg font-semibold text-blue-600 dark:text-blue-400">
                                 {containerName}
                             </CardTitle>
@@ -69,7 +69,7 @@ export function ContainerCard({
                                 on {new Date(container.Created * 1000).toLocaleDateString()} at {new Date(container.Created * 1000).toLocaleTimeString()}
                             </p>
                         </div>
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 w-full sm:w-auto justify-between items-center">
                             <div className="flex items-center">
                                 <div className={`h-3 w-3 rounded-full mr-2 ${getStatusColor(container.Status)}`}></div>
                                 <span className="text-sm">{getStatusText(container.Status)}</span>

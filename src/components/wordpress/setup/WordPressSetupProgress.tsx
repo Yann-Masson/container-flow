@@ -186,7 +186,7 @@ export default function WordPressSetupProgress({
             {/* Progress bar is always visible when setup is running */}
             {(isSetupRunning || progress === 100) && (
                 <div className='space-y-2'>
-                    <div className='flex flex-col sm:flex-row sm:justify-between text-sm gap-1'>
+                    <div className='flex flex-row justify-between text-sm gap-1'>
                         <span>Progress</span>
                         <span>
                             {completedSteps}/{totalSteps}
@@ -232,7 +232,7 @@ export default function WordPressSetupProgress({
                 <div className='space-y-3 mt-2'>
                     <h3 className='text-lg font-semibold'>Setup Steps</h3>
                     <motion.div
-                        className='space-y-2'
+                        className='space-y-2 w-full sm:w-[40vw]'
                         initial={false}
                         animate={showDetailsState ? 'visible' : 'hidden'}
                         variants={{
