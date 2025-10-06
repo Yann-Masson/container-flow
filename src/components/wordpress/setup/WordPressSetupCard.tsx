@@ -51,13 +51,13 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
     };
 
     return (
-        <div className="flex items-center justify-center w-full h-full p-4">
+        <div className="flex items-center justify-center h-full">
             <Card
                 variant="glass"
                 accent="glow"
                 interactive={false}
                 withHoverOverlay
-                className="group relative overflow-hidden max-w-2xl w-full"
+                className="group relative overflow-hidden w-full"
             >
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">

@@ -17,7 +17,18 @@ export default function App() {
                         } as React.CSSProperties
                     }
                 />
-                <ScrollArea className='h-screen w-screen select-none overflow-hidden'>
+
+                <div className='h-screen w-screen select-none flex flex-col items-center justify-center min-[250px]:hidden overflow-hidden bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 pt-12 font-[family-name:var(--font-geist-sans)]'>
+                    <h1 className='text-2xl font-semibold mb-2 text-gray-900 dark:text-gray-100 text-center'>
+                        Container Flow
+                    </h1>
+                    <p className='text-center text-gray-500 px-4'>
+                        Container Flow is designed for screens wider than 250px. Please resize your
+                        window.
+                    </p>
+                </div>
+
+                <ScrollArea className='h-screen w-screen select-none overflow-hidden hidden min-[250px]:flex'>
                     <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 p-4 pt-12 font-[family-name:var(--font-geist-sans)]'>
                         <div className='flex-grow w-full h-full flex flex-col justify-center items-center'>
                             <AppScreens />

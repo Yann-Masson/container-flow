@@ -228,8 +228,6 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
         setIsChangeUrlDialogOpen(true);
     };
 
-    // Variants extracted to external module
-
     return (
         <>
             <Card
@@ -275,7 +273,6 @@ export default function WordPressProjectCard({ project }: WordPressProjectCardPr
                                             exit="hidden"
                                         >
                                             <WordPressProjectActions
-                                                dbName={project.dbName}
                                                 url={project.url}
                                                 disabled={isRetrievingAll || isDeletingProject}
                                                 isCloning={isCloning}

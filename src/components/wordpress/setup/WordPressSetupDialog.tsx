@@ -1,13 +1,22 @@
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Server } from 'lucide-react';
 import { toast } from 'sonner';
 import WordPressSetupProgress from './WordPressSetupProgress';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { runWordPressSetup, selectWordPressSetupStatus, selectWordPressSetup } from '@/store/slices/wordpressSetupSlice';
+import {
+    runWordPressSetup,
+    selectWordPressSetupStatus,
+    selectWordPressSetup,
+} from '@/store/slices/wordpressSetupSlice';
 import WordPressSetupActionButton from './WordPressSetupActionButton';
 
 interface WordPressSetupDialogProps {
@@ -28,7 +37,7 @@ export default function WordPressSetupDialog({ children }: WordPressSetupDialogP
         if (prevStatus.current !== status) {
             if (status === 'success') {
                 toast.success('🎉 WordPress infrastructure configured successfully!', {
-                    description: 'Traefik and MySQL are now available.'
+                    description: 'Traefik and MySQL are now available.',
                 });
             } else if (status === 'error') {
                 toast.error('❌ Setup error', { description: 'An error occurred during setup.' });
@@ -56,49 +65,68 @@ export default function WordPressSetupDialog({ children }: WordPressSetupDialogP
     const dialogMotionProps = {
         initial: false,
         animate: { scale: detailsVisible ? 1.0 : 1.0 },
-        transition: { duration: 0.4, ease: 'easeInOut' }
+        transition: { duration: 0.4, ease: 'easeInOut' },
     } as const;
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger asChild className='w-full min-w-0'>
                 {children}
             </DialogTrigger>
-            <DialogContent className={`${dialogWidthClass} max-h-[90vh]`}>        
+            <DialogContent className={`${dialogWidthClass} max-h-[90vh] min-w-0`}>
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Server className="h-5 w-5"/>
+                    <DialogTitle className='flex items-center gap-2'>
+                        <Server className='h-5 w-5' />
                         WordPress Infrastructure Setup
                     </DialogTitle>
                 </DialogHeader>
+
+                <div className='select-none flex flex-col items-center justify-center min-[250px]:hidden overflow-hidden'>
+                    <p className='text-center text-gray-500 px-4'>
+                        Container Flow is designed for screens wider than 250px. Please resize your
+                        window.
+                    </p>
+                </div>
+
                 {/* AnimatePresence not strictly required around size but used for future content transitions */}
-                <ScrollArea className="max-h-[calc(90vh-120px)] p-4">
-                    <motion.div {...dialogMotionProps} className="space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                            Configure the complete infrastructure to host your WordPress sites with Traefik and
-                            MySQL.
+                <ScrollArea className='max-h-[calc(90vh-120px)] p-4 w-full min-w-0 hidden min-[250px]:flex'>
+                    <motion.div {...dialogMotionProps} className='space-y-4'>
+                        <p className='text-sm text-muted-foreground'>
+                            Configure the complete infrastructure to host your WordPress sites with
+                            Traefik and MySQL.
                         </p>
 
                         {/* Retry section with force mode switch */}
-                                                {failed && (
-                                                    <div className="flex flex-col gap-3">
-                                                        {fullSetup.error && (
-                                                            <div className="text-xs text-red-600 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-800 rounded p-2 whitespace-pre-wrap break-all">
-                                                                {fullSetup.error}
-                                                            </div>
-                                                        )}
-                                                        <WordPressSetupActionButton className="w-full" retryLabel="Re-Launch WordPress Setup" onAction={handleAction} />
-                                                    </div>
-                                                )}
-
-                        {/* Initial launch button */}
-                        {!failed && (
-                            <div className="w-full p-2">
-                                <WordPressSetupActionButton className="w-full" launchLabel="Launch WordPress Setup" onAction={handleAction} />
+                        {failed && (
+                            <div className='flex flex-col gap-3'>
+                                {fullSetup.error && (
+                                    <div className='text-xs text-red-600 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-800 rounded p-2 whitespace-pre-wrap break-all'>
+                                        {fullSetup.error}
+                                    </div>
+                                )}
+                                <WordPressSetupActionButton
+                                    className='w-full'
+                                    retryLabel='Re-Launch WordPress Setup'
+                                    onAction={handleAction}
+                                />
                             </div>
                         )}
 
-                        <WordPressSetupProgress showDetailsInitial={false} onDetailsVisibilityChange={handleDetailsVisibilityChange} />
+                        {/* Initial launch button */}
+                        {!failed && (
+                            <div className='w-full p-2 min-w-0 flex flex-col'>
+                                <WordPressSetupActionButton
+                                    className='w-full min-w-0'
+                                    launchLabel='Launch WordPress Setup'
+                                    onAction={handleAction}
+                                />
+                            </div>
+                        )}
+
+                        <WordPressSetupProgress
+                            showDetailsInitial={false}
+                            onDetailsVisibilityChange={handleDetailsVisibilityChange}
+                        />
                     </motion.div>
                 </ScrollArea>
             </DialogContent>

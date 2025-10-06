@@ -26,7 +26,7 @@ export default function HomeScreen({ appMode, onModeChange, onDisconnect }: Home
     }
 
     return (
-        <div className="container mx-auto max-w-6xl px-4 flex flex-col flex-grow h-full">
+        <div className="container mx-auto max-w-6xl sm:px-4 flex flex-col flex-grow h-full">
             <header className="flex flex-col sm:flex-row justify-between items-center">
                 <div className="flex items-center mb-4 sm:mb-0 space-x-3">
                     <img src={ContainerFlowSvg} alt="Container Flow" className="w-12 h-12"/>

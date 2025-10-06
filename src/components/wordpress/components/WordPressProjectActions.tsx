@@ -4,7 +4,6 @@ import { Copy, Minus, Plus, Settings, Trash } from 'lucide-react';
 import { itemVariants } from './variants';
 
 interface WordPressProjectActionsProps {
-  dbName: string;
   url: string;
   disabled: boolean;
   isCloning: boolean;
@@ -18,7 +17,6 @@ interface WordPressProjectActionsProps {
 }
 
 export function WordPressProjectActions({
-  dbName,
   url,
   disabled,
   isCloning,
@@ -33,23 +31,12 @@ export function WordPressProjectActions({
   return (
     <motion.div
       variants={itemVariants}
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-3 bg-gradient-to-r from-black/70 to-black/40 rounded-lg gap-3"
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full p-3 bg-black rounded-lg gap-3"
     >
-      <span className="text-sm font-medium sm:ml-4 tracking-wide text-foreground/90 flex items-center gap-2">
+      <span className="text-sm font-medium sm:ml-4 tracking-wide text-foreground/90 gap-2 hidden sm:inline">
         Actions
       </span>
       <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onCopy(dbName, 'Database name')}
-          className="cursor-pointer hover:shadow hover:shadow-primary/20 transition"
-          disabled={disabled}
-        >
-          <Copy className="h-3 w-3 mr-1"/>
-          <span className="hidden md:inline">Copy DB</span>
-          <span className="md:hidden">DB</span>
-        </Button>
         <Button
           size="sm"
           variant="outline"
@@ -58,8 +45,8 @@ export function WordPressProjectActions({
           disabled={disabled}
         >
           <Copy className="h-3 w-3 mr-1"/>
-          <span className="hidden md:inline">Copy URL</span>
-          <span className="md:hidden">URL</span>
+          <span className="hidden min-[1200px]:inline">Copy URL</span>
+          <span className="inline min-[1200px]:hidden">URL</span>
         </Button>
         <Button
             size="sm"
@@ -69,8 +56,8 @@ export function WordPressProjectActions({
             disabled={disabled}
         >
             <Settings className="h-3 w-3 mr-1"/>
-            <span className="hidden md:inline">Change URL</span>
-            <span className="md:hidden">URL</span>
+            <span className="hidden min-[1200px]:inline">Change URL</span>
+            <span className="inline min-[1200px]:hidden">URL</span>
         </Button>
         <Button
           size="sm"
@@ -80,7 +67,7 @@ export function WordPressProjectActions({
           className="hover:shadow hover:shadow-primary/20 transition"
         >
           <Minus className="h-3 w-3"/>
-          <span className="hidden md:block">Remove</span>
+          <span className="hidden min-[1200px]:block">Remove</span>
         </Button>
         <Button
           size="sm"
@@ -90,7 +77,7 @@ export function WordPressProjectActions({
           className="hover:shadow hover:shadow-primary/20 transition"
         >
           <Plus className="h-3 w-3"/>
-          <span className="hidden md:inline">Add</span>
+          <span className="hidden min-[1200px]:inline">Add</span>
         </Button>
         <Button
           size="sm"
