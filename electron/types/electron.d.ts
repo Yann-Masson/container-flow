@@ -76,10 +76,12 @@ interface ElectronAPI {
         app: {
             get: () => Promise<import('../services/storage/app/app.type.ts').AppSavedConfig>;
             save: (appConfig: import('../services/storage/app/app.type.ts').AppSavedConfig) => Promise<void>;
+            clear: () => Promise<void>;
         };
         ssh: {
             get: () => Promise<import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig>;
             save: (sshConfig: import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig) => Promise<void>;
+            clear: () => Promise<void>;
         };
     };
     passwords: {
@@ -103,6 +105,7 @@ interface ElectronAPI {
             initialized: boolean;
         }>;
         registerProject: (projectName: string, creds: import('../services/runtime/passwords/password-manager.ts').WordPressProjectCredentials) => Promise<boolean>;
+        reset: () => Promise<boolean>;
     };
 }
 

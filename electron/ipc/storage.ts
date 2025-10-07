@@ -38,4 +38,22 @@ export function setupStorageHandlers(log: (message: string) => void) {
             throw error;
         }
     });
+
+    ipcMain.handle('storage:app:clear', async () => {
+        try {
+            return services.storage.app.clear();
+        } catch (error) {
+            log(`Error in storage:app:clear: ${error}`);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('storage:ssh:clear', async () => {
+        try {
+            return services.storage.ssh.clear();
+        } catch (error) {
+            log(`Error in storage:ssh:clear: ${error}`);
+            throw error;
+        }
+    });
 }

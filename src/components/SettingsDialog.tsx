@@ -25,7 +25,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { LogOut, Settings, Key } from 'lucide-react';
+import { LogOut, Settings, Key, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppPreference } from '../../electron/services/storage/app/app.type';
 import WordPressSetupDialog from '@/components/wordpress/setup/WordPressSetupDialog';
@@ -48,6 +48,7 @@ export default function SettingsDialog({
     const dispatch = useAppDispatch();
     const [open, setOpen] = useState(false);
     const [showModeConfirmation, setShowModeConfirmation] = useState(false);
+    const [showResetConfirmation, setShowResetConfirmation] = useState(false);
     const [selectedMode, setSelectedMode] = useState<AppPreference>(currentMode);
     const [hasPasswords, setHasPasswords] = useState(false);
 
@@ -100,6 +101,31 @@ export default function SettingsDialog({
         } catch (error) {
             console.error('Error disconnecting:', error);
             toast.error('Error while disconnecting');
+        }
+    };
+
+    const handleResetAllData = async () => {
+        try {
+            // Clear all stored data
+            await window.electronAPI.storage.app.clear();
+            await window.electronAPI.storage.ssh.clear();
+            await window.electronAPI.passwords.reset();
+            
+            // Disconnect from Docker
+            await window.electronAPI.docker.connection.disconnect();
+            
+            // Reset local state
+            dispatch(resetWordPressSetup());
+            
+            // Close dialogs and trigger disconnect flow
+            setShowResetConfirmation(false);
+            setOpen(false);
+            onDisconnect();
+            
+            toast.success('All data has been reset successfully');
+        } catch (error) {
+            console.error('Error resetting data:', error);
+            toast.error('Error while resetting data');
         }
     };
 
@@ -239,6 +265,23 @@ export default function SettingsDialog({
                                     Closes the connection and returns to the login screen
                                 </p>
                             </div>
+
+                            {/* Reset All Data */}
+                            <div className='space-y-2 sm:space-y-3'>
+                                <h3 className='text-sm font-medium'>Reset Application</h3>
+                                <Button
+                                    onClick={() => setShowResetConfirmation(true)}
+                                    variant='destructive'
+                                    className='w-full'
+                                >
+                                    <Trash2 className='mr-2 h-4 w-4 shrink-0' />
+                                    <span className='truncate'>Reset All Data</span>
+                                </Button>
+                                <p className='text-xs text-muted-foreground'>
+                                    Clears all stored settings, passwords, and returns to initial
+                                    setup
+                                </p>
+                            </div>
                         </div>
                     </ScrollArea>
                 </DialogContent>
@@ -261,6 +304,40 @@ export default function SettingsDialog({
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction onClick={confirmModeChange}>Confirm</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Reset All Data Confirmation */}
+            <AlertDialog open={showResetConfirmation} onOpenChange={setShowResetConfirmation}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Reset All Data?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete:
+                            <ul className='list-disc list-inside mt-2 space-y-1'>
+                                <li>All saved SSH connection settings</li>
+                                <li>Application preferences and mode</li>
+                                <li>Runtime passwords cache</li>
+                            </ul>
+                            <p className='mt-3 font-semibold text-destructive'>
+                                Your Docker containers and data will remain untouched.
+                            </p>
+                            <p className='mt-2'>
+                                You will be disconnected and returned to the initial setup screen.
+                            </p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowResetConfirmation(false)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleResetAllData}
+                            className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                        >
+                            Reset All Data
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

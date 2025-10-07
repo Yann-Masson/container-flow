@@ -235,5 +235,3 @@ app.whenReady().then(() => {
         console.error('Error initializing IPC handlers:', error);
     }
 });
-
-// Removed setupIpcHandlers function - now using modular handlers from ./ipc/index.ts

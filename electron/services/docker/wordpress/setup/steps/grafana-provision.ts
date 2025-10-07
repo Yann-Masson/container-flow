@@ -17,14 +17,23 @@ export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<vo
         progress?.('grafana-provision', 'starting', 'Provisioning Grafana datasource...');
 
         const stored = getAppConfig();
-        const creds = stored.grafanaCredentials ?? grafanaAuth;
+
+        const storedUsername = stored.grafanaCredentials?.username?.trim();
+        const authUsername = grafanaAuth?.username?.trim();
         const usedUsername =
-            typeof creds?.username === 'string' && creds.username.trim().length > 0
-                ? creds.username.trim()
+            authUsername && authUsername.length > 0
+                ? authUsername
+                : storedUsername && storedUsername.length > 0
+                ? storedUsername
                 : 'admin';
+
+        const storedPassword = stored.grafanaCredentials?.password?.trim();
+        const authPassword = grafanaAuth?.password?.trim();
         const usedPassword =
-            typeof creds?.password === 'string' && creds.password.trim().length > 0
-                ? creds.password.trim()
+            authPassword && authPassword.length > 0
+                ? authPassword
+                : storedPassword && storedPassword.length > 0
+                ? storedPassword
                 : 'admin';
 
         const result = await provisionGrafana({
@@ -57,11 +66,18 @@ export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<vo
             });
         }
 
-        progress?.(
-            'grafana-provision',
-            'success',
-            `Grafana provisioned (created: ${result.created}, updated: ${result.updated}, dashboards: ${result.dashboardsImported})`,
-        );
+        const actions = [result.created && 'created', result.updated && 'updated']
+            .filter(Boolean)
+            .join('/');
+
+        const imported =
+            (result.dashboardsImported ?? 0) > 0
+                ? `, ${result.dashboardsImported} dashboards imported`
+                : '';
+
+        const summary = actions ? `${actions}${imported}` : 'no changes';
+
+        progress?.('grafana-provision', 'success', `Grafana provisioned (${summary})`);
     } catch (e) {
         console.error('Grafana provisioning failed', e);
         progress?.('grafana-provision', 'error', e instanceof Error ? e.message : 'Unknown error');

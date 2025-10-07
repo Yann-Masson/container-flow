@@ -122,10 +122,18 @@ export function status() {
   };
 }
 
+export function reset() {
+  state.root = undefined;
+  state.metrics = undefined;
+  state.wordpressProjects = {};
+  state.initialized = false;
+}
+
 export default {
   discoverFromContainers,
   getState,
   setRootAndMetrics,
   registerProject,
   status,
+  reset,
 };

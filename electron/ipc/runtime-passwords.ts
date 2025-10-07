@@ -49,4 +49,14 @@ export function setupRuntimePasswordsHandlers(log: (message: string) => void) {
             throw error;
         }
     });
+
+    ipcMain.handle('runtime:passwords:reset', async () => {
+        try {
+            passwordManager.reset();
+            return true;
+        } catch (error) {
+            log(`Error in runtime:passwords:reset: ${error}`);
+            throw error;
+        }
+    });
 }

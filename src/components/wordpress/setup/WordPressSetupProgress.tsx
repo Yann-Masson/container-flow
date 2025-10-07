@@ -14,6 +14,7 @@ import {
     Cpu,
     Gauge,
     HardDrive,
+    RotateCw,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StatusIndicator } from '@/components/StatusIndicator';
@@ -25,7 +26,7 @@ import {
 } from '@/store/slices/wordpressSetupSlice';
 import { Input } from '@/components/ui/input';
 import { useAppDispatch } from '@/store/hooks';
-import { Loader2, Play } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface WordPressSetupProgressProps {
     showDetailsInitial?: boolean;
@@ -124,10 +125,11 @@ export default function WordPressSetupProgress({
 
     const handleRetry = useCallback(() => {
         if (isSetupRunning) return;
+
         dispatch(
             runWordPressSetup({
                 grafanaAuth:
-                    grafanaAuthNeeded && grafanaUsername && grafanaPassword
+                    grafanaAuthNeeded
                         ? { username: grafanaUsername, password: grafanaPassword }
                         : undefined,
             }),
@@ -176,8 +178,9 @@ export default function WordPressSetupProgress({
                             </>
                         ) : (
                             <>
-                                <Play className='mr-2 h-4 w-4' />
-                                Retry Setup with Grafana Credentials
+                                <RotateCw className='mr-2 h-4 w-4' />
+                                <span className='hidden min-[350px]:block'>Retry Setup with Grafana credentials
+                                    </span>
                             </>
                         )}
                     </Button>
@@ -232,7 +235,7 @@ export default function WordPressSetupProgress({
                 <div className='space-y-3 mt-2'>
                     <h3 className='text-lg font-semibold'>Setup Steps</h3>
                     <motion.div
-                        className='space-y-2 w-full sm:w-[40vw]'
+                        className='space-y-2 w-full p-2'
                         initial={false}
                         animate={showDetailsState ? 'visible' : 'hidden'}
                         variants={{
