@@ -127,7 +127,7 @@ export default function WordPressChangeUrlDialog({
                         Change the URL for WordPress project "{project.name}" and all its container
                         instances
                     </div>
-                    <div className='space-y-4 sm:space-y-6 w-full min-w-0 pt-4'>
+                    <div className='space-y-4 sm:space-y-6 w-full min-w-0 p-4'>
                         {/* Current Configuration */}
                         <div className='space-y-3 w-full min-w-0'>
                             <h3 className='text-sm font-semibold flex items-center gap-2'>

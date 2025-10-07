@@ -3,6 +3,7 @@ import WordPressSetupCard from './setup/WordPressSetupCard';
 import PasswordSetupCard from './setup/PasswordSetupCard';
 import WordPressCreator from './WordPressCreator';
 import WordPressList from './WordPressList';
+import MonitoringCard from './MonitoringCard';
 
 type TransitionState = 'setup' | 'transitioning' | 'creator';
 
@@ -51,6 +52,7 @@ export default function WordPress() {
             <div className='animate-in fade-in-0 slide-in-from-bottom-4 duration-500 space-y-6'>
                 <WordPressList />
                 <WordPressCreator />
+                <MonitoringCard />
             </div>
         );
     }
