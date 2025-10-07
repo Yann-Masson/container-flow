@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle, Globe, Loader2 } from 'lucide-react';
 import { ContainerInspectInfo } from 'dockerode';
 import { toast } from 'sonner';
+import { domainConfig } from '../../../electron/config/domains';
 
 export interface WordPressProject {
     name: string;
@@ -41,7 +42,7 @@ export default function WordPressChangeUrlDialog({
         if (!newUrl.trim()) {
             errors.push('URL is required');
         } else if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(newUrl)) {
-            errors.push('URL must be valid (e.g. my-new-site.agence-lumia.com)');
+            errors.push(`URL must be valid (e.g. my-new-site.${domainConfig.main})`);
         }
 
         if (newUrl === project.url) {
@@ -169,14 +170,14 @@ export default function WordPressChangeUrlDialog({
                             <div className='space-y-2'>
                                 <Input
                                     id='new-url'
-                                    placeholder='my-new-site.agence-lumia.com'
+                                    placeholder={`my-new-site.${domainConfig.main}`}
                                     value={newUrl}
                                     onChange={(e) => setNewUrl(e.target.value)}
                                     disabled={isChanging}
                                     className='w-full'
                                 />
                                 <p className='text-xs text-muted-foreground'>
-                                    Full domain (e.g. my-new-site.agence-lumia.com)
+                                    Full domain (e.g. my-new-site.{domainConfig.main})
                                 </p>
                             </div>
                         </div>

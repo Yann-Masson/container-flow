@@ -5,6 +5,7 @@ import { start as startContainer } from '../containers/start';
 import connectToNetwork from '../network/connect';
 import wordpress from '../configs/wordpress';
 import { getById } from "../containers/get-by-id.ts";
+import { getFullDomain } from '../../../config/domains.ts';
 
 /**
  * Clone an existing WordPress container with the same database and configuration
@@ -67,7 +68,7 @@ export default async function clone(
         console.log(`WordPress container '${name}' cloned successfully from '${sourceContainer.Name}'!`);
         console.log(`Shared Database: ${sourceContainer.Config.Env?.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.split('=')[1] || 'unknown'}`);
         console.log(`Shared Volume: wordpress-${sourceName}-data`);
-        console.log(`Access URL: https://${sourceContainer.Config.Labels?.['traefik.http.routers.' + sourceName + '.rule']?.replace('Host("', '').replace('")', '') || name + '.agence-lumia.com'}`);
+        console.log(`Access URL: https://${sourceContainer.Config.Labels?.['traefik.http.routers.' + sourceName + '.rule']?.replace('Host("', '').replace('")', '') || getFullDomain(name, 'main')}`);
 
         return await getById(container.id);
     } catch (error) {

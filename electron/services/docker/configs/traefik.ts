@@ -1,4 +1,5 @@
 import { ContainerCreateOptions } from 'dockerode';
+import { domainConfig, getWildcardDomain } from '../../../config/domains';
 
 const traefik: ContainerCreateOptions = {
     name: 'traefik',
@@ -9,7 +10,7 @@ const traefik: ContainerCreateOptions = {
         '--api.dashboard=true',
         '--providers.docker=true',
         '--providers.docker.exposedByDefault=false',
-        '--certificatesresolvers.letsencrypt.acme.email=contact@agence-lumia.com',
+        `--certificatesresolvers.letsencrypt.acme.email=${domainConfig.email}`,
         '--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json',
         '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory',
         '--certificatesresolvers.letsencrypt.acme.tlschallenge=true',
@@ -21,8 +22,8 @@ const traefik: ContainerCreateOptions = {
         '--global.checknewversion=false',
         '--global.sendanonymoususage=false',
         '--entrypoints.websecure.http.tls.certResolver=letsencrypt',
-        '--entrypoints.websecure.http.tls.domains[0].main=agence-lumia.com',
-        '--entrypoints.websecure.http.tls.domains[0].sans=*.agence-lumia.com',
+        `--entrypoints.websecure.http.tls.domains[0].main=${domainConfig.main}`,
+        `--entrypoints.websecure.http.tls.domains[0].sans=${getWildcardDomain('main')}`,
         '--entrypoints.websecure.http.tls.options=default',
     ],
     ExposedPorts: {
@@ -55,15 +56,15 @@ const traefik: ContainerCreateOptions = {
         'traefik.http.routers.http-catchall.middlewares': 'redirect-to-https',
         'traefik.http.routers.http-catchall.priority': '1',
 
-        // Middleware: Redirect to agence-lumia.com
-        'traefik.http.middlewares.redirect-to-agence-lumia.redirectregex.regex': '.*',
-        'traefik.http.middlewares.redirect-to-agence-lumia.redirectregex.replacement': 'https://agence-lumia.com',
-        'traefik.http.middlewares.redirect-to-agence-lumia.redirectregex.permanent': 'true',
+        // Middleware: Redirect to main domain
+        'traefik.http.middlewares.redirect-to-main-domain.redirectregex.regex': '.*',
+        'traefik.http.middlewares.redirect-to-main-domain.redirectregex.replacement': `https://${domainConfig.main}`,
+        'traefik.http.middlewares.redirect-to-main-domain.redirectregex.permanent': 'true',
 
-        // HTTPS Catchall: redirect all unknown HTTPS traffic to agence-lumia.com
+        // HTTPS Catchall: redirect all unknown HTTPS traffic to main domain
         'traefik.http.routers.https-catchall.rule': 'hostregexp(`{host:.+}`)',
         'traefik.http.routers.https-catchall.entrypoints': 'websecure',
-        'traefik.http.routers.https-catchall.middlewares': 'redirect-to-agence-lumia',
+        'traefik.http.routers.https-catchall.middlewares': 'redirect-to-main-domain',
         'traefik.http.routers.https-catchall.priority': '1',
         'traefik.http.routers.https-catchall.tls': 'true',
         'traefik.http.routers.https-catchall.tls.certresolver': 'letsencrypt',

@@ -1,3 +1,4 @@
+import { domainConfig } from '../../../config/domains';
 import { ContainerCreateOptions } from 'dockerode';
 
 /**
@@ -27,7 +28,7 @@ const grafana: ContainerCreateOptions = {
   Labels: {
     'com.containerflow.monitoring': 'true',
     'traefik.enable': 'true',
-    'traefik.http.routers.grafana.rule': 'Host(`monitoring.internal.agence-lumia.com`)',
+    'traefik.http.routers.grafana.rule': `Host(\`${domainConfig.monitoring}\`)`,
     'traefik.http.routers.grafana.entrypoints': 'websecure',
     'traefik.http.routers.grafana.tls': 'true',
     'traefik.http.routers.grafana.tls.certresolver': 'letsencrypt',

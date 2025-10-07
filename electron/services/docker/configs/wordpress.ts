@@ -1,4 +1,5 @@
 import { ContainerCreateOptions } from 'dockerode';
+import { domainConfig } from '../../../config/domains';
 
 const wordpress: ContainerCreateOptions = {
     name: 'wordpress',
@@ -24,8 +25,7 @@ const wordpress: ContainerCreateOptions = {
     ],
     Labels: {
         'traefik.enable': 'true',
-        'traefik.http.routers.wordpress.rule':
-            'Host("wordpress.agence-lumia.com")',
+        'traefik.http.routers.wordpress.rule': `Host("wordpress.${domainConfig.main}")`,
         'traefik.http.routers.wordpress.entrypoints': 'web',
         'traefik.http.services.wordpress.loadbalancer.server.port': '80',
     },

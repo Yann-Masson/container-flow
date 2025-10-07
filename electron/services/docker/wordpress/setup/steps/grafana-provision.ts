@@ -10,6 +10,7 @@ import {
 import { EnsureContext } from './types';
 import getAppConfig from '../../../../storage/app/get';
 import saveAppConfig from '../../../../storage/app/save';
+import { domainConfig } from '../../../../../config/domains';
 
 export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<void> {
     const { progress, grafanaAuth } = ctx;
@@ -37,7 +38,7 @@ export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<vo
                 : 'admin';
 
         const result = await provisionGrafana({
-            baseUrl: 'https://monitoring.internal.agence-lumia.com',
+            baseUrl: `https://${domainConfig.monitoring}`,
             username: usedUsername,
             password: usedPassword,
             datasourceName: 'Prometheus',

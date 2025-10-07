@@ -11,6 +11,7 @@ import { selectContainerStatus, selectIsCreating, selectProjects } from '@/store
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { State } from '@/utils/state/basic-state';
+import { domainConfig, getFullDomain } from '../../../electron/config/domains';
 
 export default function WordPressCreator() {
     const dispatch = useAppDispatch();
@@ -30,7 +31,7 @@ export default function WordPressCreator() {
     const computedName = formData.name || 'my-site';
     const containerName = `wordpress-${computedName}-1`;
     const dbName = `wp_${(formData.name || 'my-site').replace(/[^a-zA-Z0-9]/g, '_')}`;
-    const domainFallback = `${computedName}.agence-lumia.com`;
+    const domainFallback = getFullDomain(computedName, 'main');
     const computedDomain = formData.domain || domainFallback;
     const traefikRule = `Host(\"${computedDomain}\")`;
 
@@ -52,7 +53,7 @@ export default function WordPressCreator() {
     };
 
     const generateDomainFromName = (name: string) => {
-        return name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '.agence-lumia.com';
+        return getFullDomain(name.toLowerCase().replace(/[^a-z0-9]/g, '-'), 'main');
     };
 
     const handleNameChange = (value: string) => {
@@ -75,7 +76,7 @@ export default function WordPressCreator() {
         if (!formData.domain.trim()) {
             errors.push('Domain is required');
         } else if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.domain)) {
-            errors.push('Domain must be valid (e.g. my-site.agence-lumia.com)');
+            errors.push(`Domain must be valid (e.g. my-site.${domainConfig.main})`);
         }
 
         // Check if project name already exists
@@ -192,13 +193,13 @@ export default function WordPressCreator() {
                             <Label htmlFor="domain">Domain</Label>
                             <Input
                                 id="domain"
-                                placeholder="my-site.agence-lumia.com"
+                                placeholder={`my-site.${domainConfig.main}`}
                                 value={formData.domain}
                                 onChange={(e) => handleInputChange('domain', e.target.value)}
                                 disabled={isCreating}
                             />
                             <p className="text-xs text-gray-500">
-                                Full domain (e.g. my-site.agence-lumia.com)
+                                Full domain (e.g. my-site.{domainConfig.main})
                             </p>
                         </div>
                     </div>

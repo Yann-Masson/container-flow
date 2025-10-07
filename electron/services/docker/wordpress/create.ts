@@ -6,6 +6,7 @@ import connectToNetwork from '../network/connect';
 import wordpress from '../configs/wordpress';
 import utils from "./utils";
 import passwordManager from '../../runtime/passwords';
+import { getFullDomain } from '../../../config/domains';
 
 export interface WordPressCreateOptions {
     name: string;
@@ -68,7 +69,7 @@ export default async function create(options: WordPressCreateOptions): Promise<{
             ],
             Labels: {
                 'traefik.enable': 'true',
-                [`traefik.http.routers.${name}.rule`]: `Host("${domain || name + '.agence-lumia.com'}")`,
+                [`traefik.http.routers.${name}.rule`]: `Host("${domain || getFullDomain(name, 'main')}")`,
                 [`traefik.http.routers.${name}.entrypoints`]: 'websecure',
                 [`traefik.http.routers.${name}.tls.certresolver`]: 'letsencrypt',
                 [`traefik.http.services.${name}.loadbalancer.server.port`]: '80',
@@ -95,7 +96,7 @@ export default async function create(options: WordPressCreateOptions): Promise<{
     console.log(`WordPress container '${name}' created successfully!`);
     console.log(`Database: ${dbName}`);
     console.log(`Database User: ${dbUser}`);
-        console.log(`Access URL: http://${domain || name + '.agence-lumia.com'}`);
+        console.log(`Access URL: http://${domain || getFullDomain(name, 'main')}`);
 
         // Return serializable object only
         return { id: container.id, name: `wordpress-${domain || name}` };
