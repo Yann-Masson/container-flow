@@ -22,9 +22,9 @@ export const vpsHealthDashboard = {
                 {
                     expr: '100 * (1 - rate(node_cpu_seconds_total{mode="idle"}[1m]))',
                     legendFormat: '{{cpu}}',
-                    refId: 'A'
-                }
-            ]
+                    refId: 'A',
+                },
+            ],
         },
 
         // Memory usage time series
@@ -38,8 +38,8 @@ export const vpsHealthDashboard = {
                 {
                     expr: '100 * ( (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes )',
                     refId: 'A',
-                    legendFormat: 'Used'
-                }
+                    legendFormat: 'Used',
+                },
             ],
             fieldConfig: {
                 defaults: {
@@ -49,11 +49,11 @@ export const vpsHealthDashboard = {
                         steps: [
                             { color: 'green', value: 0 },
                             { color: 'yellow', value: 70 },
-                            { color: 'red', value: 85 }
-                        ]
-                    }
-                }
-            }
+                            { color: 'red', value: 85 },
+                        ],
+                    },
+                },
+            },
         },
 
         // Disk usage (root filesystem only)
@@ -64,11 +64,11 @@ export const vpsHealthDashboard = {
             gridPos: { x: 0, y: 8, w: 2, h: 8 },
             datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
             targets: [
-            {
-                expr: '100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay",mountpoint="/"}))',
-                legendFormat: '/',
-                refId: 'A'
-            }
+                {
+                    expr: '100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay",mountpoint="/"}))',
+                    legendFormat: '/',
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
                 defaults: {
@@ -78,14 +78,14 @@ export const vpsHealthDashboard = {
                         steps: [
                             { color: 'green', value: 0 },
                             { color: 'yellow', value: 70 },
-                            { color: 'red', value: 85 }
-                        ]
-                    }
-                }
+                            { color: 'red', value: 85 },
+                        ],
+                    },
+                },
             },
             options: {
                 orientation: 'vertical',
-            }
+            },
         },
 
         // Disk IO
@@ -96,9 +96,17 @@ export const vpsHealthDashboard = {
             gridPos: { x: 2, y: 8, w: 9, h: 8 },
             datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
             targets: [
-                { expr: 'rate(node_disk_reads_completed_total[5m])', legendFormat: 'reads', refId: 'A' },
-                { expr: 'rate(node_disk_writes_completed_total[5m])', legendFormat: 'writes', refId: 'B' }
-            ]
+                {
+                    expr: 'rate(node_disk_reads_completed_total[5m])',
+                    legendFormat: 'reads',
+                    refId: 'A',
+                },
+                {
+                    expr: 'rate(node_disk_writes_completed_total[5m])',
+                    legendFormat: 'writes',
+                    refId: 'B',
+                },
+            ],
         },
 
         // Network bandwidth
@@ -112,15 +120,15 @@ export const vpsHealthDashboard = {
                 {
                     expr: '8 * sum(rate(node_network_receive_bytes_total{device!~"lo|docker.*|veth.*|br.*"}[5m]))',
                     legendFormat: 'in',
-                    refId: 'A'
+                    refId: 'A',
                 },
                 {
                     expr: '8 * sum(rate(node_network_transmit_bytes_total{device!~"lo|docker.*|veth.*|br.*"}[5m]))',
                     legendFormat: 'out',
-                    refId: 'B'
-                }
+                    refId: 'B',
+                },
             ],
-            fieldConfig: { defaults: { unit: 'bps' } }
+            fieldConfig: { defaults: { unit: 'bps' } },
         },
 
         // Memory Breakdown
@@ -133,8 +141,8 @@ export const vpsHealthDashboard = {
             targets: [
                 {
                     expr: '100 * ( (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes )',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
                 defaults: {
@@ -144,13 +152,13 @@ export const vpsHealthDashboard = {
                         steps: [
                             { color: 'green', value: 0 },
                             { color: 'yellow', value: 70 },
-                            { color: 'red', value: 85 }
-                        ]
-                    }
-                }
-            }
+                            { color: 'red', value: 85 },
+                        ],
+                    },
+                },
+            },
         },
-    ]
+    ],
 };
 
 export default vpsHealthDashboard;

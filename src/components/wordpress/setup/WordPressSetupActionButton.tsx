@@ -80,7 +80,10 @@ export const WordPressSetupActionButton: React.FC<WordPressSetupActionButtonProp
                         htmlFor='force-setup'
                         className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer'
                     >
-                        Force setup <span className='hidden min-[350px]:inline'>(remove existing infrastructure)</span>
+                        Force setup{' '}
+                        <span className='hidden min-[350px]:inline'>
+                            (remove existing infrastructure)
+                        </span>
                     </label>
                 </div>
             )}

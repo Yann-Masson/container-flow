@@ -17,7 +17,9 @@ const toneStyles: Record<NonNullable<InfoChipProps['tone']>, string> = {
 
 export default function InfoChip({ label, value, tone = 'neutral', pulse }: InfoChipProps) {
     const previous = useRef<string | number>(value);
-    useEffect(() => { previous.current = value; }, [value]);
+    useEffect(() => {
+        previous.current = value;
+    }, [value]);
 
     const displayValue = value;
 
@@ -30,15 +32,17 @@ export default function InfoChip({ label, value, tone = 'neutral', pulse }: Info
             transition={{ duration: 0.28, ease: 'easeOut' }}
             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border backdrop-blur-sm ${toneStyles[tone]} ${pulse ? 'animate-pulse' : ''}`}
         >
-            <span className="opacity-70" data-chip-label>{label}</span>
-            <AnimatePresence mode="popLayout" initial={false}>
+            <span className='opacity-70' data-chip-label>
+                {label}
+            </span>
+            <AnimatePresence mode='popLayout' initial={false}>
                 <motion.span
                     key={displayValue}
                     initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
                     animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                     exit={{ opacity: 0, y: -8, filter: 'blur(3px)' }}
                     transition={{ duration: 0.25 }}
-                    className="font-semibold tracking-wide tabular-nums"
+                    className='font-semibold tracking-wide tabular-nums'
                     data-previous={previous.current}
                     data-chip-value
                 >

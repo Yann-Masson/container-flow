@@ -1,7 +1,7 @@
-import containerConfig from "./container-config.ts";
-import networkConfig from "./network-config.ts";
+import containerConfig from './container-config.ts';
+import networkConfig from './network-config.ts';
 
 export default {
     containerConfig,
-    networkConfig
+    networkConfig,
 };

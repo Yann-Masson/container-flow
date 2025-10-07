@@ -50,12 +50,12 @@ export function WordPressContainerRow({
                         starting
                             ? 'bg-blue-500'
                             : stopping
-                            ? 'bg-yellow-500'
-                            : removing
-                            ? 'bg-red-500'
-                            : isRunning
-                            ? 'bg-green-500'
-                            : 'bg-gray-400'
+                              ? 'bg-yellow-500'
+                              : removing
+                                ? 'bg-red-500'
+                                : isRunning
+                                  ? 'bg-green-500'
+                                  : 'bg-gray-400'
                     }`}
                     layoutId={`status-dot-${container.Id}`}
                 />
@@ -73,10 +73,10 @@ export function WordPressContainerRow({
                                 {starting
                                     ? 'starting'
                                     : stopping
-                                    ? 'stopping'
-                                    : removing
-                                    ? 'removing'
-                                    : container.State.Status}
+                                      ? 'stopping'
+                                      : removing
+                                        ? 'removing'
+                                        : container.State.Status}
                             </Badge>
                             {isOutdated && (
                                 <Badge variant='destructive' className='text-xs w-fit'>

@@ -97,7 +97,9 @@ export function PortsTab({ ports, setPorts }: PortsTabProps) {
                                         type='button'
                                         variant='ghost'
                                         size='sm'
-                                        onClick={() => setPorts(ports.filter((_, i) => i !== index))}
+                                        onClick={() =>
+                                            setPorts(ports.filter((_, i) => i !== index))
+                                        }
                                         className='opacity-60 group-hover/port:opacity-100 transition'
                                     >
                                         <Trash2 className='h-4 w-4' />

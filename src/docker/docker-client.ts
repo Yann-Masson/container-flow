@@ -1,5 +1,10 @@
-import { ContainerCreateOptions, NetworkConnectOptions, NetworkCreateOptions, NetworkListOptions } from 'dockerode';
-import { SSHConfig } from "../../electron/services/docker/connection/try-to-connect.ts";
+import {
+    ContainerCreateOptions,
+    NetworkConnectOptions,
+    NetworkCreateOptions,
+    NetworkListOptions,
+} from 'dockerode';
+import { SSHConfig } from '../../electron/services/docker/connection/try-to-connect.ts';
 import { LogSearchOptions, ProcessedLogs } from '../components/container/ContainerLogsDialog';
 
 class DockerClientService {
@@ -19,7 +24,7 @@ class DockerClientService {
             if (typeof window !== 'undefined' && window.electronAPI) {
                 return;
             }
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
         throw new Error('Electron API not available after timeout');
     }
@@ -64,7 +69,11 @@ class DockerClientService {
             await this.waitForElectronAPI();
             return this.electronAPI.docker.containers.remove(id, options);
         },
-        getLogs: async (id: string, options?: { follow?: boolean; stdout?: boolean; stderr?: boolean }, searchOptions?: LogSearchOptions): Promise<ProcessedLogs> => {
+        getLogs: async (
+            id: string,
+            options?: { follow?: boolean; stdout?: boolean; stderr?: boolean },
+            searchOptions?: LogSearchOptions,
+        ): Promise<ProcessedLogs> => {
             await this.waitForElectronAPI();
             return this.electronAPI.docker.containers.getLogs(id, options, searchOptions);
         },

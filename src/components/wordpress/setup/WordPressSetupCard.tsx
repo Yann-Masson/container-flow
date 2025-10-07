@@ -14,7 +14,10 @@ interface WordPressSetupCardProps {
     onRetrySetup: () => void;
 }
 
-export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: WordPressSetupCardProps) {
+export default function WordPressSetupCard({
+    onSetupComplete,
+    onRetrySetup,
+}: WordPressSetupCardProps) {
     const dispatch = useAppDispatch();
     const status = useAppSelector(selectWordPressSetupStatus);
     const isRunning = status === 'running';
@@ -33,7 +36,7 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
         if (prevStatus.current !== status) {
             if (status === 'success') {
                 toast.success('🎉 WordPress infrastructure configured successfully!', {
-                    description: 'You can now create WordPress sites.'
+                    description: 'You can now create WordPress sites.',
                 });
                 onSetupComplete();
             } else if (status === 'error') {
@@ -51,37 +54,47 @@ export default function WordPressSetupCard({ onSetupComplete, onRetrySetup }: Wo
     };
 
     return (
-        <div className="flex items-center justify-center h-full">
+        <div className='flex items-center justify-center h-full'>
             <Card
-                variant="glass"
-                accent="glow"
+                variant='glass'
+                accent='glow'
                 interactive={false}
                 withHoverOverlay
-                className="group relative overflow-hidden w-full"
+                className='group relative overflow-hidden w-full'
             >
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Server className="h-5 w-5"/>
+                    <CardTitle className='flex items-center gap-2'>
+                        <Server className='h-5 w-5' />
                         WordPress Infrastructure Setup
                     </CardTitle>
                     <CardDescription className='mb-3'>
                         Setting up the infrastructure for your WordPress sites...
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className='space-y-6'>
                     {failed && (
-                        <div className="flex flex-col gap-3 py-4">
+                        <div className='flex flex-col gap-3 py-4'>
                             <WordPressSetupActionButton
-                                className="w-full"
-                                retryLabel="Re-Launch WordPress Setup"
+                                className='w-full'
+                                retryLabel='Re-Launch WordPress Setup'
                                 onAction={handleRetrySetup}
                             />
                         </div>
                     )}
                     <WordPressSetupProgress showDetailsInitial={false} />
 
-                    <StatusIndicator status={isRunning ? 'running' : failed ? 'error' : status === 'success' ? 'success' : 'pending'} size="lg" />
-
+                    <StatusIndicator
+                        status={
+                            isRunning
+                                ? 'running'
+                                : failed
+                                  ? 'error'
+                                  : status === 'success'
+                                    ? 'success'
+                                    : 'pending'
+                        }
+                        size='lg'
+                    />
                 </CardContent>
             </Card>
         </div>

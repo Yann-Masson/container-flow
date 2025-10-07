@@ -1,6 +1,9 @@
-import { ContainerCreateOptions, ContainerInspectInfo } from "dockerode";
+import { ContainerCreateOptions, ContainerInspectInfo } from 'dockerode';
 
-export default function containerConfig(containerInfo: ContainerInspectInfo, expectedConfig: ContainerCreateOptions) {
+export default function containerConfig(
+    containerInfo: ContainerInspectInfo,
+    expectedConfig: ContainerCreateOptions,
+) {
     // Basic validation - check image and key environment variables
     // Docker stores images as SHA256 hashes after pulling, so we need to check the RepoTags
     const expectedImage = expectedConfig.Image;
@@ -8,12 +11,15 @@ export default function containerConfig(containerInfo: ContainerInspectInfo, exp
     const repoTags = containerInfo.Config?.Image || '';
 
     // Check if the image matches either by name or if the RepoTags contain the expected image
-    const imageMatches = actualImage === expectedImage ||
+    const imageMatches =
+        actualImage === expectedImage ||
         repoTags === expectedImage ||
         (actualImage.startsWith('sha256:') && repoTags === expectedImage);
 
     if (!imageMatches) {
-        console.warn(`Container image mismatch: expected ${expectedImage}, got ${actualImage} (RepoTags: ${repoTags})`);
+        console.warn(
+            `Container image mismatch: expected ${expectedImage}, got ${actualImage} (RepoTags: ${repoTags})`,
+        );
         return false;
     }
 
@@ -23,7 +29,9 @@ export default function containerConfig(containerInfo: ContainerInspectInfo, exp
 
     for (const [key, value] of Object.entries(expectedLabels)) {
         if (actualLabels[key] !== value) {
-            console.warn(`Container label mismatch for ${key}: expected ${value}, got ${actualLabels[key]}`);
+            console.warn(
+                `Container label mismatch for ${key}: expected ${value}, got ${actualLabels[key]}`,
+            );
             return false;
         }
     }
@@ -34,24 +42,32 @@ export default function containerConfig(containerInfo: ContainerInspectInfo, exp
 
     for (let i = 0; i < expectedEnv.length; i++) {
         if (!actualEnv.includes(expectedEnv[i])) {
-            console.warn(`Container environment variable mismatch: expected ${expectedEnv[i]} not found in actual env`);
+            console.warn(
+                `Container environment variable mismatch: expected ${expectedEnv[i]} not found in actual env`,
+            );
             return false;
         }
     }
 
     // If cmd is specified in expected config, check it matches
     if (expectedConfig.Cmd) {
-        const expectedCmd = Array.isArray(expectedConfig.Cmd) ? expectedConfig.Cmd : [expectedConfig.Cmd];
+        const expectedCmd = Array.isArray(expectedConfig.Cmd)
+            ? expectedConfig.Cmd
+            : [expectedConfig.Cmd];
         const actualCmd = containerInfo.Config?.Cmd || [];
 
         if (expectedCmd.length !== actualCmd.length) {
-            console.warn(`Container command length mismatch: expected ${expectedCmd.length}, got ${actualCmd.length}`);
+            console.warn(
+                `Container command length mismatch: expected ${expectedCmd.length}, got ${actualCmd.length}`,
+            );
             return false;
         }
 
         for (let i = 0; i < expectedCmd.length; i++) {
             if (expectedCmd[i] !== actualCmd[i]) {
-                console.warn(`Container command mismatch at index ${i}: expected ${expectedCmd[i]}, got ${actualCmd[i]}`);
+                console.warn(
+                    `Container command mismatch at index ${i}: expected ${expectedCmd[i]}, got ${actualCmd[i]}`,
+                );
                 return false;
             }
         }

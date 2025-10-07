@@ -52,9 +52,7 @@ export function NetworkSecurityTab({
                             <div className='space-y-2'>
                                 <Label htmlFor='restart-policy'>Restart Policy</Label>
                                 <Select
-                                    value={
-                                        form.watch('HostConfig.RestartPolicy.Name') || 'no'
-                                    }
+                                    value={form.watch('HostConfig.RestartPolicy.Name') || 'no'}
                                     onValueChange={(value) =>
                                         form.setValue('HostConfig.RestartPolicy.Name', value)
                                     }
@@ -214,8 +212,7 @@ export function NetworkSecurityTab({
                                                 onChange={(e) =>
                                                     form.setValue(
                                                         'HostConfig.Memory',
-                                                        parseInt(e.target.value) * 1024 * 1024 ||
-                                                            0,
+                                                        parseInt(e.target.value) * 1024 * 1024 || 0,
                                                     )
                                                 }
                                                 placeholder='512'
@@ -263,9 +260,9 @@ export function NetworkSecurityTab({
                                         <textarea
                                             id='extra-hosts'
                                             className='w-full min-h-[60px] px-3 py-2 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                                            value={(
-                                                form.watch('HostConfig.ExtraHosts') || []
-                                            ).join('\n')}
+                                            value={(form.watch('HostConfig.ExtraHosts') || []).join(
+                                                '\n',
+                                            )}
                                             onChange={(e) =>
                                                 form.setValue(
                                                     'HostConfig.ExtraHosts',

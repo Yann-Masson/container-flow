@@ -1,18 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SSHConfig } from "./services/docker/connection/try-to-connect.ts";
+import { SSHConfig } from './services/docker/connection/try-to-connect.ts';
 import {
     ContainerCreateOptions,
     ContainerInspectInfo,
     ContainerLogsOptions,
     NetworkConnectOptions,
     NetworkCreateOptions,
-    NetworkListOptions
-} from "dockerode";
-import { AppSavedConfig } from "./services/storage/app/app.type.ts";
-import { LogSearchOptions, ProcessedLogs } from "./services/docker/containers/get-logs.ts";
-import { SSHSavedConfig } from "./services/storage/ssh/ssh.type.ts";
-import { WordPressDeleteOptions } from "./services/docker/wordpress/delete.ts";
-import { WordPressCreateOptions } from "./services/docker/wordpress/create.ts";
+    NetworkListOptions,
+} from 'dockerode';
+import { AppSavedConfig } from './services/storage/app/app.type.ts';
+import { LogSearchOptions, ProcessedLogs } from './services/docker/containers/get-logs.ts';
+import { SSHSavedConfig } from './services/storage/ssh/ssh.type.ts';
+import { WordPressDeleteOptions } from './services/docker/wordpress/delete.ts';
+import { WordPressCreateOptions } from './services/docker/wordpress/create.ts';
 
 // Expose Docker API
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -28,13 +28,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
         containers: {
             list: () => ipcRenderer.invoke('docker:containers:list'),
             get: (id: string) => ipcRenderer.invoke('docker:containers:get', id),
-            create: (config: ContainerCreateOptions) => ipcRenderer.invoke('docker:containers:create', config),
+            create: (config: ContainerCreateOptions) =>
+                ipcRenderer.invoke('docker:containers:create', config),
             start: (id: string) => ipcRenderer.invoke('docker:containers:start', id),
             stop: (id: string, options?: { t?: number }) =>
                 ipcRenderer.invoke('docker:containers:stop', id, options),
             remove: (id: string, options?: { v?: boolean; force?: boolean }) =>
                 ipcRenderer.invoke('docker:containers:remove', id, options),
-            getLogs: (id: string, options?: ContainerLogsOptions, searchOptions?: LogSearchOptions): Promise<ProcessedLogs> =>
+            getLogs: (
+                id: string,
+                options?: ContainerLogsOptions,
+                searchOptions?: LogSearchOptions,
+            ): Promise<ProcessedLogs> =>
                 ipcRenderer.invoke('docker:containers:getLogs', id, options, searchOptions),
             getLogsRaw: (id: string, options?: ContainerLogsOptions) =>
                 ipcRenderer.invoke('docker:containers:getLogsRaw', id, options),
@@ -49,14 +54,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
                 ipcRenderer.invoke('docker:network:remove', networkId, force),
             list: (options?: NetworkListOptions) =>
                 ipcRenderer.invoke('docker:network:list', options),
-            inspect: (networkId: string) =>
-                ipcRenderer.invoke('docker:network:inspect', networkId),
+            inspect: (networkId: string) => ipcRenderer.invoke('docker:network:inspect', networkId),
             connect: (networkId: string, options: NetworkConnectOptions) =>
                 ipcRenderer.invoke('docker:network:connect', networkId, options),
             disconnect: (networkId: string) =>
                 ipcRenderer.invoke('docker:network:disconnect', networkId),
-            prune: () =>
-                ipcRenderer.invoke('docker:network:prune'),
+            prune: () => ipcRenderer.invoke('docker:network:prune'),
             utils: {
                 findByName: (namePattern: string, exactMatch?: boolean) =>
                     ipcRenderer.invoke('docker:network:utils:findByName', namePattern, exactMatch),
@@ -69,17 +72,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
         wordpress: {
             setup: (
                 progress: (event: { step: string; status: string; message?: string }) => void,
-                options?: { force?: boolean; grafanaAuth?: { username: string; password: string } }
+                options?: { force?: boolean; grafanaAuth?: { username: string; password: string } },
             ) => {
                 // temporary listener scoped to this invocation
-                const handler = (_: any, event: { step: string; status: string; message?: string }) => {
+                const handler = (
+                    _: Electron.IpcRendererEvent,
+                    event: { step: string; status: string; message?: string },
+                ) => {
                     progress(event);
                 };
                 ipcRenderer.on('wordpress:setup:progress', handler);
-                return ipcRenderer.invoke('docker:wordpress:setup', options)
-                    .finally(() => {
-                        ipcRenderer.removeListener('wordpress:setup:progress', handler);
-                    });
+                return ipcRenderer.invoke('docker:wordpress:setup', options).finally(() => {
+                    ipcRenderer.removeListener('wordpress:setup:progress', handler);
+                });
             },
             create: (options: WordPressCreateOptions) =>
                 ipcRenderer.invoke('docker:wordpress:create', options),
@@ -87,24 +92,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
                 ipcRenderer.invoke('docker:wordpress:clone', sourceContainer),
             changeUrl: (container: ContainerInspectInfo, newUrl: string) =>
                 ipcRenderer.invoke('docker:wordpress:changeUrl', container, newUrl),
-            checkUpdates: () =>
-                ipcRenderer.invoke('docker:wordpress:checkUpdates'),
+            checkUpdates: () => ipcRenderer.invoke('docker:wordpress:checkUpdates'),
             update: (containerId: string) =>
                 ipcRenderer.invoke('docker:wordpress:update', containerId),
-            'delete': (options: WordPressDeleteOptions) => ipcRenderer.invoke('docker:wordpress:delete', options),
+            delete: (options: WordPressDeleteOptions) =>
+                ipcRenderer.invoke('docker:wordpress:delete', options),
         },
     },
     storage: {
         app: {
             get: () => ipcRenderer.invoke('storage:app:get'),
-            save: (appConfig: AppSavedConfig) =>
-                ipcRenderer.invoke('storage:app:save', appConfig),
+            save: (appConfig: AppSavedConfig) => ipcRenderer.invoke('storage:app:save', appConfig),
             clear: () => ipcRenderer.invoke('storage:app:clear'),
         },
         ssh: {
             get: () => ipcRenderer.invoke('storage:ssh:get'),
-            save: (sshConfig: SSHSavedConfig) =>
-                ipcRenderer.invoke('storage:ssh:save', sshConfig),
+            save: (sshConfig: SSHSavedConfig) => ipcRenderer.invoke('storage:ssh:save', sshConfig),
             clear: () => ipcRenderer.invoke('storage:ssh:clear'),
         },
     },
@@ -112,10 +115,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
         discover: () => ipcRenderer.invoke('runtime:passwords:discover'),
         getState: () => ipcRenderer.invoke('runtime:passwords:getState'),
         status: () => ipcRenderer.invoke('runtime:passwords:status'),
-        setRootAndMetrics: (opts: { rootPassword?: string; metricsUser?: string; metricsPassword?: string; metricsDsn?: string }) =>
-            ipcRenderer.invoke('runtime:passwords:setRootAndMetrics', opts),
-        registerProject: (projectName: string, creds: { dbUser: string; dbPassword: string; dbName: string }) =>
-            ipcRenderer.invoke('runtime:passwords:registerProject', { projectName, creds }),
+        setRootAndMetrics: (opts: {
+            rootPassword?: string;
+            metricsUser?: string;
+            metricsPassword?: string;
+            metricsDsn?: string;
+        }) => ipcRenderer.invoke('runtime:passwords:setRootAndMetrics', opts),
+        registerProject: (
+            projectName: string,
+            creds: { dbUser: string; dbPassword: string; dbName: string },
+        ) => ipcRenderer.invoke('runtime:passwords:registerProject', { projectName, creds }),
         reset: () => ipcRenderer.invoke('runtime:passwords:reset'),
-    }
+    },
 });

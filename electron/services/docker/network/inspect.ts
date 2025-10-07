@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { NetworkInspectInfo } from "dockerode";
+import { NetworkInspectInfo } from 'dockerode';
 
 /**
  * Inspect a Docker network to get detailed information

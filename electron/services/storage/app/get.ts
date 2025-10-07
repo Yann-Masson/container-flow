@@ -1,7 +1,7 @@
-import { app, safeStorage } from "electron";
-import fs from "fs";
-import { AppPreference, AppSavedConfig } from "./app.type.ts";
-import path from "path";
+import { app, safeStorage } from 'electron';
+import fs from 'fs';
+import { AppPreference, AppSavedConfig } from './app.type.ts';
+import path from 'path';
 
 const defaultAppConfig: AppSavedConfig = {
     preference: AppPreference.NONE,

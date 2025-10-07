@@ -17,12 +17,12 @@ export const traefikDashboard = {
             targets: [
                 {
                     expr: 'sum(rate(traefik_service_requests_total[5m]))',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
-                defaults: { unit: 'reqps' }
-            }
+                defaults: { unit: 'reqps' },
+            },
         },
         {
             id: 2,
@@ -33,12 +33,12 @@ export const traefikDashboard = {
             targets: [
                 {
                     expr: '100 * (sum(rate(traefik_service_requests_total{code=~"4..|5.."}[5m])) / (sum(rate(traefik_service_requests_total[5m])) + 1e-9))',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
-                defaults: { unit: 'percent' }
-            }
+                defaults: { unit: 'percent' },
+            },
         },
         {
             id: 3,
@@ -50,12 +50,12 @@ export const traefikDashboard = {
                 {
                     expr: 'sum by (service) (rate(traefik_service_requests_total[5m]))',
                     legendFormat: '{{service}}',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
-                defaults: { unit: 'reqps' }
-            }
+                defaults: { unit: 'reqps' },
+            },
         },
         {
             id: 4,
@@ -67,12 +67,12 @@ export const traefikDashboard = {
                 {
                     expr: '100 * (sum by (service) (rate(traefik_service_requests_total{code=~"4..|5.."}[5m])) / (sum by (service) (rate(traefik_service_requests_total[5m])) + 1e-9))',
                     legendFormat: '{{service}}',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
-                defaults: { unit: 'percent' }
-            }
+                defaults: { unit: 'percent' },
+            },
         },
         {
             id: 5,
@@ -84,9 +84,9 @@ export const traefikDashboard = {
                 {
                     expr: 'histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket[5m])))',
                     legendFormat: '{{service}}',
-                    refId: 'A'
-                }
-            ]
+                    refId: 'A',
+                },
+            ],
         },
         {
             id: 6,
@@ -98,9 +98,9 @@ export const traefikDashboard = {
                 {
                     expr: 'sum by (service)(rate(traefik_service_request_duration_seconds_sum[5m])) / (sum by (service)(rate(traefik_service_request_duration_seconds_count[5m])) + 1e-9)',
                     legendFormat: '{{service}}',
-                    refId: 'A'
-                }
-            ]
+                    refId: 'A',
+                },
+            ],
         },
         {
             id: 7,
@@ -112,19 +112,19 @@ export const traefikDashboard = {
                 {
                     expr: 'sum(rate(traefik_service_requests_total{code=~"2.."}[5m]))',
                     legendFormat: '2xx',
-                    refId: 'A'
+                    refId: 'A',
                 },
                 {
                     expr: 'sum(rate(traefik_service_requests_total{code=~"4.."}[5m]))',
                     legendFormat: '4xx',
-                    refId: 'B'
+                    refId: 'B',
                 },
                 {
                     expr: 'sum(rate(traefik_service_requests_total{code=~"5.."}[5m]))',
                     legendFormat: '5xx',
-                    refId: 'C'
-                }
-            ]
+                    refId: 'C',
+                },
+            ],
         },
         {
             id: 8,
@@ -136,14 +136,14 @@ export const traefikDashboard = {
                 {
                     expr: 'topk(5, sum by (service) (rate(traefik_service_requests_total[5m])))',
                     legendFormat: '{{service}}',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
-                defaults: { unit: 'reqps' }
-            }
-        }
-    ]
+                defaults: { unit: 'reqps' },
+            },
+        },
+    ],
 };
 
 export default traefikDashboard;

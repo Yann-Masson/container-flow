@@ -8,7 +8,10 @@ import { setupStorageHandlers } from './storage';
 import { setupSystemHandlers } from './system';
 import { setupRuntimePasswordsHandlers } from './runtime-passwords';
 
-export function setupAllIpcHandlers(log: (message: string) => void, getWin: () => BrowserWindow | null) {
+export function setupAllIpcHandlers(
+    log: (message: string) => void,
+    getWin: () => BrowserWindow | null,
+) {
     try {
         setupDockerConnectionHandlers(log);
         setupDockerContainersHandlers(log);

@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { NetworkConnectOptions } from "dockerode";
+import { NetworkConnectOptions } from 'dockerode';
 
 /**
  * Connect a container to a network
@@ -7,7 +7,10 @@ import { NetworkConnectOptions } from "dockerode";
  * @param options - Connection options including container ID and endpoint configuration
  * @returns Promise resolving to the connection result
  */
-export default async function connect(networkId: string, options: NetworkConnectOptions): Promise<void> {
+export default async function connect(
+    networkId: string,
+    options: NetworkConnectOptions,
+): Promise<void> {
     const client = getClient();
     if (!client) {
         throw new Error('Docker client not initialized');

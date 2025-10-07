@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { Network, NetworkCreateOptions } from "dockerode";
+import { Network, NetworkCreateOptions } from 'dockerode';
 
 /**
  * Create a new Docker network

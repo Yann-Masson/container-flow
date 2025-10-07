@@ -13,11 +13,11 @@ export interface ContainerState {
     // Container data
     containers: ContainerInspectInfo[];
     projects: WordPressProject[];
-    
+
     // Loading states
     status: State;
     error: string | null;
-    
+
     // Individual operation states
     operationStatus: {
         retrievingAll: boolean;

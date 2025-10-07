@@ -1,8 +1,11 @@
-import { ContainerCreateOptions, ContainerInspectInfo } from "dockerode";
-import docker from "../index.ts";
-import wordpress from "../configs/wordpress.ts";
+import { ContainerCreateOptions, ContainerInspectInfo } from 'dockerode';
+import docker from '../index.ts';
+import wordpress from '../configs/wordpress.ts';
 
-export default async function changeUrl(container: ContainerInspectInfo, newUrl: string): Promise<ContainerInspectInfo> {
+export default async function changeUrl(
+    container: ContainerInspectInfo,
+    newUrl: string,
+): Promise<ContainerInspectInfo> {
     // Extract configuration from existing container
     const config = container.Config;
 
@@ -10,7 +13,7 @@ export default async function changeUrl(container: ContainerInspectInfo, newUrl:
     const newLabels = { ...config.Labels };
 
     // Update all Traefik router rules to use new URL
-    Object.keys(newLabels).forEach(key => {
+    Object.keys(newLabels).forEach((key) => {
         if (key.includes('.rule') && newLabels[key].includes('Host(')) {
             newLabels[key] = `Host("${newUrl}")`;
         }

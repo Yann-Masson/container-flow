@@ -178,7 +178,24 @@ export function ContainerDetailsDialog({
                                     Object.keys(container.Labels).length > SMALL_LIST_THRESHOLD ? (
                                         <ScrollArea className='h-48 text-[11px] font-mono bg-white/5 border border-white/5 p-3 rounded-md leading-relaxed'>
                                             <div className='space-y-1'>
-                                                {Object.entries(container.Labels).map(([key, value]) => (
+                                                {Object.entries(container.Labels).map(
+                                                    ([key, value]) => (
+                                                        <div key={key} className='flex gap-1'>
+                                                            <span className='text-sky-300 font-medium'>
+                                                                {key}
+                                                            </span>
+                                                            <span className='text-white/70 break-all select-text'>
+                                                                : {value}
+                                                            </span>
+                                                        </div>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </ScrollArea>
+                                    ) : (
+                                        <div className='text-[11px] font-mono bg-white/5 border border-white/5 p-3 rounded-md leading-relaxed space-y-1'>
+                                            {Object.entries(container.Labels).map(
+                                                ([key, value]) => (
                                                     <div key={key} className='flex gap-1'>
                                                         <span className='text-sky-300 font-medium'>
                                                             {key}
@@ -187,21 +204,8 @@ export function ContainerDetailsDialog({
                                                             : {value}
                                                         </span>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </ScrollArea>
-                                    ) : (
-                                        <div className='text-[11px] font-mono bg-white/5 border border-white/5 p-3 rounded-md leading-relaxed space-y-1'>
-                                            {Object.entries(container.Labels).map(([key, value]) => (
-                                                <div key={key} className='flex gap-1'>
-                                                    <span className='text-sky-300 font-medium'>
-                                                        {key}
-                                                    </span>
-                                                    <span className='text-white/70 break-all select-text'>
-                                                        : {value}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                ),
+                                            )}
                                         </div>
                                     )
                                 ) : (

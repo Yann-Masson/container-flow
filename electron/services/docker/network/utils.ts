@@ -1,6 +1,6 @@
 import { getClient } from '../client';
 import list from './list';
-import { ContainerInspectInfo, NetworkInspectInfo } from "dockerode";
+import { ContainerInspectInfo, NetworkInspectInfo } from 'dockerode';
 
 /**
  * Find networks by name pattern
@@ -8,11 +8,14 @@ import { ContainerInspectInfo, NetworkInspectInfo } from "dockerode";
  * @param exactMatch - Whether to use exact matching or partial matching
  * @returns Promise resolving to matching networks
  */
-export async function findByName(namePattern: string, exactMatch: boolean = false): Promise<NetworkInspectInfo[]> {
+export async function findByName(
+    namePattern: string,
+    exactMatch: boolean = false,
+): Promise<NetworkInspectInfo[]> {
     try {
         const networks = await list();
 
-        return networks.filter(network => {
+        return networks.filter((network) => {
             if (exactMatch) {
                 return network.Name === namePattern;
             }
@@ -28,7 +31,9 @@ export async function findByName(namePattern: string, exactMatch: boolean = fals
  * @param containerId - The ID or name of the container
  * @returns Promise resolving to networks connected to the container
  */
-export async function getContainerNetworks(containerId: string): Promise<ContainerInspectInfo['NetworkSettings']['Networks']> {
+export async function getContainerNetworks(
+    containerId: string,
+): Promise<ContainerInspectInfo['NetworkSettings']['Networks']> {
     const client = getClient();
     if (!client) {
         throw new Error('Docker client not initialized');
@@ -49,7 +54,9 @@ export async function getContainerNetworks(containerId: string): Promise<Contain
  * @param networkId - The ID or name of the network
  * @returns Promise resolving to containers connected to the network
  */
-export async function getNetworkContainers(networkId: string): Promise<NetworkInspectInfo['Containers']> {
+export async function getNetworkContainers(
+    networkId: string,
+): Promise<NetworkInspectInfo['Containers']> {
     const client = getClient();
     if (!client) {
         throw new Error('Docker client not initialized');

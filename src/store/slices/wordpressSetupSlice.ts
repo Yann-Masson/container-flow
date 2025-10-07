@@ -127,7 +127,7 @@ export const runWordPressSetup = createAsyncThunk<
     const force = !!(arg && typeof arg === 'object' && 'force' in arg && arg.force);
     const grafanaAuth =
         arg && typeof arg === 'object' && 'grafanaAuth' in arg
-            ? (arg as any).grafanaAuth
+            ? (arg as { grafanaAuth?: { username: string; password: string } }).grafanaAuth
             : undefined;
 
     const current = getState().wordpressSetup;

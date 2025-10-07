@@ -2,7 +2,7 @@ import { createMySQLTunnel, getClient, getMySQLConnectionOptions } from '../clie
 import { list as listContainers } from '../containers/list';
 import { stop as stopContainer } from '../containers/stop';
 import { remove as removeContainer } from '../containers/remove';
-import utils from "./utils";
+import utils from './utils';
 
 export interface WordPressDeleteOptions {
     name: string;
@@ -34,12 +34,14 @@ export default async function deleteWordPress(options: WordPressDeleteOptions): 
     try {
         // 1. Find all containers with the container-flow.name label
         const containers = await listContainers();
-        const wordpressContainers = containers.filter(container => {
+        const wordpressContainers = containers.filter((container) => {
             const labels = container.Labels || {};
             return labels['container-flow.name'] === name;
         });
 
-        console.log(`Found ${wordpressContainers.length} containers to delete for WordPress '${name}'`);
+        console.log(
+            `Found ${wordpressContainers.length} containers to delete for WordPress '${name}'`,
+        );
 
         // 2. Stop and remove each container
         for (const container of wordpressContainers) {
@@ -54,11 +56,10 @@ export default async function deleteWordPress(options: WordPressDeleteOptions): 
 
                 // Remove the container and its volumes
                 await removeContainer(container.Id, {
-                    volume: true,  // Remove volumes
-                    force: true  // Force removal
+                    volume: true, // Remove volumes
+                    force: true, // Force removal
                 });
                 console.log(`Container removed: ${container.Names?.[0] || container.Id}`);
-
             } catch (error) {
                 console.error(`Error removing container ${container.Id}:`, error);
                 // Continue with other containers even if one fails
@@ -88,7 +89,7 @@ export default async function deleteWordPress(options: WordPressDeleteOptions): 
             const mysqlConnectionOptions = getMySQLConnectionOptions();
             await utils.deleteDatabaseAndUser(mysqlConnectionOptions, {
                 dbName,
-                dbUser
+                dbUser,
             });
 
             console.log(`Database and user deleted: ${dbName}, ${dbUser}`);
@@ -98,7 +99,6 @@ export default async function deleteWordPress(options: WordPressDeleteOptions): 
         }
 
         console.log(`WordPress installation '${name}' has been completely deleted`);
-
     } catch (error) {
         console.error(`Error deleting WordPress installation '${name}':`, error);
         throw error;

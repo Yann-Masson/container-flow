@@ -19,7 +19,7 @@ export default async function setup(
     console.log('Starting WordPress infrastructure setup (refactored)...');
 
     try {
-    const ctx = { force, progress: progressCallback, grafanaAuth };
+        const ctx = { force, progress: progressCallback, grafanaAuth };
 
         await ensureNetwork(ctx);
         await ensureTraefik(ctx);

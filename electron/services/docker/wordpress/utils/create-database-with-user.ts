@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import mysql from 'mysql2/promise';
 
 interface MySQLConnectionOptions {
     host: string;
@@ -10,7 +10,7 @@ interface MySQLConnectionOptions {
 
 export default async function createDatabaseWithUser(
     connectionOptions: MySQLConnectionOptions,
-    dbOptions: { dbName: string; dbUser: string; dbPassword: string }
+    dbOptions: { dbName: string; dbUser: string; dbPassword: string },
 ): Promise<void> {
     const { dbName, dbUser, dbPassword } = dbOptions;
 
@@ -37,18 +37,18 @@ export default async function createDatabaseWithUser(
         }
 
         // 2. Create database
-        res = await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+        res = await connection.execute(
+            `CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
+        );
         console.log(`Database creation result: ${JSON.stringify(res)}`);
 
         // 3. Create user with new password
-        res = await connection.execute(
-            `CREATE USER '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}'`
-        );
+        res = await connection.execute(`CREATE USER '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}'`);
         console.log(`User creation result: ${JSON.stringify(res)}`);
 
         // 4. Grant all privileges on the specific database
         res = await connection.execute(
-            `GRANT ALL PRIVILEGES ON \`${dbName}\`.* TO '${dbUser}'@'%'`
+            `GRANT ALL PRIVILEGES ON \`${dbName}\`.* TO '${dbUser}'@'%'`,
         );
         console.log(`Grant privileges result: ${JSON.stringify(res)}`);
 
@@ -62,7 +62,7 @@ export default async function createDatabaseWithUser(
             port: connectionOptions.port,
             user: dbUser,
             password: dbPassword,
-            database: dbName
+            database: dbName,
         });
 
         console.log(`Database '${dbName}' and user '${dbUser}' created successfully`);
@@ -77,7 +77,9 @@ export default async function createDatabaseWithUser(
 async function testDatabaseConnection(options: MySQLConnectionOptions): Promise<void> {
     let testConnection;
     try {
-        console.log(`Testing connection for user '${options.user}' to database '${options.database}'...`);
+        console.log(
+            `Testing connection for user '${options.user}' to database '${options.database}'...`,
+        );
         testConnection = await mysql.createConnection(options);
 
         // Try a simple query to ensure everything works

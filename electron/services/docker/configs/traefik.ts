@@ -70,10 +70,7 @@ const traefik: ContainerCreateOptions = {
         'traefik.http.routers.https-catchall.tls.certresolver': 'letsencrypt',
     },
     HostConfig: {
-        Binds: [
-            '/var/run/docker.sock:/var/run/docker.sock',
-            'traefik-acme:/etc/traefik',
-        ],
+        Binds: ['/var/run/docker.sock:/var/run/docker.sock', 'traefik-acme:/etc/traefik'],
         PortBindings: {
             '80/tcp': [{ HostPort: '80' }],
             '8080/tcp': [{ HostPort: '8080' }],

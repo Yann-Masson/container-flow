@@ -1,3 +1,7 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable no-undef */
+
 const { defineConfig, globalIgnores } = require('eslint/config');
 
 const globals = require('globals');
@@ -22,7 +26,6 @@ module.exports = defineConfig([
             globals: {
                 ...globals.browser,
             },
-
             parser: tsParser,
         },
 

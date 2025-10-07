@@ -11,41 +11,42 @@ export default function WordPressServiceSkeleton({ count = 3 }: WordPressService
             {Array.from({ length: count }).map((_, index) => (
                 <Card
                     key={index}
-                    variant="glass"
-                    accent="glow"
+                    variant='glass'
+                    accent='glow'
                     interactive={false}
                     withHoverOverlay
-                    className="group relative py-0 overflow-hidden"
+                    className='group relative py-0 overflow-hidden'
                 >
-                    <CardHeader className="p-4">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-3">
-                                <Skeleton className="h-4 w-4" /> {/* Chevron */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <Skeleton className="h-5 w-5" /> {/* Globe icon */}
-                                        <Skeleton className="h-6 w-32" /> {/* Service name */}
+                    <CardHeader className='p-4'>
+                        <div className='flex items-center justify-between w-full'>
+                            <div className='flex items-center gap-3'>
+                                <Skeleton className='h-4 w-4' /> {/* Chevron */}
+                                <div className='space-y-2'>
+                                    <div className='flex items-center gap-2'>
+                                        <Skeleton className='h-5 w-5' /> {/* Globe icon */}
+                                        <Skeleton className='h-6 w-32' /> {/* Service name */}
                                     </div>
-                                    <Skeleton className="h-4 w-48" /> {/* Container count description */}
+                                    <Skeleton className='h-4 w-48' />{' '}
+                                    {/* Container count description */}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <div className="text-right text-sm space-y-2">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-1">
-                                            <Skeleton className="h-3 w-3" /> {/* Database icon */}
-                                            <Skeleton className="h-4 w-16" /> {/* DB name */}
+                            <div className='flex items-center gap-2'>
+                                <div className='text-right text-sm space-y-2'>
+                                    <div className='flex items-center gap-4'>
+                                        <div className='flex items-center gap-1'>
+                                            <Skeleton className='h-3 w-3' /> {/* Database icon */}
+                                            <Skeleton className='h-4 w-16' /> {/* DB name */}
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <Skeleton className="h-3 w-3" /> {/* Globe icon */}
-                                            <Skeleton className="h-4 w-24" /> {/* URL */}
+                                        <div className='flex items-center gap-1'>
+                                            <Skeleton className='h-3 w-3' /> {/* Globe icon */}
+                                            <Skeleton className='h-4 w-24' /> {/* URL */}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2">
-                                    <Skeleton className="h-8 w-8" /> {/* Open button */}
+                                <div className='flex items-center gap-2'>
+                                    <Skeleton className='h-8 w-8' /> {/* Open button */}
                                 </div>
                             </div>
                         </div>

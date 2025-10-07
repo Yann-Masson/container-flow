@@ -1,7 +1,10 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import services from '../services';
 
-export function setupWordPressHandlers(log: (message: string) => void, getWin: () => BrowserWindow | null) {
+export function setupWordPressHandlers(
+    log: (message: string) => void,
+    getWin: () => BrowserWindow | null,
+) {
     // WordPress handlers
     ipcMain.handle('docker:wordpress:setup', async (_, options) => {
         try {

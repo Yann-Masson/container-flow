@@ -1,4 +1,4 @@
-import { state } from "../client";
+import { state } from '../client';
 
 export const pull = async (imageName: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -18,17 +18,14 @@ export const pull = async (imageName: string): Promise<void> => {
                 return reject(new Error('Docker client not connected'));
             }
 
-            state.dockerClient.modem.followProgress(
-                    stream,
-                    (err: unknown) => {
-                        if (err) {
-                            console.error('Error during image pull:', err);
-                            return reject(err);
-                        }
-                        console.log(`Image ${imageName} pulled successfully`);
-                        resolve();
-                    },
-            );
+            state.dockerClient.modem.followProgress(stream, (err: unknown) => {
+                if (err) {
+                    console.error('Error during image pull:', err);
+                    return reject(err);
+                }
+                console.log(`Image ${imageName} pulled successfully`);
+                resolve();
+            });
         });
     });
 };

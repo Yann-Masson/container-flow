@@ -52,22 +52,16 @@ export const createMySQLTunnel = (): Promise<void> => {
 
         state.mysqlServer = net.createServer((localSocket) => {
             // Forward to MySQL container port on remote server
-            state.sshClient!.forwardOut(
-                    '127.0.0.1',
-                    0,
-                    '127.0.0.1',
-                    3306,
-                    (err, stream) => {
-                        if (err) {
-                            console.error('Error creating MySQL tunnel:', err);
-                            localSocket.destroy();
-                            return;
-                        }
+            state.sshClient!.forwardOut('127.0.0.1', 0, '127.0.0.1', 3306, (err, stream) => {
+                if (err) {
+                    console.error('Error creating MySQL tunnel:', err);
+                    localSocket.destroy();
+                    return;
+                }
 
-                        console.log('MySQL tunnel created');
-                        localSocket.pipe(stream).pipe(localSocket);
-                    }
-            );
+                console.log('MySQL tunnel created');
+                localSocket.pipe(stream).pipe(localSocket);
+            });
         });
 
         state.mysqlServer.listen(MYSQL_LOCAL_PORT, '127.0.0.1', () => {

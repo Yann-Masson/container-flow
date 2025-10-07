@@ -110,18 +110,18 @@ export default function SettingsDialog({
             await window.electronAPI.storage.app.clear();
             await window.electronAPI.storage.ssh.clear();
             await window.electronAPI.passwords.reset();
-            
+
             // Disconnect from Docker
             await window.electronAPI.docker.connection.disconnect();
-            
+
             // Reset local state
             dispatch(resetWordPressSetup());
-            
+
             // Close dialogs and trigger disconnect flow
             setShowResetConfirmation(false);
             setOpen(false);
             onDisconnect();
-            
+
             toast.success('All data has been reset successfully');
         } catch (error) {
             console.error('Error resetting data:', error);

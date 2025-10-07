@@ -4,7 +4,7 @@ import { create as createContainer } from '../containers/create';
 import { start as startContainer } from '../containers/start';
 import connectToNetwork from '../network/connect';
 import wordpress from '../configs/wordpress';
-import utils from "./utils";
+import utils from './utils';
 import passwordManager from '../../runtime/passwords';
 import { getFullDomain } from '../../../config/domains';
 
@@ -17,7 +17,9 @@ export interface WordPressCreateOptions {
  * Create a new WordPress container with its own database
  * @param options - WordPress setup options
  */
-export default async function create(options: WordPressCreateOptions): Promise<{ id: string; name: string }> {
+export default async function create(
+    options: WordPressCreateOptions,
+): Promise<{ id: string; name: string }> {
     const client = getClient();
     if (!client) {
         throw new Error('Docker client not initialized');
@@ -55,7 +57,7 @@ export default async function create(options: WordPressCreateOptions): Promise<{
 
         // Wait a bit to ensure MySQL has fully processed the user creation
         console.log('Waiting for MySQL to process user creation...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // 2. Prepare WordPress container configuration
         const wordpressConfig: ContainerCreateOptions = {
@@ -90,12 +92,12 @@ export default async function create(options: WordPressCreateOptions): Promise<{
         await connectToNetwork('CF-WP', { Container: container.id });
         await startContainer(container.id);
 
-    // Register credentials in runtime password manager
-    passwordManager.registerProject(name, { dbUser, dbPassword, dbName });
+        // Register credentials in runtime password manager
+        passwordManager.registerProject(name, { dbUser, dbPassword, dbName });
 
-    console.log(`WordPress container '${name}' created successfully!`);
-    console.log(`Database: ${dbName}`);
-    console.log(`Database User: ${dbUser}`);
+        console.log(`WordPress container '${name}' created successfully!`);
+        console.log(`Database: ${dbName}`);
+        console.log(`Database User: ${dbUser}`);
         console.log(`Access URL: http://${domain || getFullDomain(name, 'main')}`);
 
         // Return serializable object only

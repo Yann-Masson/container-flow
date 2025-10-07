@@ -1,12 +1,12 @@
-import { app, safeStorage } from "electron";
-import fs from "fs";
-import { SSHSavedConfig } from "./ssh.type.ts";
-import path from "path";
+import { app, safeStorage } from 'electron';
+import fs from 'fs';
+import { SSHSavedConfig } from './ssh.type.ts';
+import path from 'path';
 
 const defaultSSHConfig: SSHSavedConfig = {
     host: '',
     port: '22',
-    username: 'root'
+    username: 'root',
 };
 
 export default function get(): SSHSavedConfig {

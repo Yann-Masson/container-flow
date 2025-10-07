@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import mysql from 'mysql2/promise';
 
 interface MySQLConnectionOptions {
     host: string;
@@ -10,7 +10,7 @@ interface MySQLConnectionOptions {
 
 export default async function deleteDatabaseAndUser(
     connectionOptions: MySQLConnectionOptions,
-    dbOptions: { dbName: string; dbUser: string }
+    dbOptions: { dbName: string; dbUser: string },
 ): Promise<void> {
     const { dbName, dbUser } = dbOptions;
 
@@ -47,7 +47,6 @@ export default async function deleteDatabaseAndUser(
         // 3. Flush privileges to ensure changes take effect
         await connection.execute('FLUSH PRIVILEGES');
         console.log('MySQL privileges flushed');
-
     } catch (error) {
         console.error('Error deleting database and user:', error);
         throw error;

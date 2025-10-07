@@ -1,7 +1,7 @@
-import { app, safeStorage } from "electron";
-import fs from "fs";
-import { AppSavedConfig, AppPreference } from "./app.type.ts";
-import path from "path";
+import { app, safeStorage } from 'electron';
+import fs from 'fs';
+import { AppSavedConfig, AppPreference } from './app.type.ts';
+import path from 'path';
 import get from './get';
 
 export default function save(appConfig: AppSavedConfig): void {
@@ -21,7 +21,7 @@ export default function save(appConfig: AppSavedConfig): void {
             ...existing,
             ...appConfig,
             // Ensure preference always has a value
-            preference: (appConfig.preference ?? existing.preference) ?? AppPreference.NONE,
+            preference: appConfig.preference ?? existing.preference ?? AppPreference.NONE,
         };
         const preferences: { app?: AppSavedConfig } = { app: merged };
 
@@ -29,7 +29,7 @@ export default function save(appConfig: AppSavedConfig): void {
         const encryptedBuffer = safeStorage.encryptString(dataToEncrypt);
         fs.writeFileSync(preferencesPath, encryptedBuffer);
 
-    console.log('App preferences saved securely');
+        console.log('App preferences saved securely');
     } catch (error) {
         console.error('Error saving encrypted preferences:', error);
     }

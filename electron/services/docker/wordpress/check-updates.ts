@@ -4,7 +4,7 @@ import containers from '../containers';
 const WORDPRESS_LABEL_KEY = 'container-flow.type';
 const WORDPRESS_LABEL_VALUE = 'wordpress';
 
-export const checkWordPressUpdates = async (): Promise<String[]> => {
+export const checkWordPressUpdates = async (): Promise<string[]> => {
     const latestImage = await image.get('wordpress', 'latest');
 
     const tagData = await latestImage.inspect();
@@ -15,7 +15,7 @@ export const checkWordPressUpdates = async (): Promise<String[]> => {
         return labels[WORDPRESS_LABEL_KEY] === WORDPRESS_LABEL_VALUE;
     });
 
-    const outdatedContainerIds: String[] = [];
+    const outdatedContainerIds: string[] = [];
 
     for (const container of wordpressContainers) {
         const inspectInfo = await containers.getById(container.Id);

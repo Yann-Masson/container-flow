@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { State } from "../utils/state/basic-state.ts";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { dockerClientService } from "@/docker/docker-client.ts";
+import { State } from '../utils/state/basic-state.ts';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { dockerClientService } from '@/docker/docker-client.ts';
 
 interface SSHFormProps {
     setIsConnected: (state: State) => void;
@@ -41,7 +41,7 @@ export default function SSHForm(props: SSHFormProps) {
             await window.electronAPI.storage.ssh.save({
                 host,
                 port,
-                username
+                username,
             });
         } catch (error) {
             console.error('Failed to save SSH preferences:', error);
@@ -83,68 +83,66 @@ export default function SSHForm(props: SSHFormProps) {
     };
 
     return (
-            <div className="flex w-full justify-center">
-                <form onSubmit={handleConnect} className='space-y-4 sm:pb-6 w-full sm:w-2/3'>
-                    <div>
-                        <label className='block mb-1 text-sm font-medium'>Host</label>
-                        <Input
-                                type='text'
-                                value={host}
-                                onChange={(e) => setHost(e.target.value)}
-                                required
-                                placeholder='example.com or IP address'
-                                disabled={connectionState === State.LOADING}
-                                className="w-full"
-                        />
-                    </div>
+        <div className='flex w-full justify-center'>
+            <form onSubmit={handleConnect} className='space-y-4 sm:pb-6 w-full sm:w-2/3'>
+                <div>
+                    <label className='block mb-1 text-sm font-medium'>Host</label>
+                    <Input
+                        type='text'
+                        value={host}
+                        onChange={(e) => setHost(e.target.value)}
+                        required
+                        placeholder='example.com or IP address'
+                        disabled={connectionState === State.LOADING}
+                        className='w-full'
+                    />
+                </div>
 
-                    <div>
-                        <label className='block mb-1 text-sm font-medium'>Port</label>
-                        <Input
-                                type='number'
-                                value={port}
-                                onChange={(e) => setPort(e.target.value)}
-                                required
-                                disabled={connectionState === State.LOADING}
-                                className="w-full"
-                        />
-                    </div>
+                <div>
+                    <label className='block mb-1 text-sm font-medium'>Port</label>
+                    <Input
+                        type='number'
+                        value={port}
+                        onChange={(e) => setPort(e.target.value)}
+                        required
+                        disabled={connectionState === State.LOADING}
+                        className='w-full'
+                    />
+                </div>
 
-                    <div>
-                        <label className='block mb-1 text-sm font-medium'>Username</label>
-                        <Input
-                                type='text'
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                                disabled={connectionState === State.LOADING}
-                                className="w-full"
-                        />
-                    </div>
+                <div>
+                    <label className='block mb-1 text-sm font-medium'>Username</label>
+                    <Input
+                        type='text'
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        disabled={connectionState === State.LOADING}
+                        className='w-full'
+                    />
+                </div>
 
-                    <div>
-                        <label className='block mb-1 text-sm font-medium'>Password</label>
-                        <Input
-                                type='password'
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                placeholder='SSH password'
-                                disabled={connectionState === State.LOADING}
-                                className="w-full"
-                        />
-                    </div>
+                <div>
+                    <label className='block mb-1 text-sm font-medium'>Password</label>
+                    <Input
+                        type='password'
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        placeholder='SSH password'
+                        disabled={connectionState === State.LOADING}
+                        className='w-full'
+                    />
+                </div>
 
-                    <Button
-                            type='submit'
-                            disabled={connectionState === State.LOADING}
-                            className="w-full mt-2"
-                    >
-                        {connectionState === State.LOADING
-                                ? 'Connecting...'
-                                : 'Connect'}
-                    </Button>
-                </form>
-            </div>
+                <Button
+                    type='submit'
+                    disabled={connectionState === State.LOADING}
+                    className='w-full mt-2'
+                >
+                    {connectionState === State.LOADING ? 'Connecting...' : 'Connect'}
+                </Button>
+            </form>
+        </div>
     );
 }

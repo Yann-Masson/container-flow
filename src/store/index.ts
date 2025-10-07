@@ -5,8 +5,8 @@ import wordpressSetupReducer from './slices/wordpressSetupSlice';
 
 export const store = configureStore({
     reducer: {
-    containers: containerReducer,
-    genericContainers: genericContainerReducer,
+        containers: containerReducer,
+        genericContainers: genericContainerReducer,
         wordpressSetup: wordpressSetupReducer,
     },
     middleware: (getDefaultMiddleware) =>

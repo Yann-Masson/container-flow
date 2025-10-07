@@ -71,6 +71,7 @@ export function ContainerLogsDialog({
         if (processedLogs && debouncedSearchTerm !== (processedLogs.searchTerm || '')) {
             fetchLogs(debouncedSearchTerm);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debouncedSearchTerm]);
 
     const fetchLogs = async (searchQuery?: string) => {
@@ -88,12 +89,19 @@ export function ContainerLogsDialog({
         } catch (error) {
             console.error('Failed to fetch logs:', error);
             setProcessedLogs({
-                lines: [{ original: 'Error fetching logs', cleaned: 'Error fetching logs', category: 'error', timestamp: null }],
+                lines: [
+                    {
+                        original: 'Error fetching logs',
+                        cleaned: 'Error fetching logs',
+                        category: 'error',
+                        timestamp: null,
+                    },
+                ],
                 totalLines: 1,
                 totalPages: 1,
                 currentPage: 1,
                 hasMore: false,
-                searchTerm: searchQuery
+                searchTerm: searchQuery,
             });
         } finally {
             setIsLoading(false);
@@ -103,14 +111,14 @@ export function ContainerLogsDialog({
 
     const copyToClipboard = async () => {
         if (processedLogs) {
-            const rawText = processedLogs.lines.map(line => line.original).join('\n');
+            const rawText = processedLogs.lines.map((line) => line.original).join('\n');
             await navigator.clipboard.writeText(rawText);
         }
     };
 
     const downloadLogs = () => {
         if (processedLogs) {
-            const rawText = processedLogs.lines.map(line => line.original).join('\n');
+            const rawText = processedLogs.lines.map((line) => line.original).join('\n');
             const blob = new Blob([rawText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -140,10 +148,7 @@ export function ContainerLogsDialog({
 
         const baseClasses = `${lineClass} hover:bg-gray-800/50 px-3 py-1 leading-relaxed text-base font-medium whitespace-pre`;
         return (
-            <div
-                key={index}
-                className={baseClasses}
-            >
+            <div key={index} className={baseClasses}>
                 {timestamp && <span className='text-gray-500 mr-2'>{timestamp}</span>}
                 <span dangerouslySetInnerHTML={{ __html: highlightedLine }} />
             </div>
@@ -247,19 +252,19 @@ export function ContainerLogsDialog({
 
                 <ScrollArea
                     className={`p-4 overflow-auto select-text ${
-                        isSearchOpen 
-                            ? 'max-h-[calc(90vh-200px)]' 
-                            : 'max-h-[calc(90vh-140px)]'
+                        isSearchOpen ? 'max-h-[calc(90vh-200px)]' : 'max-h-[calc(90vh-140px)]'
                     }`}
                     type='always'
                 >
                     <div className='space-y-4'>
                         {isLoading ? (
-                            <div className={`flex items-center justify-center ${
-                                isSearchOpen 
-                                    ? 'min-h-[calc(90vh-200px)]' 
-                                    : 'min-h-[calc(90vh-140px)]'
-                            }`}>
+                            <div
+                                className={`flex items-center justify-center ${
+                                    isSearchOpen
+                                        ? 'min-h-[calc(90vh-200px)]'
+                                        : 'min-h-[calc(90vh-140px)]'
+                                }`}
+                            >
                                 <div className='flex items-center gap-2'>
                                     <div className='animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent'></div>
                                     <span className='text-sm text-gray-600'>Loading logs...</span>
@@ -270,28 +275,30 @@ export function ContainerLogsDialog({
                                 {(() => {
                                     // Show search results or all logs
                                     if (processedLogs?.lines && processedLogs.lines.length > 0) {
-                                        return processedLogs.lines.map((logLine, index) => 
+                                        return processedLogs.lines.map((logLine, index) =>
                                             formatLogLine(
-                                                logLine, 
-                                                index, 
+                                                logLine,
+                                                index,
                                                 // Highlight the search term if we have one
-                                                processedLogs.searchTerm || debouncedSearchTerm
-                                            )
+                                                processedLogs.searchTerm || debouncedSearchTerm,
+                                            ),
                                         );
                                     }
-                                    
+
                                     // Show searching state
                                     if (isSearching) {
                                         return (
                                             <div className='flex items-center justify-center py-8'>
                                                 <div className='flex items-center gap-2'>
                                                     <div className='animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent'></div>
-                                                    <span className='text-sm text-gray-400'>Searching logs...</span>
+                                                    <span className='text-sm text-gray-400'>
+                                                        Searching logs...
+                                                    </span>
                                                 </div>
                                             </div>
                                         );
                                     }
-                                    
+
                                     // No logs found message
                                     if (processedLogs?.searchTerm) {
                                         return (
@@ -300,7 +307,7 @@ export function ContainerLogsDialog({
                                             </div>
                                         );
                                     }
-                                    
+
                                     // Default: no logs
                                     return (
                                         <div className='text-gray-500 italic text-center py-8'>

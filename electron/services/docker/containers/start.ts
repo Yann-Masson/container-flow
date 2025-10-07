@@ -1,4 +1,4 @@
-import { state } from "../client";
+import { state } from '../client';
 
 /**
  * Start a container in an idempotent way.
@@ -13,16 +13,12 @@ export const start = async (containerId: string): Promise<void> => {
             return reject(new Error('Docker client is not connected'));
         }
 
-        state.dockerClient.getContainer(containerId).start((err: any) => {
+        state.dockerClient.getContainer(containerId).start((err: Error & { statusCode?: number }) => {
             if (err) {
                 const msg: string = err?.message || '';
                 const status: number | undefined = err?.statusCode;
                 // Swallow "already started" conditions (Docker may use statusCode 304)
-                if (
-                    status === 304 ||
-                    /304/.test(msg) ||
-                    /already (started|running)/i.test(msg)
-                ) {
+                if (status === 304 || /304/.test(msg) || /already (started|running)/i.test(msg)) {
                     console.log(`Container ${containerId} already running (ignored)`);
                     return resolve();
                 }

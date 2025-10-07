@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { PruneNetworksInfo } from "dockerode";
+import { PruneNetworksInfo } from 'dockerode';
 
 /**
  * Remove unused networks (prune)

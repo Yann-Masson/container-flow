@@ -1,4 +1,4 @@
-import docker from "../index.ts";
+import docker from '../index.ts';
 
 /**
  * Disconnect from the Docker daemon

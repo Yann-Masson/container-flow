@@ -17,10 +17,10 @@ export const highLevelOverviewDashboard = {
             targets: [
                 {
                     expr: '100 * (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])))',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
-            fieldConfig: { defaults: { unit: 'percent' } }
+            fieldConfig: { defaults: { unit: 'percent' } },
         },
         {
             id: 2,
@@ -31,10 +31,10 @@ export const highLevelOverviewDashboard = {
             targets: [
                 {
                     expr: '100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
-            fieldConfig: { defaults: { unit: 'percent' } }
+            fieldConfig: { defaults: { unit: 'percent' } },
         },
         {
             id: 3,
@@ -45,10 +45,10 @@ export const highLevelOverviewDashboard = {
             targets: [
                 {
                     expr: 'max(100 * (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}))',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
-            fieldConfig: { defaults: { unit: 'percent' } }
+            fieldConfig: { defaults: { unit: 'percent' } },
         },
         {
             id: 4,
@@ -59,12 +59,12 @@ export const highLevelOverviewDashboard = {
             targets: [
                 {
                     expr: 'sum(rate(traefik_service_requests_total[5m]))',
-                    refId: 'A'
-                }
+                    refId: 'A',
+                },
             ],
             fieldConfig: {
-                defaults: { unit: 'reqps' }
-            }
+                defaults: { unit: 'reqps' },
+            },
         },
         {
             id: 5,
@@ -72,7 +72,12 @@ export const highLevelOverviewDashboard = {
             title: 'MySQL Conn Util %',
             gridPos: { x: 21, y: 0, w: 3, h: 5 },
             datasource: { type: 'prometheus', uid: 'PROMETHEUS_DS' },
-            targets: [{ expr:'100 * (mysql_global_status_threads_connected / mysql_global_variables_max_connections)', refId:'A' }],
+            targets: [
+                {
+                    expr: '100 * (mysql_global_status_threads_connected / mysql_global_variables_max_connections)',
+                    refId: 'A',
+                },
+            ],
             fieldConfig: {
                 defaults: {
                     unit: 'percent',
@@ -81,11 +86,11 @@ export const highLevelOverviewDashboard = {
                         steps: [
                             { color: 'green', value: null },
                             { color: 'orange', value: 70 },
-                            { color: 'red', value: 90 }
-                        ]
-                    }
-                }
-            }
+                            { color: 'red', value: 90 },
+                        ],
+                    },
+                },
+            },
         },
         {
             id: 6,
@@ -97,14 +102,14 @@ export const highLevelOverviewDashboard = {
                 {
                     expr: '100 * (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])))',
                     legendFormat: 'CPU %',
-                    refId: 'A'
+                    refId: 'A',
                 },
                 {
                     expr: 'node_load1',
                     legendFormat: 'load1',
-                    refId: 'B'
-                }
-            ]
+                    refId: 'B',
+                },
+            ],
         },
         {
             id: 7,
@@ -116,9 +121,9 @@ export const highLevelOverviewDashboard = {
                 {
                     expr: 'topk(5, 100 * rate(container_cpu_usage_seconds_total{name!="",image!=""}[5m]))',
                     legendFormat: '{{name}}',
-                    refId: 'A'
-                }
-            ]
+                    refId: 'A',
+                },
+            ],
         },
         {
             id: 8,
@@ -130,14 +135,14 @@ export const highLevelOverviewDashboard = {
                 {
                     expr: 'rate(mysql_global_status_queries[5m])',
                     legendFormat: 'queries',
-                    refId: 'A'
+                    refId: 'A',
                 },
                 {
                     expr: 'rate(mysql_global_status_questions[5m])',
                     legendFormat: 'questions',
-                    refId: 'B'
-                }
-            ]
+                    refId: 'B',
+                },
+            ],
         },
         {
             id: 9,
@@ -149,21 +154,21 @@ export const highLevelOverviewDashboard = {
                 {
                     expr: 'sum(rate(traefik_service_requests_total{code=~"2.."}[5m]))',
                     legendFormat: '2xx',
-                    refId: 'A'
+                    refId: 'A',
                 },
                 {
                     expr: 'sum(rate(traefik_service_requests_total{code=~"4.."}[5m]))',
                     legendFormat: '4xx',
-                    refId: 'B'
+                    refId: 'B',
                 },
                 {
                     expr: 'sum(rate(traefik_service_requests_total{code=~"5.."}[5m]))',
                     legendFormat: '5xx',
-                    refId: 'C'
-                }
-            ]
-        }
-    ]
+                    refId: 'C',
+                },
+            ],
+        },
+    ],
 };
 
 export default highLevelOverviewDashboard;

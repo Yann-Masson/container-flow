@@ -1,9 +1,7 @@
 import { state } from '../client';
 import { ContainerInspectInfo } from 'dockerode';
 
-export const getById = async (
-    containerId: string,
-): Promise<ContainerInspectInfo> => {
+export const getById = async (containerId: string): Promise<ContainerInspectInfo> => {
     return new Promise((_resolve, reject) => {
         if (!state.dockerClient) {
             return reject(new Error('Docker client not connected'));

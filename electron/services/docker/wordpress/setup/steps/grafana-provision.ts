@@ -25,8 +25,8 @@ export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<vo
             authUsername && authUsername.length > 0
                 ? authUsername
                 : storedUsername && storedUsername.length > 0
-                ? storedUsername
-                : 'admin';
+                  ? storedUsername
+                  : 'admin';
 
         const storedPassword = stored.grafanaCredentials?.password?.trim();
         const authPassword = grafanaAuth?.password?.trim();
@@ -34,8 +34,8 @@ export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<vo
             authPassword && authPassword.length > 0
                 ? authPassword
                 : storedPassword && storedPassword.length > 0
-                ? storedPassword
-                : 'admin';
+                  ? storedPassword
+                  : 'admin';
 
         const result = await provisionGrafana({
             baseUrl: `https://${domainConfig.monitoring}`,

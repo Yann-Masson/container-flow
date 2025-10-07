@@ -20,7 +20,7 @@ export function buildMySqlConfig(rootPassword: string): ContainerCreateOptions {
         Env: [
             `MYSQL_ROOT_PASSWORD=${rootPassword}`,
             // Allow root access from other containers (needed for mysqld-exporter DSN root@mysql)
-            'MYSQL_ROOT_HOST=%'
+            'MYSQL_ROOT_HOST=%',
         ],
     };
 }

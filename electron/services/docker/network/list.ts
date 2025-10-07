@@ -1,5 +1,5 @@
 import { getClient } from '../client';
-import { NetworkInspectInfo, NetworkListOptions } from "dockerode";
+import { NetworkInspectInfo, NetworkListOptions } from 'dockerode';
 
 /**
  * List all Docker networks

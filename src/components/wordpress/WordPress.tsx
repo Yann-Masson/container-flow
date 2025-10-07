@@ -48,7 +48,7 @@ export default function WordPress() {
     // Render based on transition state
     if (transitionState === 'creator') {
         return (
-            <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 space-y-6">
+            <div className='animate-in fade-in-0 slide-in-from-bottom-4 duration-500 space-y-6'>
                 <WordPressList />
                 <WordPressCreator />
             </div>
@@ -58,19 +58,21 @@ export default function WordPress() {
     // If credentials not ready, show password setup card first
     if (!credentialsReady) {
         return (
-            <div className="flex flex-col flex-grow justify-center items-center">
+            <div className='flex flex-col flex-grow justify-center items-center'>
                 <PasswordSetupCard onComplete={handleCredentialsComplete} />
             </div>
         );
     }
 
     return (
-        <div className={`transition-all duration-500 flex flex-col flex-grow justify-center items-center 
+        <div
+            className={`transition-all duration-500 flex flex-col flex-grow justify-center items-center 
              ${
-            transitionState === 'transitioning' 
-                ? 'opacity-0 scale-95 translate-y-4' 
-                : 'opacity-100 scale-100 translate-y-0'
-        }`}>
+                 transitionState === 'transitioning'
+                     ? 'opacity-0 scale-95 translate-y-4'
+                     : 'opacity-100 scale-100 translate-y-0'
+             }`}
+        >
             <WordPressSetupCard
                 onSetupComplete={handleSetupComplete}
                 onRetrySetup={handleRetrySetup}

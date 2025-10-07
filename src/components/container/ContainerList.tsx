@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-refresh/only-export-components */
 
 import { useEffect, useMemo } from 'react';
 import { ContainerCreateOptions } from 'dockerode';
@@ -248,15 +249,13 @@ export default function ContainerList() {
                         <CardDescription>Select a container template to deploy</CardDescription>
                     </CardHeader>
                     <CardContent className='flex flex-wrap gap-4'>
-                        {
-                            Object.entries(configs).map(([name, config]) => (
-                                <ContainerCreateDialog
-                                    key={name}
-                                    onCreate={handleCreateContainer}
-                                    defaultConfig={config}
-                                />
-                            ))
-                        }
+                        {Object.entries(configs).map(([name, config]) => (
+                            <ContainerCreateDialog
+                                key={name}
+                                onCreate={handleCreateContainer}
+                                defaultConfig={config}
+                            />
+                        ))}
                     </CardContent>
                 </Card>
             </section>

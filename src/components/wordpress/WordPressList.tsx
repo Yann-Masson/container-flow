@@ -7,19 +7,19 @@ import { AnimatePresence, motion } from 'framer-motion';
 import WordPressProjectSkeleton from './WordPressProjectSkeleton';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchContainers, checkWordPressUpdates } from '@/store/slices/wordpressSlice';
-import { 
-    selectProjects, 
-    selectContainerStatus, 
+import {
+    selectProjects,
+    selectContainerStatus,
     selectContainerError,
     selectProjectCount,
     selectTotalContainerCount,
-    selectOutdatedContainerCount
+    selectOutdatedContainerCount,
 } from '@/store/selectors/containerSelectors';
 import { State } from '@/utils/state/basic-state';
 
 export default function WordPressList() {
     const dispatch = useAppDispatch();
-    
+
     // Redux state
     const projects = useAppSelector(selectProjects);
     const status = useAppSelector(selectContainerStatus);
@@ -27,7 +27,7 @@ export default function WordPressList() {
     const projectCount = useAppSelector(selectProjectCount);
     const totalContainerCount = useAppSelector(selectTotalContainerCount);
     const outdatedContainerCount = useAppSelector(selectOutdatedContainerCount);
-    
+
     const isRefreshing = status === State.LOADING;
 
     const retrieveContainers = useCallback(async () => {
@@ -37,7 +37,7 @@ export default function WordPressList() {
                 await dispatch(checkWordPressUpdates());
             } else if (fetchContainers.rejected.match(resultAction)) {
                 toast.error('❌ Error retrieving containers', {
-                    description: resultAction.payload as string || 'An unknown error occurred',
+                    description: (resultAction.payload as string) || 'An unknown error occurred',
                 });
             }
         } catch (error) {
@@ -50,7 +50,7 @@ export default function WordPressList() {
 
     useEffect(() => {
         retrieveContainers();
-    }, []);
+    }, [retrieveContainers]);
 
     // Show error toast when error state changes
     useEffect(() => {
@@ -62,52 +62,59 @@ export default function WordPressList() {
     }, [error]);
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold">{status === State.SUCCESS && projectCount} WordPress Projects</h2>
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between gap-2'>
+                <div className='flex items-center gap-2'>
+                    <h2 className='text-lg font-semibold'>
+                        {status === State.SUCCESS && projectCount} WordPress Projects
+                    </h2>
                     {status === State.SUCCESS && (
-                        <div className="hidden sm:flex flex-col text-sm text-gray-600">
+                        <div className='hidden sm:flex flex-col text-sm text-gray-600'>
                             <span>{totalContainerCount} total containers</span>
                             {outdatedContainerCount > 0 && (
-                                <span className="text-red-400">{outdatedContainerCount} container{outdatedContainerCount !== 1 ? 's are' : ' is'} outdated</span>
+                                <span className='text-red-400'>
+                                    {outdatedContainerCount} container
+                                    {outdatedContainerCount !== 1 ? 's are' : ' is'} outdated
+                                </span>
                             )}
                         </div>
                     )}
                 </div>
                 <Button
-                    variant="outline"
-                    size="sm"
+                    variant='outline'
+                    size='sm'
                     onClick={retrieveContainers}
                     disabled={isRefreshing}
                 >
                     {isRefreshing ? (
-                        <Loader2 className="h-4 w-4 animate-spin"/>
+                        <Loader2 className='h-4 w-4 animate-spin' />
                     ) : (
-                        <RefreshCw className="h-4 w-4"/>
+                        <RefreshCw className='h-4 w-4' />
                     )}
                 </Button>
             </div>
 
             {projectCount === 0 && status !== State.LOADING && (
-                <p className="text-sm text-gray-500">
+                <p className='text-sm text-gray-500'>
                     No WordPress projects found. Create a new project to get started.
                 </p>
             )}
-            
+
             {/* Show skeleton loading states when loading */}
             {status === State.LOADING && projectCount === 0 && (
                 <WordPressProjectSkeleton count={3} />
             )}
 
             {status === State.SUCCESS && outdatedContainerCount > 0 && (
-                <p className="text-sm text-red-400">
-                    Updates available for {outdatedContainerCount} container{outdatedContainerCount !== 1 ? 's' : ''}. Use the Update action next to each container to apply the latest WordPress image.
+                <p className='text-sm text-red-400'>
+                    Updates available for {outdatedContainerCount} container
+                    {outdatedContainerCount !== 1 ? 's' : ''}. Use the Update action next to each
+                    container to apply the latest WordPress image.
                 </p>
             )}
 
             {/* Show actual projects */}
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode='popLayout'>
                 {projects.map((project) => (
                     <motion.div
                         key={project.name}
@@ -117,9 +124,7 @@ export default function WordPressList() {
                         exit={{ opacity: 0, scale: 0.92, filter: 'blur(4px)' }}
                         transition={{ duration: 0.25, ease: 'easeOut' }}
                     >
-                        <WordPressProjectCard
-                            project={project}
-                        />
+                        <WordPressProjectCard project={project} />
                     </motion.div>
                 ))}
             </AnimatePresence>

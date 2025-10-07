@@ -11,8 +11,10 @@ import {
     PruneNetworksInfo,
 } from 'dockerode';
 
-import { LogSearchOptions as SearchOptions, ProcessedLogs } from '../services/docker/containers/get-logs';
-import { WordPressContainerVersionStatus } from '../services/docker/wordpress/version-utils';
+import {
+    LogSearchOptions as SearchOptions,
+    ProcessedLogs,
+} from '../services/docker/containers/get-logs';
 
 interface ElectronAPI {
     system: {
@@ -21,7 +23,7 @@ interface ElectronAPI {
     docker: {
         connection: {
             connect: (
-                config: import('../services/docker/connection/try-to-connect.ts').SSHConfig
+                config: import('../services/docker/connection/try-to-connect.ts').SSHConfig,
             ) => Promise<void>;
             isConnected: () => Promise<boolean>;
             disconnect: () => Promise<void>;
@@ -36,7 +38,7 @@ interface ElectronAPI {
             getLogs: (
                 id: string,
                 options?: ContainerLogsOptions,
-                searchOptions?: SearchOptions
+                searchOptions?: SearchOptions,
             ) => Promise<ProcessedLogs>;
         };
         images: {
@@ -51,42 +53,74 @@ interface ElectronAPI {
             disconnect: (networkId: string) => Promise<void>;
             prune: () => Promise<PruneNetworksInfo>;
             utils: {
-                findByName: (namePattern: string, exactMatch?: boolean) => Promise<NetworkInspectInfo[]>;
-                getContainerNetworks: (containerId: string) => Promise<ContainerInspectInfo['NetworkSettings']['Networks']>;
-                getNetworkContainers: (networkId: string) => Promise<NetworkInspectInfo['Containers']>;
+                findByName: (
+                    namePattern: string,
+                    exactMatch?: boolean,
+                ) => Promise<NetworkInspectInfo[]>;
+                getContainerNetworks: (
+                    containerId: string,
+                ) => Promise<ContainerInspectInfo['NetworkSettings']['Networks']>;
+                getNetworkContainers: (
+                    networkId: string,
+                ) => Promise<NetworkInspectInfo['Containers']>;
             };
         };
         wordpress: {
             setup: (
-                progress: (event: { step: string; status: 'starting' | 'success' | 'error'; message?: string }) => void,
-                options?: { force?: boolean; grafanaAuth?: { username: string; password: string } }
+                progress: (event: {
+                    step: string;
+                    status: 'starting' | 'success' | 'error';
+                    message?: string;
+                }) => void,
+                options?: { force?: boolean; grafanaAuth?: { username: string; password: string } },
             ) => Promise<{ success: boolean }>;
-            create: (options: import('../services/docker/wordpress/create.ts').WordPressCreateOptions) => Promise<{
+            create: (
+                options: import('../services/docker/wordpress/create.ts').WordPressCreateOptions,
+            ) => Promise<{
                 id: string;
-                name: string
+                name: string;
             }>;
-            clone: (sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo) => Promise<ContainerInspectInfo>;
-            changeUrl: (container: ContainerInspectInfo, newUrl: string) => Promise<ContainerInspectInfo>;
+            clone: (
+                sourceContainer: import('../services/docker/connection/try-to-connect.ts').ContainerInspectInfo,
+            ) => Promise<ContainerInspectInfo>;
+            changeUrl: (
+                container: ContainerInspectInfo,
+                newUrl: string,
+            ) => Promise<ContainerInspectInfo>;
             checkUpdates: () => Promise<string[]>;
-            update: (containerId: string) => Promise<import('../services/docker/wordpress/update.ts').WordPressUpdateContainerResult>;
-            delete: (options: import('../services/docker/wordpress/delete.ts').WordPressDeleteOptions) => Promise<void>;
+            update: (
+                containerId: string,
+            ) => Promise<
+                import('../services/docker/wordpress/update.ts').WordPressUpdateContainerResult
+            >;
+            delete: (
+                options: import('../services/docker/wordpress/delete.ts').WordPressDeleteOptions,
+            ) => Promise<void>;
         };
     };
     storage: {
         app: {
             get: () => Promise<import('../services/storage/app/app.type.ts').AppSavedConfig>;
-            save: (appConfig: import('../services/storage/app/app.type.ts').AppSavedConfig) => Promise<void>;
+            save: (
+                appConfig: import('../services/storage/app/app.type.ts').AppSavedConfig,
+            ) => Promise<void>;
             clear: () => Promise<void>;
         };
         ssh: {
             get: () => Promise<import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig>;
-            save: (sshConfig: import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig) => Promise<void>;
+            save: (
+                sshConfig: import('../services/storage/ssh/ssh.type.ts').SSHSavedConfig,
+            ) => Promise<void>;
             clear: () => Promise<void>;
         };
     };
     passwords: {
-        discover: () => Promise<import('../services/runtime/passwords/password-manager.ts').PasswordState>;
-        getState: () => Promise<import('../services/runtime/passwords/password-manager.ts').PasswordState>;
+        discover: () => Promise<
+            import('../services/runtime/passwords/password-manager.ts').PasswordState
+        >;
+        getState: () => Promise<
+            import('../services/runtime/passwords/password-manager.ts').PasswordState
+        >;
         status: () => Promise<{
             rootPresent: boolean;
             metricsPresent: boolean;
@@ -104,7 +138,10 @@ interface ElectronAPI {
             projects: string[];
             initialized: boolean;
         }>;
-        registerProject: (projectName: string, creds: import('../services/runtime/passwords/password-manager.ts').WordPressProjectCredentials) => Promise<boolean>;
+        registerProject: (
+            projectName: string,
+            creds: import('../services/runtime/passwords/password-manager.ts').WordPressProjectCredentials,
+        ) => Promise<boolean>;
         reset: () => Promise<boolean>;
     };
 }

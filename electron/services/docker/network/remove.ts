@@ -23,7 +23,10 @@ export default async function remove(networkId: string, force: boolean = false):
                     try {
                         await network.disconnect({ Container: containerId, Force: true });
                     } catch (disconnectError) {
-                        console.warn(`Failed to disconnect container ${containerId}:`, disconnectError);
+                        console.warn(
+                            `Failed to disconnect container ${containerId}:`,
+                            disconnectError,
+                        );
                     }
                 }
             }

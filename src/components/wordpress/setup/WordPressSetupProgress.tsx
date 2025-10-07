@@ -80,7 +80,7 @@ export default function WordPressSetupProgress({
         }
     };
 
-    const getStepBadgeVariant = (status: any) => {
+    const getStepBadgeVariant = (status: string) => {
         switch (status) {
             case 'running':
                 return 'default';
@@ -93,7 +93,7 @@ export default function WordPressSetupProgress({
         }
     };
 
-    const getStepBadgeText = (status: any) => {
+    const getStepBadgeText = (status: string) => {
         switch (status) {
             case 'running':
                 return 'Running...';
@@ -128,10 +128,9 @@ export default function WordPressSetupProgress({
 
         dispatch(
             runWordPressSetup({
-                grafanaAuth:
-                    grafanaAuthNeeded
-                        ? { username: grafanaUsername, password: grafanaPassword }
-                        : undefined,
+                grafanaAuth: grafanaAuthNeeded
+                    ? { username: grafanaUsername, password: grafanaPassword }
+                    : undefined,
             }),
         );
     }, [dispatch, grafanaAuthNeeded, grafanaUsername, grafanaPassword, isSetupRunning]);
@@ -179,8 +178,9 @@ export default function WordPressSetupProgress({
                         ) : (
                             <>
                                 <RotateCw className='mr-2 h-4 w-4' />
-                                <span className='hidden min-[350px]:block'>Retry Setup with Grafana credentials
-                                    </span>
+                                <span className='hidden min-[350px]:block'>
+                                    Retry Setup with Grafana credentials
+                                </span>
                             </>
                         )}
                     </Button>
@@ -257,10 +257,10 @@ export default function WordPressSetupProgress({
                                             step.status === 'running'
                                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-400'
                                                 : step.status === 'success'
-                                                ? 'border-green-500 bg-green-50 dark:bg-green-950/40 dark:border-green-400'
-                                                : step.status === 'error'
-                                                ? 'border-red-500 bg-red-50 dark:bg-red-950/40 dark:border-red-400'
-                                                : 'border-gray-300 bg-gray-50 dark:bg-gray-800/40 dark:border-gray-600'
+                                                  ? 'border-green-500 bg-green-50 dark:bg-green-950/40 dark:border-green-400'
+                                                  : step.status === 'error'
+                                                    ? 'border-red-500 bg-red-50 dark:bg-red-950/40 dark:border-red-400'
+                                                    : 'border-gray-300 bg-gray-50 dark:bg-gray-800/40 dark:border-gray-600'
                                         }`}
                                     >
                                         <div className='flex flex-row items-center gap-3 w-full max-w-full min-w-0 overflow-hidden'>

@@ -1,4 +1,4 @@
-import docker from "../index.ts";
+import docker from '../index.ts';
 
 /**
  * Stop a container
@@ -7,10 +7,7 @@ import docker from "../index.ts";
  * @param {number} options.t - Seconds to wait before killing the container (default: 10)
  * @returns {Promise<void>} A promise that resolves when the container is stopped
  */
-export const stop = async (
-    containerId: string,
-    options: { t?: number } = {}
-): Promise<void> => {
+export const stop = async (containerId: string, options: { t?: number } = {}): Promise<void> => {
     try {
         const client = docker.client.getClient();
         if (!client) {
@@ -21,7 +18,7 @@ export const stop = async (
 
         // Default timeout of 10 seconds if not specified
         const stopOptions = {
-            t: options.t !== undefined ? options.t : 10
+            t: options.t !== undefined ? options.t : 10,
         };
 
         await container.stop(stopOptions);

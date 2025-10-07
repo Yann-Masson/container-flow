@@ -1,4 +1,4 @@
-import docker from "../index.ts";
+import docker from '../index.ts';
 
 /**
  * Remove a container
@@ -13,7 +13,7 @@ export const remove = async (
     options: {
         volume?: boolean;
         force?: boolean;
-    } = {}
+    } = {},
 ): Promise<void> => {
     try {
         const client = docker.client.getClient();
@@ -26,7 +26,7 @@ export const remove = async (
         // Set default options
         const removeOptions = {
             v: options.volume !== undefined ? options.volume : false,
-            force: options.force !== undefined ? options.force : false
+            force: options.force !== undefined ? options.force : false,
         };
 
         await container.remove(removeOptions);

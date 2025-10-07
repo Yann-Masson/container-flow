@@ -4,7 +4,7 @@ import { create as createContainer } from '../containers/create';
 import { start as startContainer } from '../containers/start';
 import connectToNetwork from '../network/connect';
 import wordpress from '../configs/wordpress';
-import { getById } from "../containers/get-by-id.ts";
+import { getById } from '../containers/get-by-id.ts';
 import { getFullDomain } from '../../../config/domains.ts';
 
 /**
@@ -39,13 +39,18 @@ export default async function clone(
         const currentNumber = match ? parseInt(match[2], 10) : 1;
         const name = `${baseName}-${currentNumber + 1}`;
 
-        if (!sourceEnv.some(env => env.startsWith('WORDPRESS_DB_NAME='))) {
-            throw new Error('Source container does not have a valid WordPress database configuration');
+        if (!sourceEnv.some((env) => env.startsWith('WORDPRESS_DB_NAME='))) {
+            throw new Error(
+                'Source container does not have a valid WordPress database configuration',
+            );
         }
         if (!sourceLabels['traefik.http.routers.' + sourceName + '.rule']) {
             throw new Error('Source container does not have a valid Traefik rule');
         }
-        if (!sourceHostConfig.Binds || !sourceHostConfig.Binds.some(bind => bind.startsWith('wordpress-'))) {
+        if (
+            !sourceHostConfig.Binds ||
+            !sourceHostConfig.Binds.some((bind) => bind.startsWith('wordpress-'))
+        ) {
             throw new Error('Source container does not have a valid volume bind');
         }
 
@@ -65,10 +70,16 @@ export default async function clone(
         await connectToNetwork('CF-WP', { Container: container.id });
         await startContainer(container.id);
 
-        console.log(`WordPress container '${name}' cloned successfully from '${sourceContainer.Name}'!`);
-        console.log(`Shared Database: ${sourceContainer.Config.Env?.find(env => env.startsWith('WORDPRESS_DB_NAME='))?.split('=')[1] || 'unknown'}`);
+        console.log(
+            `WordPress container '${name}' cloned successfully from '${sourceContainer.Name}'!`,
+        );
+        console.log(
+            `Shared Database: ${sourceContainer.Config.Env?.find((env) => env.startsWith('WORDPRESS_DB_NAME='))?.split('=')[1] || 'unknown'}`,
+        );
         console.log(`Shared Volume: wordpress-${sourceName}-data`);
-        console.log(`Access URL: https://${sourceContainer.Config.Labels?.['traefik.http.routers.' + sourceName + '.rule']?.replace('Host("', '').replace('")', '') || getFullDomain(name, 'main')}`);
+        console.log(
+            `Access URL: https://${sourceContainer.Config.Labels?.['traefik.http.routers.' + sourceName + '.rule']?.replace('Host("', '').replace('")', '') || getFullDomain(name, 'main')}`,
+        );
 
         return await getById(container.id);
     } catch (error) {

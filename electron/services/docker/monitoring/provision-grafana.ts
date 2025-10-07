@@ -8,7 +8,7 @@ export interface ProvisionGrafanaOptions {
     dashboards: Array<{
         title: string;
         uid?: string;
-        json: any; // full dashboard JSON structure
+        json: Record<string, unknown>; // full dashboard JSON structure
         folderId?: number; // 0 = General
     }>;
 }
@@ -24,9 +24,7 @@ interface ProvisionResult {
  * Provision Grafana: ensure Prometheus datasource + optional dashboards.
  * Idempotent & safe to call multiple times.
  */
-export async function provisionGrafana(
-    opts: ProvisionGrafanaOptions,
-): Promise<ProvisionResult> {
+export async function provisionGrafana(opts: ProvisionGrafanaOptions): Promise<ProvisionResult> {
     const {
         baseUrl,
         username,
@@ -42,7 +40,7 @@ export async function provisionGrafana(
         try {
             const r = await fetch(`${baseUrl}/api/health`);
             if (r.ok) break;
-        } catch (e) {
+        } catch {
             // ignore until attempts exhausted
         }
         if (i === retry.attempts - 1) {
@@ -56,7 +54,7 @@ export async function provisionGrafana(
 
     let created = false;
     let updated = false;
-    let finalInfo: any = null;
+    let finalInfo: { id?: number; uid?: string; [key: string]: unknown } | null = null;
 
     console.log('[Grafana] Checking existing datasource');
     let dsResp = await fetch(
@@ -107,7 +105,7 @@ export async function provisionGrafana(
     }
 
     // Update URL if it changed (e.g., prometheus service address changed)
-    if (!created && finalInfo.url !== prometheusUrl) {
+    if (!created && finalInfo && finalInfo.url !== prometheusUrl) {
         console.log('[Grafana] Updating datasource URL');
         const upd = await fetch(`${baseUrl}/api/datasources/${finalInfo.id}`, {
             method: 'PUT',
@@ -136,19 +134,21 @@ export async function provisionGrafana(
 
     // Some dashboard JSONs may carry placeholder datasource references with uid: 'PROMETHEUS_DS'.
     // Replace them dynamically with the real datasource UID.
-    const patchDashboardDatasources = (dash: any) => {
+    const patchDashboardDatasources = (dash: unknown): unknown => {
         if (!dash || typeof dash !== 'object') return dash;
-        const traverse = (obj: any) => {
+        const traverse = (obj: unknown): void => {
             if (Array.isArray(obj)) {
                 obj.forEach(traverse);
             } else if (obj && typeof obj === 'object') {
-                if (obj.datasource && typeof obj.datasource === 'object') {
-                    if (obj.datasource.uid === 'PROMETHEUS_DS') {
-                        obj.datasource.uid = finalInfo.uid || finalInfo.id?.toString();
-                        obj.datasource.type = 'prometheus';
+                const record = obj as Record<string, unknown>;
+                if (record.datasource && typeof record.datasource === 'object') {
+                    const datasource = record.datasource as Record<string, unknown>;
+                    if (datasource.uid === 'PROMETHEUS_DS') {
+                        datasource.uid = finalInfo?.uid || finalInfo?.id?.toString();
+                        datasource.type = 'prometheus';
                     }
                 }
-                Object.values(obj).forEach(traverse);
+                Object.values(record).forEach(traverse);
             }
         };
         traverse(dash);
@@ -156,47 +156,43 @@ export async function provisionGrafana(
     };
 
     for (const dash of dashboards) {
-            console.log(`[Grafana] Importing dashboard: ${dash.title}`);
-            const dashboardPatched = patchDashboardDatasources({
-                ...dash.json,
-                title: dash.title,
-                uid: dash.uid,
-            });
-            const payload = {
-                dashboard: dashboardPatched,
-                overwrite: true,
-                folderId: dash.folderId ?? 0,
-                message: 'Automated provisioning',
-            };
+        console.log(`[Grafana] Importing dashboard: ${dash.title}`);
+        const dashboardPatched = patchDashboardDatasources({
+            ...dash.json,
+            title: dash.title,
+            uid: dash.uid,
+        });
+        const payload = {
+            dashboard: dashboardPatched,
+            overwrite: true,
+            folderId: dash.folderId ?? 0,
+            message: 'Automated provisioning',
+        };
 
-            const alreadyExistsResp = await fetch(
-                `${baseUrl}/api/dashboards/uid/${encodeURIComponent(
-                    dash.uid || dashboardPatched.uid,
-                )}`,
-                { headers },
+        const alreadyExistsResp = await fetch(
+            `${baseUrl}/api/dashboards/uid/${encodeURIComponent(dash.uid || (dashboardPatched as { uid?: string }).uid || '')}`,
+            { headers },
+        );
+        if (alreadyExistsResp.ok) {
+            continue;
+        }
+
+        const r = await fetch(`${baseUrl}/api/dashboards/db`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload),
+        });
+        if (!r.ok) {
+            console.log(
+                `[Grafana] Dashboard import failed (${dash.title}): ${r.status} ${await r.text()}`,
             );
-            if (alreadyExistsResp.ok) {
-                continue;
-            }
-
-            const r = await fetch(`${baseUrl}/api/dashboards/db`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(payload),
-            });
-            if (!r.ok) {
-                console.log(
-                    `[Grafana] Dashboard import failed (${dash.title}): ${
-                        r.status
-                    } ${await r.text()}`,
-                );
-                continue;
-            }
-            dashboardsImported++;
+            continue;
+        }
+        dashboardsImported++;
     }
 
     console.log('[Grafana] Provisioning complete');
-    return { created, updated, datasourceId: finalInfo.id, dashboardsImported };
+    return { created, updated, datasourceId: finalInfo?.id || 0, dashboardsImported };
 }
 
 export default provisionGrafana;

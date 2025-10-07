@@ -73,7 +73,9 @@ export function EnvironmentTab({ envVars, setEnvVars, labels, setLabels }: Envir
                                         type='button'
                                         variant='ghost'
                                         size='sm'
-                                        onClick={() => setEnvVars(envVars.filter((_, i) => i !== index))}
+                                        onClick={() =>
+                                            setEnvVars(envVars.filter((_, i) => i !== index))
+                                        }
                                         className='opacity-60 group-hover/env:opacity-100 transition'
                                     >
                                         <Trash2 className='h-4 w-4' />
@@ -82,7 +84,8 @@ export function EnvironmentTab({ envVars, setEnvVars, labels, setLabels }: Envir
                             ))}
                             {envVars.length === 0 && (
                                 <p className='text-sm text-muted-foreground text-center py-4'>
-                                    No environment variables defined. Click "Add Variable" to add one.
+                                    No environment variables defined. Click "Add Variable" to add
+                                    one.
                                 </p>
                             )}
                         </div>
@@ -139,7 +142,9 @@ export function EnvironmentTab({ envVars, setEnvVars, labels, setLabels }: Envir
                                         type='button'
                                         variant='ghost'
                                         size='sm'
-                                        onClick={() => setLabels(labels.filter((_, i) => i !== index))}
+                                        onClick={() =>
+                                            setLabels(labels.filter((_, i) => i !== index))
+                                        }
                                         className='opacity-60 group-hover/label:opacity-100 transition'
                                     >
                                         <Trash2 className='h-4 w-4' />
