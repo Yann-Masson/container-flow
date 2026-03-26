@@ -1,7 +1,7 @@
 {
   "name": "container-flow",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "A desktop application to manage your Docker containers",
   "author": "Yann Masson",

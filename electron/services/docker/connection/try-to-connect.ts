@@ -1,6 +1,6 @@
 import Docker from 'dockerode';
 import net from 'net';
-import { createMySQLTunnel, LOCAL_PORT, REMOTE_SOCKET, state } from '../client';
+import { createMySQLTunnel, LOCAL_PORT, REMOTE_SOCKET, state, resetClient } from '../client';
 import { Client } from 'ssh2';
 
 export interface SSHConfig {
@@ -82,12 +82,14 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
 
             state.server!.on('error', (err) => {
                 console.error('Server error:', err);
+                resetClient();
                 reject(err);
             });
         });
 
         state.sshClient.on('error', (err) => {
             console.error('SSH error:', err);
+            resetClient();
             reject(err);
         });
 

@@ -1,4 +1,4 @@
-const main = 'yann-masson.fr';
+const main = 'agence-lumia.com';
 
 export const domainConfig = {
     main,
