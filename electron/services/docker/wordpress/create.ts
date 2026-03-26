@@ -7,6 +7,7 @@ import wordpress from '../configs/wordpress';
 import utils from './utils';
 import passwordManager from '../../runtime/passwords';
 import { getFullDomain } from '../../../config/domains';
+import { ensureWordpressPhpIni } from '../configs/php-ini';
 
 export interface WordPressCreateOptions {
     name: string;
@@ -59,7 +60,10 @@ export default async function create(
         console.log('Waiting for MySQL to process user creation...');
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // 2. Prepare WordPress container configuration
+        // 2. Upload the custom PHP ini file to the VPS so Docker can bind-mount it
+        const phpIniPath = await ensureWordpressPhpIni();
+
+        // 3. Prepare WordPress container configuration
         const wordpressConfig: ContainerCreateOptions = {
             ...wordpress,
             name: `wordpress-${name}-1`,
@@ -68,6 +72,7 @@ export default async function create(
                 `WORDPRESS_DB_USER=${dbUser}`,
                 `WORDPRESS_DB_PASSWORD=${dbPassword}`,
                 `WORDPRESS_DB_NAME=${dbName}`,
+                "WORDPRESS_CONFIG_EXTRA=define('WP_MEMORY_LIMIT','512M'); define('WP_MAX_MEMORY_LIMIT','512M'); @ini_set('max_execution_time','300');",
             ],
             Labels: {
                 'traefik.enable': 'true',
@@ -80,12 +85,15 @@ export default async function create(
             },
             HostConfig: {
                 ...wordpress.HostConfig,
-                Binds: [`wordpress-${name}-data:/var/www/html`],
+                Binds: [
+                    `wordpress-${name}-data:/var/www/html`,
+                    `${phpIniPath}:/usr/local/etc/php/conf.d/z-wordpress-custom.ini:ro`,
+                ],
                 PortBindings: {},
             },
         };
 
-        // 3. Create and start WordPress container
+        // 4. Create and start WordPress container
         const container = await createContainer(wordpressConfig);
 
         // Connect to network

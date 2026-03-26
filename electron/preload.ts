@@ -95,6 +95,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
             checkUpdates: () => ipcRenderer.invoke('docker:wordpress:checkUpdates'),
             update: (containerId: string) =>
                 ipcRenderer.invoke('docker:wordpress:update', containerId),
+            migrate: (
+                progress: (event: { step: string; status: string; message?: string }) => void,
+                options?: { forceInfra?: boolean; grafanaAuth?: { username: string; password: string } },
+            ) => {
+                const handler = (
+                    _: Electron.IpcRendererEvent,
+                    event: { step: string; status: string; message?: string },
+                ) => {
+                    progress(event);
+                };
+                ipcRenderer.on('wordpress:migrate:progress', handler);
+                return ipcRenderer.invoke('docker:wordpress:migrate', options).finally(() => {
+                    ipcRenderer.removeListener('wordpress:migrate:progress', handler);
+                });
+            },
             delete: (options: WordPressDeleteOptions) =>
                 ipcRenderer.invoke('docker:wordpress:delete', options),
         },

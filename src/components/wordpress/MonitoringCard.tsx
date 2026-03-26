@@ -4,7 +4,7 @@ import { Activity, ExternalLink, BarChart3, Database, Network, Server } from 'lu
 import { domainConfig } from '../../../electron/config/domains';
 
 export default function MonitoringCard() {
-    const monitoringUrl = `https://${domainConfig.monitoring}`;
+    const monitoringUrl = `http://${domainConfig.monitoring}`;
 
     const openMonitoring = async () => {
         await window.electronAPI.system.openExternal(monitoringUrl);

@@ -3,7 +3,7 @@ import { ContainerCreateOptions } from 'dockerode';
 export function buildMySqlConfig(rootPassword: string): ContainerCreateOptions {
     return {
         name: 'mysql',
-        Image: 'mysql:5.7',
+        Image: 'mysql:9.6',
         ExposedPorts: {
             '3306/tcp': {},
         },

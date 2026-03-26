@@ -93,6 +93,19 @@ interface ElectronAPI {
             ) => Promise<
                 import('../services/docker/wordpress/update.ts').WordPressUpdateContainerResult
             >;
+            migrate: (
+                progress: (event: {
+                    step: string;
+                    status: 'starting' | 'success' | 'error';
+                    message?: string;
+                }) => void,
+                options?: {
+                    forceInfra?: boolean;
+                    grafanaAuth?: { username: string; password: string };
+                },
+            ) => Promise<
+                import('../services/docker/wordpress/migrate.ts').WordPressMigrationResult
+            >;
             delete: (
                 options: import('../services/docker/wordpress/delete.ts').WordPressDeleteOptions,
             ) => Promise<void>;

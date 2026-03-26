@@ -13,6 +13,9 @@ const grafana: ContainerCreateOptions = {
     },
     HostConfig: {
         Binds: ['grafana-data:/var/lib/grafana'],
+        PortBindings: {
+            '3000/tcp': [{ HostIp: '127.0.0.1', HostPort: '3000' }],
+        },
         RestartPolicy: { Name: 'always', MaximumRetryCount: 0 },
     },
     Env: [
@@ -26,12 +29,18 @@ const grafana: ContainerCreateOptions = {
     Labels: {
         'com.containerflow.monitoring': 'true',
         'traefik.enable': 'true',
+        'traefik.http.services.grafana.loadbalancer.server.port': '3000',
+        // TLS router for HTTPS access
         'traefik.http.routers.grafana.rule': `Host(\`${domainConfig.monitoring}\`)`,
         'traefik.http.routers.grafana.entrypoints': 'websecure',
         'traefik.http.routers.grafana.tls': 'true',
         'traefik.http.routers.grafana.tls.certresolver': 'letsencrypt',
         'traefik.http.routers.grafana.priority': '100',
-        'traefik.http.services.grafana.loadbalancer.server.port': '3000',
+        // Plain HTTP router for non-TLS access
+        'traefik.http.routers.grafana-http.rule': `Host(\`${domainConfig.monitoring}\`)`,
+        'traefik.http.routers.grafana-http.entrypoints': 'web',
+        'traefik.http.routers.grafana-http.service': 'grafana',
+        'traefik.http.routers.grafana-http.priority': '90',
     },
 };
 

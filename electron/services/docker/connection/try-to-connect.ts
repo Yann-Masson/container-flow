@@ -21,17 +21,42 @@ export const tryToConnect = (config: SSHConfig): Promise<void> => {
 
             state.connected = true;
 
+            // socat is preferred; nc -U (OpenBSD netcat) is the fallback
+            const BRIDGE_CMD = `socat - UNIX-CONNECT:${REMOTE_SOCKET} 2>/dev/null || nc -U ${REMOTE_SOCKET}`;
+
             state.server = net.createServer((localSocket) => {
-                state.sshClient!.exec(`socat - UNIX-CONNECT:${REMOTE_SOCKET}`, (err, stream) => {
+                state.sshClient!.exec(BRIDGE_CMD, (err, stream) => {
                     if (err) {
-                        console.error('Error creating socat stream:', err);
+                        console.error(
+                            'Error creating Docker socket tunnel (is socat or nc installed on the VPS?):',
+                            err,
+                        );
                         localSocket.destroy();
                         return;
                     }
 
                     console.log('Tunnel created for Docker socket');
 
+                    stream.stderr.on('data', (data: Buffer) => {
+                        console.error(
+                            'Docker tunnel stderr (socat/nc not installed on VPS?):\n' +
+                                data.toString(),
+                        );
+                    });
+
+                    stream.on('close', (code: number) => {
+                        if (code !== 0 && code !== null) {
+                            console.error(
+                                `Docker socket bridge exited with code ${code}. ` +
+                                    'Install socat on the VPS: sudo apt-get install -y socat',
+                            );
+                        }
+                        localSocket.destroy();
+                    });
+
                     localSocket.pipe(stream).pipe(localSocket);
+
+                    localSocket.on('close', () => stream.close());
                 });
             });
 

@@ -1,6 +1,17 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Loader2, RefreshCw, ArrowUpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import WordPressProjectCard from './WordPressProjectCard';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -19,6 +30,8 @@ import { State } from '@/utils/state/basic-state';
 
 export default function WordPressList() {
     const dispatch = useAppDispatch();
+    const [isMigrating, setIsMigrating] = useState(false);
+    const [migrationMessage, setMigrationMessage] = useState<string | null>(null);
 
     // Redux state
     const projects = useAppSelector(selectProjects);
@@ -47,6 +60,38 @@ export default function WordPressList() {
             });
         }
     }, [dispatch]);
+
+    const handleMigration = useCallback(async () => {
+        if (isMigrating) return;
+
+        setIsMigrating(true);
+        setMigrationMessage('Starting migration...');
+
+        try {
+            const result = await window.electronAPI.docker.wordpress.migrate(
+                (event) => {
+                    if (event?.message) {
+                        setMigrationMessage(event.message);
+                    } else {
+                        setMigrationMessage(`${event.step}: ${event.status}`);
+                    }
+                },
+                { forceInfra: true },
+            );
+
+            await retrieveContainers();
+
+            toast.success('WordPress migration completed', {
+                description: `${result.migratedCount} container(s) upgraded to the latest configuration.`,
+            });
+        } catch (error) {
+            toast.error('WordPress migration failed', {
+                description: error instanceof Error ? error.message : 'Unknown error',
+            });
+        } finally {
+            setIsMigrating(false);
+        }
+    }, [isMigrating, retrieveContainers]);
 
     useEffect(() => {
         retrieveContainers();
@@ -80,19 +125,54 @@ export default function WordPressList() {
                         </div>
                     )}
                 </div>
-                <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={retrieveContainers}
-                    disabled={isRefreshing}
-                >
-                    {isRefreshing ? (
-                        <Loader2 className='h-4 w-4 animate-spin' />
-                    ) : (
-                        <RefreshCw className='h-4 w-4' />
-                    )}
-                </Button>
+                <div className='flex items-center gap-2'>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant='default' size='sm' disabled={isMigrating || isRefreshing}>
+                                {isMigrating ? (
+                                    <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                                ) : (
+                                    <ArrowUpCircle className='h-4 w-4 mr-2' />
+                                )}
+                                {isMigrating ? 'Migrating...' : 'Migrate Stack'}
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Migrate WordPress Stack?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will reconcile infrastructure and recreate managed WordPress
+                                    containers with the latest configuration. Data volumes are kept,
+                                    but containers may restart briefly.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleMigration}>
+                                    Run Migration
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={retrieveContainers}
+                        disabled={isRefreshing || isMigrating}
+                    >
+                        {isRefreshing ? (
+                            <Loader2 className='h-4 w-4 animate-spin' />
+                        ) : (
+                            <RefreshCw className='h-4 w-4' />
+                        )}
+                    </Button>
+                </div>
             </div>
+
+            {migrationMessage && (
+                <p className='text-xs text-muted-foreground'>Migration: {migrationMessage}</p>
+            )}
 
             {projectCount === 0 && status !== State.LOADING && (
                 <p className='text-sm text-gray-500'>

@@ -7,6 +7,7 @@ import utils from './utils';
 import changeUrl from './change-url';
 import { checkWordPressUpdates } from './check-updates';
 import { updateWordPressContainer } from './update';
+import migrateWordPressStack from './migrate';
 
 export default {
     setup,
@@ -15,6 +16,7 @@ export default {
     delete: deleteWordPress,
     changeUrl,
     update: updateWordPressContainer,
+    migrate: migrateWordPressStack,
     checkUpdates: checkWordPressUpdates,
     validate,
     utils,

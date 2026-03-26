@@ -22,6 +22,7 @@ const wordpress: ContainerCreateOptions = {
         'WORDPRESS_DB_USER=wordpress',
         'WORDPRESS_DB_PASSWORD=wordpress',
         'WORDPRESS_DB_NAME=wordpress',
+        "WORDPRESS_CONFIG_EXTRA=define('WP_MEMORY_LIMIT','512M'); define('WP_MAX_MEMORY_LIMIT','512M'); @ini_set('max_execution_time','300');",
     ],
     Labels: {
         'traefik.enable': 'true',

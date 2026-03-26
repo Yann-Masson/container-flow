@@ -78,6 +78,22 @@ export function setupWordPressHandlers(
         }
     });
 
+    ipcMain.handle('docker:wordpress:migrate', async (_, options) => {
+        try {
+            const win = getWin();
+            return await services.docker.wordpress.migrate(options, (step, status, message) => {
+                win?.webContents.send('wordpress:migrate:progress', {
+                    step,
+                    status,
+                    message,
+                });
+            });
+        } catch (error) {
+            log(`Error in docker:wordpress:migrate: ${error}`);
+            throw error;
+        }
+    });
+
     ipcMain.handle('docker:wordpress:delete', async (_, options) => {
         try {
             return await services.docker.wordpress.delete(options);

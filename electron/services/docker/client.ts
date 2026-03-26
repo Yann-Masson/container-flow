@@ -10,11 +10,13 @@ export const state = {
     server: null as net.Server | null,
     dockerClient: null as Docker | null,
     mysqlServer: null as net.Server | null,
+    grafanaServer: null as net.Server | null,
 };
 
 // Constants
 export const LOCAL_PORT = 23750;
 export const MYSQL_LOCAL_PORT = 23751;
+export const GRAFANA_LOCAL_PORT = 23752;
 export const DOCKER_SOCKET = '/var/run/docker.sock';
 export const REMOTE_SOCKET = '/var/run/docker.sock';
 
@@ -77,6 +79,47 @@ export const createMySQLTunnel = (): Promise<void> => {
 };
 
 /**
+ * Create Grafana tunnel through SSH
+ * Forwards localhost:GRAFANA_LOCAL_PORT → remote 127.0.0.1:3000
+ * Requires Grafana container to have PortBindings '3000' → host port 3000.
+ * @returns {Promise<void>}
+ */
+export const createGrafanaTunnel = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        if (!state.sshClient || !state.connected) {
+            reject(new Error('SSH client not connected'));
+            return;
+        }
+
+        if (state.grafanaServer) {
+            resolve(); // Tunnel already exists
+            return;
+        }
+
+        state.grafanaServer = net.createServer((localSocket) => {
+            state.sshClient!.forwardOut('127.0.0.1', 0, '127.0.0.1', 3000, (err, stream) => {
+                if (err) {
+                    console.error('Error creating Grafana tunnel:', err);
+                    localSocket.destroy();
+                    return;
+                }
+                localSocket.pipe(stream).pipe(localSocket);
+            });
+        });
+
+        state.grafanaServer.listen(GRAFANA_LOCAL_PORT, '127.0.0.1', () => {
+            console.log(`Grafana tunnel ready on localhost:${GRAFANA_LOCAL_PORT}`);
+            resolve();
+        });
+
+        state.grafanaServer.on('error', (err) => {
+            console.error('Grafana tunnel error:', err);
+            reject(err);
+        });
+    });
+};
+
+/**
  * Get MySQL connection options for tunneled connection
  * @returns {object} MySQL connection options
  */
@@ -116,6 +159,15 @@ export const resetClient = (): void => {
             console.error('Error closing MySQL server:', error);
         }
         state.mysqlServer = null;
+    }
+
+    if (state.grafanaServer) {
+        try {
+            state.grafanaServer.close();
+        } catch (error) {
+            console.error('Error closing Grafana server:', error);
+        }
+        state.grafanaServer = null;
     }
 
     if (state.sshClient) {

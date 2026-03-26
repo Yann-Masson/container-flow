@@ -28,6 +28,10 @@ export default function get(): AppSavedConfig {
             ...stored,
         };
     } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            // No config saved yet — expected on first run
+            return defaultAppConfig;
+        }
         console.error('Error reading encrypted config:', error);
         return defaultAppConfig;
     }

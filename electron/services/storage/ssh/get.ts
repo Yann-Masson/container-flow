@@ -25,6 +25,10 @@ export default function get(): SSHSavedConfig {
 
         return preferences.ssh || defaultSSHConfig;
     } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            // No preferences saved yet — expected on first run
+            return defaultSSHConfig;
+        }
         console.error('Error reading encrypted preferences:', error);
         return defaultSSHConfig;
     }

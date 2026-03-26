@@ -10,12 +10,17 @@ import {
 import { EnsureContext } from './types';
 import getAppConfig from '../../../../storage/app/get';
 import saveAppConfig from '../../../../storage/app/save';
-import { domainConfig } from '../../../../../config/domains';
+import { createGrafanaTunnel, GRAFANA_LOCAL_PORT } from '../../../client';
 
 export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<void> {
     const { progress, grafanaAuth } = ctx;
     try {
         progress?.('grafana-provision', 'starting', 'Provisioning Grafana datasource...');
+
+        // Ensure the Grafana SSH tunnel is open before making HTTP requests.
+        // Grafana is not directly reachable from the Electron process —
+        // we tunnel localhost:GRAFANA_LOCAL_PORT → VPS 127.0.0.1:3000.
+        await createGrafanaTunnel();
 
         const stored = getAppConfig();
 
@@ -38,7 +43,7 @@ export async function provisionGrafanaDashboards(ctx: EnsureContext): Promise<vo
                   : 'admin';
 
         const result = await provisionGrafana({
-            baseUrl: `https://${domainConfig.monitoring}`,
+            baseUrl: `http://127.0.0.1:${GRAFANA_LOCAL_PORT}`,
             username: usedUsername,
             password: usedPassword,
             datasourceName: 'Prometheus',

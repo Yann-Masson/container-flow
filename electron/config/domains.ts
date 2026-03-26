@@ -1,8 +1,10 @@
+const main = 'yann-masson.fr';
+
 export const domainConfig = {
-    main: 'agence-lumia.com',
-    internal: 'internal.agence-lumia.com',
-    email: 'contact@agence-lumia.com',
-    monitoring: 'monitoring.internal.agence-lumia.com',
+    main,
+    internal: 'internal.' + main,
+    email: 'contact@' + main,
+    monitoring: 'monitoring.internal.' + main,
 } as const;
 
 export function getFullDomain(subdomain: string, scope: 'main' | 'internal' = 'main'): string {

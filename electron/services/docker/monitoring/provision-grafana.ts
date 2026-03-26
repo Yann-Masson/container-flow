@@ -39,6 +39,7 @@ export async function provisionGrafana(opts: ProvisionGrafanaOptions): Promise<P
     for (let i = 0; i < retry.attempts; i++) {
         try {
             const r = await fetch(`${baseUrl}/api/health`);
+            console.log(`[Grafana] Health check status: ${r.status}`);
             if (r.ok) break;
         } catch {
             // ignore until attempts exhausted
